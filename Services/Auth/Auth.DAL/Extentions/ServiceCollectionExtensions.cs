@@ -20,6 +20,14 @@ namespace Auth.DAL.Extentions
             services.AddDbContext<AuthDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            // Apply pending migrations at startup
+            var serviceProvider = services.BuildServiceProvider();
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                dbContext.Database.Migrate();
+            }
+
             return services;
         }
     }
