@@ -8,13 +8,16 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-        <NoWarn>$(NoWarn),1573,1591,1712</NoWarn>
+        <!-- <NoWarn>$(NoWarn),1573,1591,1712</NoWarn> -->
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SonarAnalyzer.CSharp">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="SonarAnalyzer.CSharp"
+            Condition="$(MSBuildProjectExtension) == '.csproj'">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="StyleCop.Analyzers"
+            Condition="$(MSBuildProjectExtension) == '.csproj'">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
     </ItemGroup>
