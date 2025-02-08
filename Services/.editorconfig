@@ -376,3 +376,6 @@ dotnet_diagnostic.IDE0058.severity = none
 # disable rules for Migration files 
 [**/Migrations/*.cs]
 generated_code = true
+
+# S1135: Track uses of "TODO" tags
+dotnet.diagnostic.S1135.severity = warning

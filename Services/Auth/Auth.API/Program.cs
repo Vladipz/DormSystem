@@ -1,24 +1,106 @@
+using System.Text;
+
+using Auth.BLL.Interfaces;
+using Auth.BLL.Models;
+using Auth.BLL.Services;
+using Auth.DAL.Data;
+using Auth.DAL.Entities;
 using Auth.DAL.Extentions;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Your API Name",
+        Version = "v1",
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
+
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddDalServices(builder.Configuration);
 
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+
+var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("JwtSettings section is not configured");
+
+builder.Services.AddIdentity<User, Role>()
+               .AddEntityFrameworkStores<AuthDbContext>()
+               .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+#pragma warning disable CA5404
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+    };
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Якщо розробка, то налаштовуємо Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API Name v1"));
 }
 
+// Для перехоплення та перенаправлення на HTTPS
 app.UseHttpsRedirection();
 
+// Реєстрація маршрутів контролерів
+app.MapControllers();
+
+// Запуск програми
 await app.RunAsync();
