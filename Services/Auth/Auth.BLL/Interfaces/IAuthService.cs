@@ -5,13 +5,13 @@ namespace Auth.BLL.Interfaces
     public interface IAuthService
     {
         // Повертає JWT access token для автентифікованого користувача
-        Task<ErrorOr<string>> CreateTokenAsync(string userId);
+        Task<ErrorOr<string>> CreateTokenAsync(Guid userId);
 
         // Успіх: JWT token string
         // Помилка: InvalidUser, TokenGenerationFailed
 
         // Створює refresh token для можливості оновлення access token
-        Task<ErrorOr<string>> CreateRefreshTokenAsync(string userId);
+        Task<ErrorOr<string>> CreateRefreshTokenAsync(Guid userId);
 
         // Успіх: Refresh token string
         // Помилка: InvalidUser, TokenGenerationFailed

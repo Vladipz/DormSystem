@@ -5,6 +5,7 @@ using System.Text;
 
 using Auth.BLL.Interfaces;
 using Auth.BLL.Models;
+using Auth.DAL.Data;
 using Auth.DAL.Entities;
 
 using ErrorOr;
@@ -19,33 +20,43 @@ namespace Auth.BLL.Services
     {
         private readonly IOptions<JwtSettings> _jwtSettings;
         private readonly UserManager<User> _userManager;
+        private readonly AuthDbContext _dbContext;
 
         private static Dictionary<string, (string CodeChallenge, Guid UserId)> AuthCodes { get; } =
             [];
 
-        private static Dictionary<string, string> RefreshTokens { get; } =
-            [];
-
-        public AuthService(IOptions<JwtSettings> jwtSettings, UserManager<User> userManager)
+        public AuthService(
+            IOptions<JwtSettings> jwtSettings,
+            UserManager<User> userManager,
+            AuthDbContext dbContext)
         {
             _jwtSettings = jwtSettings;
             _userManager = userManager;
+            _dbContext = dbContext;
         }
 
-        public Task<ErrorOr<string>> CreateRefreshTokenAsync(string userId)
+        public async Task<ErrorOr<string>> CreateRefreshTokenAsync(Guid userId)
         {
-            var oldRefreshToken = RefreshTokens.FirstOrDefault(x => x.Value == userId).Key;
+            var oldRefreshToken = _dbContext.RefreshTokens.Where(rt => rt.UserId == userId).FirstOrDefault();
 
             if (oldRefreshToken != null)
             {
-                RefreshTokens.Remove(oldRefreshToken);
+                _dbContext.RefreshTokens.Remove(oldRefreshToken);
             }
 
             var refreshToken = Guid.NewGuid().ToString();
 
-            RefreshTokens[refreshToken] = userId;
+            var refreshTokenEntity = new RefreshToken
+            {
+                UserId = userId,
+                Token = refreshToken,
+                Expires = DateTime.UtcNow.AddDays(_jwtSettings.Value.RefreshTokenExpirationDays),
+            };
 
-            return Task.FromResult<ErrorOr<string>>(refreshToken);
+            _dbContext.RefreshTokens.Add(refreshTokenEntity);
+            await _dbContext.SaveChangesAsync();
+
+            return refreshToken;
         }
 
         public Task<ErrorOr<string>> CreateTokenAsync(string userId)

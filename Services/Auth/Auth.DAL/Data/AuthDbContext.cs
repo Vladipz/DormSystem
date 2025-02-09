@@ -7,6 +7,10 @@ namespace Auth.DAL.Data
 {
     public class AuthDbContext : IdentityDbContext<User, Role, Guid>
     {
+        public DbSet<AuthCode> AuthCodes { get; set; } = null!;
+
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
         public AuthDbContext(DbContextOptions<AuthDbContext> options)
           : base(options)
         {
