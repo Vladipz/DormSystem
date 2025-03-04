@@ -2,16 +2,24 @@ namespace Auth.DAL.Entities
 {
     public class AuthCode
     {
-        public Guid Id { get; set; } // Primary key
+        /// <summary>
+        /// Gets or sets the primary key.
+        /// </summary>
+        public Guid Id { get; set; }
 
-        public string Code { get; set; } = string.Empty; // The generated code (could be base64 encoded)
+        /// <summary>
+        /// Gets or sets the generated code (could be base64 encoded).
+        /// </summary>
+        public string Code { get; set; } = string.Empty;
 
-        public string CodeChallenge { get; set; } = string.Empty; // The code challenge to verify PKCE
+        /// <summary>
+        /// Gets or sets the code challenge to verify PKCE.
+        /// </summary>
+        public string CodeChallenge { get; set; } = string.Empty;
 
-        public Guid UserId { get; set; } // Foreign key to the user
-
-        public DateTime Created { get; set; } // When it was generated
-
-        public DateTime Expires { get; set; } // Optional: the expiry time for the auth code
+        /// <summary>
+        /// Gets or sets the foreign key to the user.
+        /// </summary>
+        public Guid UserId { get; set; }
     }
 }

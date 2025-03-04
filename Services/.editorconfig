@@ -379,3 +379,9 @@ generated_code = true
 
 # S1135: Track uses of "TODO" tags
 dotnet.diagnostic.S1135.severity = warning
+
+#IDE0008 Use explicit type
+dotnet_diagnostic.IDE0008.severity = none
+
+[*.{cs,vb}]
+dotnet_diagnostic.CA1515.severity = none

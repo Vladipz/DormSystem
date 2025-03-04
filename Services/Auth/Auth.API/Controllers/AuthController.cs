@@ -1,3 +1,4 @@
+using Auth.API.Models.Requests;
 using Auth.BLL.Interfaces;
 
 using ErrorOr;
@@ -18,11 +19,6 @@ namespace Auth.API.Controllers
             _authService = authService;
         }
 
-        public record RegisterRequest(string Email, string Password);
-        public record AuthRequestModel(string Email, string Password, string CodeChallenge);
-        public record TokenRequestModel(string Code, string CodeVerifier);
-        public record RefreshTokenRequestModel(string RefreshToken);
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -37,6 +33,7 @@ namespace Auth.API.Controllers
                 });
         }
 
+        // that first
         [HttpPost("authorize")]
         public async Task<IActionResult> Authorize([FromBody] AuthRequestModel request)
         {
@@ -50,32 +47,19 @@ namespace Auth.API.Controllers
                 });
         }
 
-        // TODO: need refactoring
         [HttpPost("token")]
         public async Task<IActionResult> Token([FromBody] TokenRequestModel request)
         {
-            var result = await _authService.VerifyAuthCodeAsync(request.Code, request.CodeVerifier);
+            var result = await _authService.ValidateAndCreateTokensAsync(request.AuthCode, request.CodeVerifier);
 
-            if (!result)
-            {
-                return NotFound();
-            }
-
-            var tokenResult = await _authService.CreateTokenAsync(request.Code);
-
-            if (tokenResult.IsError)
-            {
-                return StatusCode(500, tokenResult.Errors[0].Description);
-            }
-
-            var refreshTokenResult = await _authService.CreateRefreshTokenAsync(request.Code);
-
-            if (refreshTokenResult.IsError)
-            {
-                return StatusCode(500, refreshTokenResult.Errors[0].Description);
-            }
-
-            return Ok(new { AccessToken = tokenResult.Value, RefreshToken = refreshTokenResult.Value });
+            return result.Match<IActionResult>(
+                success => Ok(new { AccessToken = success.accessToken, RefreshToken = success.refreshToken }),
+                errors => errors[0].Type switch
+                {
+                    ErrorType.NotFound => NotFound(errors[0].Description),
+                    ErrorType.Validation => BadRequest(errors[0].Description),
+                    _ => StatusCode(500, errors[0].Description)
+                });
         }
 
         [HttpPost("refresh")]

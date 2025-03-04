@@ -11,6 +11,7 @@ using Auth.DAL.Entities;
 using ErrorOr;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -21,9 +22,6 @@ namespace Auth.BLL.Services
         private readonly IOptions<JwtSettings> _jwtSettings;
         private readonly UserManager<User> _userManager;
         private readonly AuthDbContext _dbContext;
-
-        private static Dictionary<string, (string CodeChallenge, Guid UserId)> AuthCodes { get; } =
-            [];
 
         public AuthService(
             IOptions<JwtSettings> jwtSettings,
@@ -59,13 +57,13 @@ namespace Auth.BLL.Services
             return refreshToken;
         }
 
-        public Task<ErrorOr<string>> CreateTokenAsync(string userId)
+        public Task<ErrorOr<string>> CreateTokenAsync(Guid userId)
         {
             using var sha256 = SHA256.Create();
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Secret));
@@ -83,38 +81,52 @@ namespace Auth.BLL.Services
             return Task.FromResult<ErrorOr<string>>(tokenString);
         }
 
-        // TODO: refactor this method
         public async Task<ErrorOr<string>> GenerateAuthCodeAsync(string email, string password, string codeChallenge)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user != null && await _userManager.CheckPasswordAsync(user, password))
+            try
             {
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null || !await _userManager.CheckPasswordAsync(user, password))
+                {
+                    return Error.NotFound(description: "Invalid email or password");
+                }
+
                 var code = Convert.ToBase64String(Encoding.UTF8.GetBytes(codeChallenge));
 
-                AuthCodes[code] = (codeChallenge, user.Id);
+                _dbContext.AuthCodes.Add(new AuthCode
+                {
+                    Code = code,
+                    CodeChallenge = codeChallenge,
+                    UserId = user.Id,
+                });
+
+                await _dbContext.SaveChangesAsync();
+
                 return code;
             }
-            else
+            catch (DbUpdateException)
             {
-                return Error.NotFound(description: "Invalid email or password");
+                return Error.Failure(description: "Database error occurred while saving authorization code");
             }
         }
 
         public async Task<ErrorOr<(string accessToken, string refreshToken)>> RefreshTokenAsync(string refreshToken)
         {
-            if (!RefreshTokens.TryGetValue(refreshToken, out var userId))
+            var refreshTokenEntity = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+            if (refreshTokenEntity == null)
             {
                 return Error.NotFound(description: "Invalid refresh token");
             }
 
-            var accessTokenResult = await CreateTokenAsync(userId);
+            var accessTokenResult = await CreateTokenAsync(refreshTokenEntity.UserId);
             if (accessTokenResult.IsError)
             {
                 return accessTokenResult.Errors;
             }
 
-            var newRefreshTokenResult = await CreateRefreshTokenAsync(userId);
+            var newRefreshTokenResult = await CreateRefreshTokenAsync(refreshTokenEntity.UserId);
             if (newRefreshTokenResult.IsError)
             {
                 return newRefreshTokenResult.Errors;
@@ -149,17 +161,138 @@ namespace Auth.BLL.Services
             }
         }
 
-        public async Task<bool> VerifyAuthCodeAsync(string authCode, string codeVerifier)
+        public async Task<ErrorOr<bool>> VerifyAuthCodeAsync(string authCode, string codeVerifier)
         {
-            if (!AuthCodes.TryGetValue(authCode, out var value))
+            // move to fluent validation
+            var validationResult = ValidateInputs(authCode, codeVerifier);
+            if (validationResult.IsError)
+            {
+                return validationResult.Errors;
+            }
+
+            var authCodeResult = await GetAuthCode(authCode);
+            if (authCodeResult.IsError)
+            {
+                return authCodeResult.Errors;
+            }
+
+            var authCodeEntity = authCodeResult.Value;
+
+            if (!IsCodeVerifierValid(codeVerifier, authCodeEntity.CodeChallenge))
             {
                 return false;
             }
 
+            return true;
+        }
+
+        public async Task<ErrorOr<(string accessToken, string refreshToken)>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier)
+        {
+            var verifyResult = await VerifyAuthCodeAsync(authCode, codeVerifier);
+            if (verifyResult.IsError)
+            {
+                return verifyResult.Errors;
+            }
+
+            if (!verifyResult.Value)
+            {
+                return Error.Validation("Invalid code verifier");
+            }
+
+            // Get user ID from auth code
+            var authCodeEntity = await _dbContext.AuthCodes.FirstOrDefaultAsync(ac => ac.Code == authCode);
+            if (authCodeEntity == null)
+            {
+                return Error.NotFound("Auth code not found");
+            }
+
+            var userId = authCodeEntity.UserId;
+
+            // Delete the auth code now that we've verified and retrieved the user ID
+            var deleteResult = await DeleteAuthCodeAsync(authCode);
+            if (deleteResult.IsError)
+            {
+                return deleteResult.Errors;
+            }
+
+            var accessTokenResult = await CreateTokenAsync(userId);
+            if (accessTokenResult.IsError)
+            {
+                return accessTokenResult.Errors;
+            }
+
+            var refreshTokenResult = await CreateRefreshTokenAsync(userId);
+            if (refreshTokenResult.IsError)
+            {
+                return refreshTokenResult.Errors;
+            }
+
+            return (accessTokenResult.Value, refreshTokenResult.Value);
+        }
+
+        private ErrorOr<Success> ValidateInputs(string authCode, string codeVerifier)
+        {
+            if (string.IsNullOrWhiteSpace(authCode))
+            {
+                return Error.Validation("Auth code cannot be empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(codeVerifier))
+            {
+                return Error.Validation("Code verifier cannot be empty");
+            }
+
+            return Result.Success;
+        }
+
+        private async Task<ErrorOr<AuthCode>> GetAuthCode(string authCode)
+        {
+            var authCodeEntity = await _dbContext.AuthCodes
+                .FirstOrDefaultAsync(ac => ac.Code == authCode);
+
+            if (authCodeEntity is null)
+            {
+                return Error.NotFound("Auth code not found");
+            }
+
+            return authCodeEntity;
+        }
+
+        private bool IsCodeVerifierValid(string codeVerifier, string storedCodeChallenge)
+        {
+            var hashedVerifier = HashCodeVerifier(codeVerifier);
+            return hashedVerifier == storedCodeChallenge;
+        }
+
+        private string HashCodeVerifier(string codeVerifier)
+        {
             using var sha256 = SHA256.Create();
             var hashedVerifier = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(codeVerifier)));
-
-            return hashedVerifier == value.CodeChallenge;
+            return hashedVerifier;
         }
+
+        private async Task<ErrorOr<Success>> DeleteAuthCodeAsync(string authCode)
+        {
+            try
+            {
+                var authCodeEntity = await _dbContext.AuthCodes
+                    .FirstOrDefaultAsync(ac => ac.Code == authCode);
+
+                if (authCodeEntity is null)
+                {
+                    return Error.NotFound("Auth code not found");
+                }
+
+                _dbContext.AuthCodes.Remove(authCodeEntity);
+                await _dbContext.SaveChangesAsync();
+
+                return Result.Success;
+            }
+            catch (DbUpdateException ex)
+            {
+                return Error.Failure("Failed to delete auth code", ex.Message);
+            }
+        }
+
     }
 }
