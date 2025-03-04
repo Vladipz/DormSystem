@@ -111,7 +111,7 @@ namespace Auth.BLL.Services
             }
         }
 
-        public async Task<ErrorOr<(string accessToken, string refreshToken)>> RefreshTokenAsync(string refreshToken)
+        public async Task<ErrorOr<TokenResponse>> RefreshTokenAsync(string refreshToken)
         {
             var refreshTokenEntity = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
@@ -132,7 +132,11 @@ namespace Auth.BLL.Services
                 return newRefreshTokenResult.Errors;
             }
 
-            return (accessTokenResult.Value, newRefreshTokenResult.Value);
+            return new Models.TokenResponse
+            {
+                AccessToken = accessTokenResult.Value,
+                RefreshToken = newRefreshTokenResult.Value
+            };
         }
 
         public async Task<ErrorOr<Guid>> RegisterUserAsync(string email, string password)
@@ -186,7 +190,7 @@ namespace Auth.BLL.Services
             return true;
         }
 
-        public async Task<ErrorOr<(string accessToken, string refreshToken)>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier)
+        public async Task<ErrorOr<TokenResponse>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier)
         {
             var verifyResult = await VerifyAuthCodeAsync(authCode, codeVerifier);
             if (verifyResult.IsError)
@@ -227,7 +231,11 @@ namespace Auth.BLL.Services
                 return refreshTokenResult.Errors;
             }
 
-            return (accessTokenResult.Value, refreshTokenResult.Value);
+            return new Models.TokenResponse
+            {
+                AccessToken = accessTokenResult.Value,
+                RefreshToken = refreshTokenResult.Value
+            };
         }
 
         private ErrorOr<Success> ValidateInputs(string authCode, string codeVerifier)
@@ -293,6 +301,5 @@ namespace Auth.BLL.Services
                 return Error.Failure("Failed to delete auth code", ex.Message);
             }
         }
-
     }
 }

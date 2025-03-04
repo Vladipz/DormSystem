@@ -1,4 +1,5 @@
 using Auth.API.Models.Requests;
+using Auth.API.Models.Responses;
 using Auth.BLL.Interfaces;
 
 using ErrorOr;
@@ -53,7 +54,11 @@ namespace Auth.API.Controllers
             var result = await _authService.ValidateAndCreateTokensAsync(request.AuthCode, request.CodeVerifier);
 
             return result.Match<IActionResult>(
-                success => Ok(new { AccessToken = success.accessToken, RefreshToken = success.refreshToken }),
+                success => Ok(new TokenResponse
+                {
+                    AccessToken = success.AccessToken,
+                    RefreshToken = success.RefreshToken
+                }),
                 errors => errors[0].Type switch
                 {
                     ErrorType.NotFound => NotFound(errors[0].Description),

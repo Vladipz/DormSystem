@@ -1,3 +1,5 @@
+using Auth.BLL.Models;
+
 using ErrorOr;
 
 namespace Auth.BLL.Interfaces
@@ -33,8 +35,8 @@ namespace Auth.BLL.Interfaces
         /// Refreshes an expired access token using a refresh token.
         /// </summary>
         /// <param name="refreshToken">The refresh token.</param>
-        /// <returns>A tuple containing new access and refresh tokens or an error.</returns>
-        Task<ErrorOr<(string accessToken, string refreshToken)>> RefreshTokenAsync(string refreshToken);
+        /// <returns>A TokenResponse containing new access and refresh tokens or an error.</returns>
+        Task<ErrorOr<TokenResponse>> RefreshTokenAsync(string refreshToken);
 
         /// <summary>
         /// Generates an authorization code for OAuth 2.0 PKCE flow.
@@ -58,7 +60,7 @@ namespace Auth.BLL.Interfaces
         /// </summary>
         /// <param name="authCode">The authorization code to validate.</param>
         /// <param name="codeVerifier">The PKCE code verifier.</param>
-        /// <returns>A tuple containing new access and refresh tokens or an error.</returns>
-        Task<ErrorOr<(string accessToken, string refreshToken)>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier);
+        /// <returns>A TokenResponse containing new access and refresh tokens or an error.</returns>
+        Task<ErrorOr<TokenResponse>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier);
     }
 }
