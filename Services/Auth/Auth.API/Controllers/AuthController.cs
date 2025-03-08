@@ -1,3 +1,4 @@
+using Auth.API.Mappins;
 using Auth.API.Models.Requests;
 using Auth.API.Models.Responses;
 using Auth.BLL.Interfaces;
@@ -25,13 +26,9 @@ namespace Auth.API.Controllers
         {
             var result = await _authService.RegisterUserAsync(request.Email, request.Password);
 
-            return result.Match<IActionResult>(
+            return result.Match(
                 success => Ok(success),
-                errors => errors[0].Type switch
-                {
-                    ErrorType.Conflict => Conflict(errors[0].Description),
-                    ErrorType.Unexpected => StatusCode(500, errors[0].Description),
-                });
+                errors => errors.ToResponse());
         }
 
         // that first
@@ -40,12 +37,9 @@ namespace Auth.API.Controllers
         {
             var result = await _authService.GenerateAuthCodeAsync(request.Email, request.Password, request.CodeChallenge);
 
-            return result.Match<IActionResult>(
+            return result.Match(
                 success => Ok(success),
-                errors => errors[0].Type switch
-                {
-                    ErrorType.NotFound => NotFound(errors[0].Description),
-                });
+                errors => errors.ToResponse());
         }
 
         [HttpPost("token")]
@@ -53,18 +47,9 @@ namespace Auth.API.Controllers
         {
             var result = await _authService.ValidateAndCreateTokensAsync(request.AuthCode, request.CodeVerifier);
 
-            return result.Match<IActionResult>(
-                success => Ok(new TokenResponse
-                {
-                    AccessToken = success.AccessToken,
-                    RefreshToken = success.RefreshToken
-                }),
-                errors => errors[0].Type switch
-                {
-                    ErrorType.NotFound => NotFound(errors[0].Description),
-                    ErrorType.Validation => BadRequest(errors[0].Description),
-                    _ => StatusCode(500, errors[0].Description)
-                });
+            return result.Match(
+                success => Ok(success.ToResponse()),
+                errors => errors.ToResponse());
         }
 
         [HttpPost("refresh")]
@@ -72,13 +57,9 @@ namespace Auth.API.Controllers
         {
             var result = await _authService.RefreshTokenAsync(request.RefreshToken);
 
-            return result.Match<IActionResult>(
-                success => Ok(success),
-                errors => errors[0].Type switch
-                {
-                    ErrorType.NotFound => NotFound(errors[0].Description),
-                    ErrorType.Unexpected => StatusCode(500, errors[0].Description),
-                });
+            return result.Match(
+                success => Ok(success.ToResponse()),
+                errors => errors.ToResponse());
         }
 
         // test protected endpoint
