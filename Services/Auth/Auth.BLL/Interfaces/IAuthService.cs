@@ -36,7 +36,7 @@ namespace Auth.BLL.Interfaces
         /// </summary>
         /// <param name="refreshToken">The refresh token.</param>
         /// <returns>A TokenResponse containing new access and refresh tokens or an error.</returns>
-        Task<ErrorOr<TokenResponse>> RefreshTokenAsync(string refreshToken);
+        Task<ErrorOr<TokenModel>> RefreshTokenAsync(string refreshToken);
 
         /// <summary>
         /// Generates an authorization code for OAuth 2.0 PKCE flow.
@@ -61,6 +61,6 @@ namespace Auth.BLL.Interfaces
         /// <param name="authCode">The authorization code to validate.</param>
         /// <param name="codeVerifier">The PKCE code verifier.</param>
         /// <returns>A TokenResponse containing new access and refresh tokens or an error.</returns>
-        Task<ErrorOr<TokenResponse>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier);
+        Task<ErrorOr<TokenModel>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier);
     }
 }

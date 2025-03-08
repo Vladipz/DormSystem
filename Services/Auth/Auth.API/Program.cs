@@ -51,10 +51,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<DbSeederService>();
 
 builder.Services.AddDalServices(builder.Configuration);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection("AdminSettings"));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JwtSettings section is not configured");
@@ -83,6 +85,13 @@ builder.Services.AddAuthentication(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var seeder = services.GetRequiredService<DbSeederService>();
+    await seeder.SeedDatabaseAsync();
+}
 
 app.UseRouting();
 

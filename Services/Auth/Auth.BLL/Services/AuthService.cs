@@ -57,13 +57,22 @@ namespace Auth.BLL.Services
             return refreshToken;
         }
 
-        public Task<ErrorOr<string>> CreateTokenAsync(Guid userId)
+        public async Task<ErrorOr<string>> CreateTokenAsync(Guid userId)
         {
             using var sha256 = SHA256.Create();
 
+            // Get user and their roles
+            User? user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+            {
+                return Error.NotFound("User not found");
+            }
+
+            IList<string> roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new (ClaimTypes.NameIdentifier, userId.ToString()),
+                new (ClaimTypes.Role, string.Join(",", roles)),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Secret));
@@ -78,7 +87,7 @@ namespace Auth.BLL.Services
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return Task.FromResult<ErrorOr<string>>(tokenString);
+            return tokenString;
         }
 
         public async Task<ErrorOr<string>> GenerateAuthCodeAsync(string email, string password, string codeChallenge)
@@ -111,7 +120,7 @@ namespace Auth.BLL.Services
             }
         }
 
-        public async Task<ErrorOr<TokenResponse>> RefreshTokenAsync(string refreshToken)
+        public async Task<ErrorOr<TokenModel>> RefreshTokenAsync(string refreshToken)
         {
             var refreshTokenEntity = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
@@ -132,10 +141,10 @@ namespace Auth.BLL.Services
                 return newRefreshTokenResult.Errors;
             }
 
-            return new Models.TokenResponse
+            return new Models.TokenModel
             {
                 AccessToken = accessTokenResult.Value,
-                RefreshToken = newRefreshTokenResult.Value
+                RefreshToken = newRefreshTokenResult.Value,
             };
         }
 
@@ -190,7 +199,7 @@ namespace Auth.BLL.Services
             return true;
         }
 
-        public async Task<ErrorOr<TokenResponse>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier)
+        public async Task<ErrorOr<TokenModel>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier)
         {
             var verifyResult = await VerifyAuthCodeAsync(authCode, codeVerifier);
             if (verifyResult.IsError)
@@ -200,7 +209,7 @@ namespace Auth.BLL.Services
 
             if (!verifyResult.Value)
             {
-                return Error.Validation("Invalid code verifier");
+                return Error.NotFound("Invalid code verifier");
             }
 
             // Get user ID from auth code
@@ -231,10 +240,10 @@ namespace Auth.BLL.Services
                 return refreshTokenResult.Errors;
             }
 
-            return new Models.TokenResponse
+            return new TokenModel
             {
                 AccessToken = accessTokenResult.Value,
-                RefreshToken = refreshTokenResult.Value
+                RefreshToken = refreshTokenResult.Value,
             };
         }
 
