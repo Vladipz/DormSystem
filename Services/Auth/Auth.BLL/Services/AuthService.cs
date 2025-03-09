@@ -72,8 +72,12 @@ namespace Auth.BLL.Services
             var claims = new List<Claim>
             {
                 new (ClaimTypes.NameIdentifier, userId.ToString()),
-                new (ClaimTypes.Role, string.Join(",", roles)),
             };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

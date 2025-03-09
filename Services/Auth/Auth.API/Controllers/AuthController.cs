@@ -64,7 +64,7 @@ namespace Auth.API.Controllers
 
         // test protected endpoint
         [HttpGet("protected")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Protected()
         {
             return Ok("Protected");
