@@ -98,6 +98,7 @@ namespace Events.API.Features.Events
         {
             app.MapPut("/events/{id}", async (Guid id, EditEventRequest request, IMediator mediator) =>
             {
+                // TODO: add check for user ID
                 var command = request.Adapt<EditEvent.Command>();
                 command.Id = id;
 

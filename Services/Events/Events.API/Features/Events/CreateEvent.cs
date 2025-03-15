@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 using Carter;
 using Carter.OpenApi;
 
@@ -14,6 +16,8 @@ using Mapster;
 
 using MediatR;
 
+using Shared.TokenService.Services;
+
 using static Events.API.Features.Events.CreateEvent;
 
 namespace Events.API.Features.Events
@@ -29,6 +33,8 @@ namespace Events.API.Features.Events
             public string Location { get; set; } = string.Empty;
 
             public int? NumberOfAttendees { get; set; }
+
+            public Guid OwnerId { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -44,10 +50,12 @@ namespace Events.API.Features.Events
                 RuleFor(x => x.NumberOfAttendees)
                     .Must(x => x == null || x > 0)
                     .WithMessage("Number of attendees must be greater than 0 if provided.");
+
+                RuleFor(x => x.OwnerId).NotEmpty();
             }
         }
 
-        internal sealed class Handler : IRequestHandler<Command, ErrorOr<Guid>>
+        sealed class Handler : IRequestHandler<Command, ErrorOr<Guid>>
         {
             private readonly EventsDbContext _eventDbContext;
             private readonly IValidator<Command> _validator;
@@ -81,9 +89,23 @@ namespace Events.API.Features.Events
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/events", async (CreateEventRequest request, IMediator mediator) =>
+            app.MapPost("/events", async (
+                CreateEventRequest request,
+                IMediator mediator,
+                HttpContext httpContext,
+                ITokenService tokenService) =>
             {
                 var command = request.Adapt<Command>();
+
+                var userIdResult = tokenService.GetUserId(httpContext);
+
+                if (userIdResult.IsError)
+                {
+                    Console.WriteLine("Unauthorized request");
+                    return Results.Unauthorized();
+                }
+
+                command.OwnerId = userIdResult.Value;
 
                 var result = await mediator.Send(command);
 
@@ -96,7 +118,8 @@ namespace Events.API.Features.Events
             .WithTags("Events")
             .WithName("CreateEvent")
             .Accepts<Command>("application/json")
-            .IncludeInOpenApi();
+            .IncludeInOpenApi()
+            .RequireAuthorization();
         }
     }
 }
