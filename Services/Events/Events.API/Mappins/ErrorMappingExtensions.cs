@@ -13,7 +13,7 @@ namespace Events.API.Mappins
                 ErrorType.Validation => Results.BadRequest(error.Description),
                 ErrorType.Unauthorized => Results.Unauthorized(),
                 ErrorType.Forbidden => Results.Forbid(),
-                ErrorType.NotFound => Results.NotFound(),
+                ErrorType.NotFound => Results.NotFound(error.Description ?? string.Empty),
                 ErrorType.Conflict => Results.Conflict(error.Description),
                 ErrorType.Failure or ErrorType.Unexpected or _ => Results.Problem(statusCode: 500),
             };

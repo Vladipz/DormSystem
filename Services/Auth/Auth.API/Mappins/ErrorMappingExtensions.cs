@@ -13,7 +13,7 @@ namespace Auth.API.Mappins
                 ErrorType.Validation => new BadRequestObjectResult(error.Description),
                 ErrorType.Unauthorized => new UnauthorizedResult(),
                 ErrorType.Forbidden => new ForbidResult(),
-                ErrorType.NotFound => new NotFoundResult(),
+                ErrorType.NotFound => new NotFoundObjectResult(error.Description),
                 ErrorType.Conflict => new ConflictObjectResult(error.Description),
                 ErrorType.Failure or ErrorType.Unexpected or _ => new ObjectResult(new ProblemDetails()) { StatusCode = 500 },
             };
