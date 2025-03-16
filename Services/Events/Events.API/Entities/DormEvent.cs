@@ -11,5 +11,9 @@ namespace Events.API.Entities
         public string Location { get; set; } = string.Empty;
 
         public int? NumberOfAttendees { get; set; }
+
+        public Guid OwnerId { get; set; }
+
+        public ICollection<EventParticipant> Participants { get; init; } = new List<EventParticipant>();
     }
 }

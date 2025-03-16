@@ -7,9 +7,29 @@ using Events.API.Features.Events;
 using FluentValidation;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using Shared.TokenService.Services;
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication()
+    .AddJwtBearer(opt =>
+    {
+        opt.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateActor = false,
+            ValidateIssuerSigningKey = false,
+            ValidateLifetime = false,
+            ValidateTokenReplay = false,
+            SignatureValidator = (token, _) => new JsonWebToken(token),
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -45,8 +65,11 @@ builder.Services.AddDbContext<EventsDbContext>(options =>
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<IValidator<CreateEvent.Command>, CreateEvent.Validator>();
 builder.Services.AddTransient<IValidator<EditEvent.Command>, EditEvent.Validator>();
+builder.Services.AddTransient<IValidator<AddParticipant.Command>, AddParticipant.Validator>();
+builder.Services.AddTransient<IValidator<RemoveParticipant.Command>, RemoveParticipant.Validator>();
 
 builder.Services.AddCarter();
 
@@ -58,11 +81,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Management API v1");
-        c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+        c.RoutePrefix = "swagger";
     });
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapCarter();
 
 await app.RunAsync();
