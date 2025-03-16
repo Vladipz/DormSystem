@@ -39,6 +39,15 @@ namespace Events.API.Features.Events
                     Date = x.Date,
                     Location = x.Location,
                     NumberOfAttendees = x.NumberOfAttendees,
+                    OwnerId = x.OwnerId,
+                    LastParticipants = x.Participants
+                    .OrderByDescending(p => p.JoinedAt)
+                    .Take(3)
+                    .Select(p => new ParticipantResponse
+                    {
+                        UserId = p.UserId,
+                        JoinedAt = p.JoinedAt,
+                    }).ToList(),
                 }).FirstOrDefaultAsync(cancellationToken);
 
                 return eventResponce is null ? Error.NotFound() : eventResponce;

@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 using Carter;
 using Carter.OpenApi;
 
@@ -55,15 +53,20 @@ namespace Events.API.Features.Events
             }
         }
 
-        sealed class Handler : IRequestHandler<Command, ErrorOr<Guid>>
+        internal sealed class Handler : IRequestHandler<Command, ErrorOr<Guid>>
         {
             private readonly EventsDbContext _eventDbContext;
             private readonly IValidator<Command> _validator;
+            private readonly ILogger<Handler> _logger;
 
-            public Handler(EventsDbContext eventDbContext, IValidator<Command> validator)
+            public Handler(
+                EventsDbContext eventDbContext,
+                IValidator<Command> validator,
+                ILogger<Handler> logger)
             {
                 _eventDbContext = eventDbContext;
                 _validator = validator;
+                _logger = logger;
             }
 
             public async Task<ErrorOr<Guid>> Handle(Command request, CancellationToken cancellationToken)
@@ -72,13 +75,24 @@ namespace Events.API.Features.Events
 
                 if (!validationResult.IsValid)
                 {
+                    _logger.LogWarning(
+                        "Event creation validation failed: {Errors}",
+                        string.Join(", ", validationResult.Errors));
                     return validationResult.ToValidationError<Guid>();
                 }
 
                 var newEvent = request.Adapt<DormEvent>();
 
+                _logger.LogInformation(
+                        "Creating new event: {EventName} at {Location} by {OwnerId}",
+                        newEvent.Name,
+                        newEvent.Location,
+                        newEvent.OwnerId);
+
                 _eventDbContext.Events.Add(newEvent);
                 await _eventDbContext.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Event created successfully with ID: {EventId}", newEvent.Id);
 
                 return newEvent.Id;
             }

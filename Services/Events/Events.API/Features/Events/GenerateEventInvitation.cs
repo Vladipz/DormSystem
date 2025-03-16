@@ -45,6 +45,7 @@ namespace Events.API.Features.Events
 
         internal sealed class Handler : IRequestHandler<Command, ErrorOr<InvitationResult>>
         {
+            private const int ExpiresInDays = 30;
             private readonly EventsDbContext _dbContext;
             private readonly IValidator<Command> _validator;
 
@@ -81,7 +82,7 @@ namespace Events.API.Features.Events
                 string token = Guid.NewGuid().ToString("N");
 
                 // Set expiration to 30 days from now
-                var expiresAt = DateTime.UtcNow.AddDays(30);
+                var expiresAt = DateTime.UtcNow.AddDays(ExpiresInDays);
 
                 // Save to database
                 var invitationToken = new InvitationToken

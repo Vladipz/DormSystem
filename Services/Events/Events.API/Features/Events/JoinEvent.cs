@@ -61,7 +61,8 @@ namespace Events.API.Features.Events
 
                 // Validate the invitation token
                 var invitation = await _dbContext.InvitationTokens
-                    .FirstOrDefaultAsync(i =>
+                    .FirstOrDefaultAsync(
+                        i =>
                         i.Token == request.Token &&
                         i.EventId == request.EventId &&
                         i.IsActive &&
@@ -84,7 +85,8 @@ namespace Events.API.Features.Events
 
                 // Check if user is already a participant
                 var existingParticipation = await _dbContext.EventParticipants
-                    .FirstOrDefaultAsync(p =>
+                    .FirstOrDefaultAsync(
+                        p =>
                         p.EventId == request.EventId &&
                         p.UserId == request.UserId,
                         cancellationToken);
@@ -111,7 +113,7 @@ namespace Events.API.Features.Events
                 {
                     EventId = request.EventId,
                     UserId = request.UserId,
-                    JoinedAt = DateTime.UtcNow
+                    JoinedAt = DateTime.UtcNow,
                 };
 
                 _dbContext.EventParticipants.Add(participant);
@@ -144,7 +146,7 @@ namespace Events.API.Features.Events
                 {
                     EventId = id,
                     Token = request.Token,
-                    UserId = userIdResult.Value
+                    UserId = userIdResult.Value,
                 };
 
                 var result = await mediator.Send(command);

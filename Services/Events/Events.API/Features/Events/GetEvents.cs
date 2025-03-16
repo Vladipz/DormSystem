@@ -33,13 +33,22 @@ namespace Events.API.Features.Events
             {
                 var query = _eventDbContext.Events
                     .OrderByDescending(e => e.Date)
-                    .Select(x => new EventResponce
+                    .Select(static x => new EventResponce
                     {
                         Id = x.Id,
                         Name = x.Name,
                         Date = x.Date,
                         Location = x.Location,
                         NumberOfAttendees = x.NumberOfAttendees,
+                        OwnerId = x.OwnerId,
+                        LastParticipants = x.Participants
+                            .OrderByDescending(p => p.JoinedAt)
+                            .Take(3)
+                            .Select(p => new ParticipantResponse
+                            {
+                                UserId = p.UserId,
+                                JoinedAt = p.JoinedAt,
+                            }).ToList(),
                     });
 
                 var pagedEvents = await PagedList<EventResponce>.CreateAsync(
