@@ -50,7 +50,7 @@ namespace Events.API.Features.Events
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("events/{id}", async (Guid id, ISender sender) =>
+            app.MapGet("/events/{id}", async (Guid id, ISender sender) =>
             {
                 var query = new GetEvent.Query { Id = id };
                 var result = await sender.Send(query);

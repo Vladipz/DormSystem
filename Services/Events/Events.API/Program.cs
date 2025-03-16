@@ -85,7 +85,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UsePathBase("/api");
 app.UseHttpsRedirection();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();

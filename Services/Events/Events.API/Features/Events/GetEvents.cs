@@ -57,7 +57,7 @@ namespace Events.API.Features.Events
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("events", async (
+            app.MapGet("/events", async (
                 ISender sender,
                 int pageNumber = 1,
                 int pageSize = 10) =>
