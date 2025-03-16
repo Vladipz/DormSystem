@@ -15,6 +15,8 @@ namespace Events.API.Database
 
         public DbSet<EventParticipant> EventParticipants { get; set; } = null!;
 
+        public DbSet<InvitationToken> InvitationTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -26,6 +28,17 @@ namespace Events.API.Database
                 .HasOne(ep => ep.Event)
                 .WithMany(e => e.Participants)
                 .HasForeignKey(ep => ep.EventId);
+
+            modelBuilder.Entity<InvitationToken>()
+                .HasOne(i => i.Event)
+                .WithMany()
+                .HasForeignKey(i => i.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Make token unique
+            modelBuilder.Entity<InvitationToken>()
+                .HasIndex(i => i.Token)
+                .IsUnique();
         }
     }
 }

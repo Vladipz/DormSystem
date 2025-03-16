@@ -33,26 +33,35 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Description = "Carter Sample API",
-        Version = "v1",
-        Title = "A Carter API to manage Actors/Films/Crew etc",
-    });
-    options.DocInclusionPredicate((s, description) =>
-    {
-        for (int i = 0; i < description.ActionDescriptor.EndpointMetadata.Count; i++)
-        {
-            object? metaData = description.ActionDescriptor.EndpointMetadata[i];
-            if (metaData is IIncludeOpenApi)
-            {
-                return true;
-            }
-        }
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Events API", Version = "v1" });
 
-        return false;
+    // Define the OAuth2.0 or Bearer authentication scheme for Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    });
+
+    // Make sure all endpoints are considered secured by default
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            Array.Empty<string>()
+        },
     });
 });
 
@@ -70,6 +79,9 @@ builder.Services.AddTransient<IValidator<CreateEvent.Command>, CreateEvent.Valid
 builder.Services.AddTransient<IValidator<EditEvent.Command>, EditEvent.Validator>();
 builder.Services.AddTransient<IValidator<AddParticipant.Command>, AddParticipant.Validator>();
 builder.Services.AddTransient<IValidator<RemoveParticipant.Command>, RemoveParticipant.Validator>();
+builder.Services.AddTransient<IValidator<GenerateEventInvitation.Command>, GenerateEventInvitation.Validator>();
+builder.Services.AddTransient<IValidator<ValidateEventInvitation.Query>, ValidateEventInvitation.Validator>();
+builder.Services.AddTransient<IValidator<JoinEvent.Command>, JoinEvent.Validator>();
 
 builder.Services.AddCarter();
 
@@ -82,6 +94,7 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Management API v1");
         c.RoutePrefix = "swagger";
+        c.OAuthUseBasicAuthenticationWithAccessCodeGrant();
     });
 }
 
