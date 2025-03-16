@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Carter" />
     <PackageReference Include="ErrorOr" />
-    <PackageReference Include="FluentValidation.AspNetCore" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="MediatR" />
