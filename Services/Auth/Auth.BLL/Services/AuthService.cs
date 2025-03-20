@@ -105,7 +105,7 @@ namespace Auth.BLL.Services
                     return Error.NotFound(description: "Invalid email or password");
                 }
 
-                var code = Convert.ToBase64String(Encoding.UTF8.GetBytes(codeChallenge));
+                string code = Convert.ToBase64String(Encoding.UTF8.GetBytes(codeChallenge)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
                 _dbContext.AuthCodes.Add(new AuthCode
                 {
@@ -287,8 +287,8 @@ namespace Auth.BLL.Services
 
         private string HashCodeVerifier(string codeVerifier)
         {
-            using var sha256 = SHA256.Create();
-            var hashedVerifier = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(codeVerifier)));
+            using SHA256 sha256 = SHA256.Create();
+            string hashedVerifier = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier))).TrimEnd('=').Replace('+', '-').Replace('/', '_');
             return hashedVerifier;
         }
 
