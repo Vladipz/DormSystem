@@ -14,6 +14,17 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS service
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -92,6 +103,9 @@ using (var scope = app.Services.CreateScope())
     var seeder = services.GetRequiredService<DbSeederService>();
     await seeder.SeedDatabaseAsync();
 }
+
+// Use CORS before routing
+app.UseCors();
 
 app.UseRouting();
 

@@ -4,6 +4,17 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS service
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddReverseProxy()
   .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
@@ -31,13 +42,14 @@ builder.Services.AddAuthentication(options =>
 // Add Authorization policies
 builder.Services.AddAuthorization();
 
-
 var app = builder.Build();
+
+// Use CORS before authentication middleware
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapReverseProxy();
-
 
 app.Run();
