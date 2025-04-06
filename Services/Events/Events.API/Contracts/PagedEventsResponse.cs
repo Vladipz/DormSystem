@@ -4,7 +4,7 @@ namespace Events.API.Contracts
 {
     public class PagedEventsResponse
     {
-        public List<EventResponce> Events { get; set; } = new();
+        public List<EventResponce> Items { get; set; } = new();
 
         public int PageNumber { get; set; }
 
@@ -22,7 +22,7 @@ namespace Events.API.Contracts
         {
             return new PagedEventsResponse
             {
-                Events = pagedList.Items,
+                Items = pagedList.Items,
                 PageNumber = pagedList.PageNumber,
                 PageSize = pagedList.PageSize,
                 TotalCount = pagedList.TotalCount,
