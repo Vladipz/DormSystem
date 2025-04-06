@@ -128,6 +128,7 @@ export const authApi = {
       const tokens = await handleResponse<TokenResponse>(tokenResponse);
 
       // Store tokens
+      //TODO: - move to other place 
       localStorage.setItem('accessToken', tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
 

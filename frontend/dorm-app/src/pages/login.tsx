@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
@@ -29,12 +29,15 @@ const initialValues = {
 export default function LoginPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient(); // Add this line to get queryClient
 
   // Use TanStack Query for login API call
   const loginMutation = useMutation({
     mutationFn: authApi.login,
     onSuccess: () => {
       // Token is already stored in localStorage by the login function
+      // Invalidate the auth status query to trigger a refresh of navbar
+      queryClient.invalidateQueries({ queryKey: ["authStatus"] });
       // Redirect to home or dashboard
       navigate({ to: "/" });
     },

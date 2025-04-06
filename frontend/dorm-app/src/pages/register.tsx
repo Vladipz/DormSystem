@@ -5,7 +5,14 @@ import { useState } from "react";
 import * as Yup from "yup";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authApi } from "@/lib/api";
@@ -25,7 +32,7 @@ const registerSchema = Yup.object().shape({
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password')], "Passwords don't match")
+    .oneOf([Yup.ref("password")], "Passwords don't match")
     .required("Please confirm your password"),
 });
 
@@ -47,9 +54,9 @@ export default function RegisterPage() {
     mutationFn: authApi.register,
     onSuccess: () => {
       // Redirect to login page with success message
-      navigate({ 
+      navigate({
         to: "/login",
-        search: { registered: "true" }
+        search: { registered: "true" },
       });
     },
     onError: (error: any) => {
@@ -57,7 +64,9 @@ export default function RegisterPage() {
     },
   });
 
-  const handleSubmit = (values: Omit<typeof initialValues, 'confirmPassword'>) => {
+  const handleSubmit = (
+    values: Omit<typeof initialValues, "confirmPassword">
+  ) => {
     setError(null);
     registerMutation.mutate({
       email: values.email,
@@ -72,7 +81,9 @@ export default function RegisterPage() {
       <Card className="w-[450px]">
         <CardHeader>
           <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Enter your information to create an account</CardDescription>
+          <CardDescription>
+            Enter your information to create an account
+          </CardDescription>
         </CardHeader>
         <Formik
           initialValues={initialValues}
@@ -90,24 +101,20 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First name</Label>
-                    <Field
-                      as={Input}
-                      id="firstName"
-                      name="firstName"
-                    />
+                    <Field as={Input} id="firstName" name="firstName" />
                     {errors.firstName && touched.firstName && (
-                      <p className="text-sm text-destructive">{errors.firstName}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.firstName}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last name</Label>
-                    <Field
-                      as={Input}
-                      id="lastName"
-                      name="lastName"
-                    />
+                    <Field as={Input} id="lastName" name="lastName" />
                     {errors.lastName && touched.lastName && (
-                      <p className="text-sm text-destructive">{errors.lastName}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.lastName}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -133,7 +140,9 @@ export default function RegisterPage() {
                     type="password"
                   />
                   {errors.password && touched.password && (
-                    <p className="text-sm text-destructive">{errors.password}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -145,17 +154,21 @@ export default function RegisterPage() {
                     type="password"
                   />
                   {errors.confirmPassword && touched.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={isSubmitting || registerMutation.isPending}
                 >
-                  {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                  {registerMutation.isPending
+                    ? "Creating account..."
+                    : "Create Account"}
                 </Button>
                 <p className="text-center text-sm">
                   Already have an account?{" "}
