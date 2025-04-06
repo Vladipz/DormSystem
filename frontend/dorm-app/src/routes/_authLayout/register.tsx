@@ -1,21 +1,17 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { authApi } from "@/lib/api";
+import { Label } from "@radix-ui/react-label";
 import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { authApi } from "@/lib/api";
+export const Route = createFileRoute("/_authLayout/register")({
+  component: RouteComponent,
+});
 
 // Register validation schema with Yup
 const registerSchema = Yup.object().shape({
@@ -45,7 +41,7 @@ const initialValues = {
   confirmPassword: "",
 };
 
-export default function RegisterPage() {
+function RouteComponent() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 

@@ -50,10 +50,10 @@ export function Navbar() {
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <Link to="/auth/login">Login</Link>
+                <Link to="/login">Login</Link>
               </Button>
               <Button asChild>
-                <Link to="/auth/register">Register</Link>
+                <Link to="/register">Register</Link>
               </Button>
             </>
           )}

@@ -12,9 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MainLayoutImport } from './routes/_mainLayout'
-import { Route as IndexImport } from './routes/index'
-import { Route as AuthRegisterImport } from './routes/auth/register'
-import { Route as AuthLoginImport } from './routes/auth/login'
+import { Route as AuthLayoutImport } from './routes/_authLayout'
+import { Route as MainLayoutIndexImport } from './routes/_mainLayout/index'
+import { Route as AuthLayoutRegisterImport } from './routes/_authLayout/register'
+import { Route as AuthLayoutLoginImport } from './routes/_authLayout/login'
 import { Route as MainLayoutEventsIndexImport } from './routes/_mainLayout/events/index'
 import { Route as MainLayoutEventsEventIdImport } from './routes/_mainLayout/events/$eventId'
 
@@ -25,22 +26,27 @@ const MainLayoutRoute = MainLayoutImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const AuthLayoutRoute = AuthLayoutImport.update({
+  id: '/_authLayout',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MainLayoutIndexRoute = MainLayoutIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => MainLayoutRoute,
 } as any)
 
-const AuthRegisterRoute = AuthRegisterImport.update({
-  id: '/auth/register',
-  path: '/auth/register',
-  getParentRoute: () => rootRoute,
+const AuthLayoutRegisterRoute = AuthLayoutRegisterImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 
-const AuthLoginRoute = AuthLoginImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRoute,
+const AuthLayoutLoginRoute = AuthLayoutLoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthLayoutRoute,
 } as any)
 
 const MainLayoutEventsIndexRoute = MainLayoutEventsIndexImport.update({
@@ -59,11 +65,11 @@ const MainLayoutEventsEventIdRoute = MainLayoutEventsEventIdImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_authLayout': {
+      id: '/_authLayout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthLayoutImport
       parentRoute: typeof rootRoute
     }
     '/_mainLayout': {
@@ -73,19 +79,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainLayoutImport
       parentRoute: typeof rootRoute
     }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginImport
-      parentRoute: typeof rootRoute
+    '/_authLayout/login': {
+      id: '/_authLayout/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLayoutLoginImport
+      parentRoute: typeof AuthLayoutImport
     }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterImport
-      parentRoute: typeof rootRoute
+    '/_authLayout/register': {
+      id: '/_authLayout/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthLayoutRegisterImport
+      parentRoute: typeof AuthLayoutImport
+    }
+    '/_mainLayout/': {
+      id: '/_mainLayout/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof MainLayoutIndexImport
+      parentRoute: typeof MainLayoutImport
     }
     '/_mainLayout/events/$eventId': {
       id: '/_mainLayout/events/$eventId'
@@ -106,12 +119,28 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface AuthLayoutRouteChildren {
+  AuthLayoutLoginRoute: typeof AuthLayoutLoginRoute
+  AuthLayoutRegisterRoute: typeof AuthLayoutRegisterRoute
+}
+
+const AuthLayoutRouteChildren: AuthLayoutRouteChildren = {
+  AuthLayoutLoginRoute: AuthLayoutLoginRoute,
+  AuthLayoutRegisterRoute: AuthLayoutRegisterRoute,
+}
+
+const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
+  AuthLayoutRouteChildren,
+)
+
 interface MainLayoutRouteChildren {
+  MainLayoutIndexRoute: typeof MainLayoutIndexRoute
   MainLayoutEventsEventIdRoute: typeof MainLayoutEventsEventIdRoute
   MainLayoutEventsIndexRoute: typeof MainLayoutEventsIndexRoute
 }
 
 const MainLayoutRouteChildren: MainLayoutRouteChildren = {
+  MainLayoutIndexRoute: MainLayoutIndexRoute,
   MainLayoutEventsEventIdRoute: MainLayoutEventsEventIdRoute,
   MainLayoutEventsIndexRoute: MainLayoutEventsIndexRoute,
 }
@@ -121,73 +150,59 @@ const MainLayoutRouteWithChildren = MainLayoutRoute._addFileChildren(
 )
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '': typeof MainLayoutRouteWithChildren
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
+  '/': typeof MainLayoutIndexRoute
   '/events/$eventId': typeof MainLayoutEventsEventIdRoute
   '/events': typeof MainLayoutEventsIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '': typeof MainLayoutRouteWithChildren
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '': typeof AuthLayoutRouteWithChildren
+  '/login': typeof AuthLayoutLoginRoute
+  '/register': typeof AuthLayoutRegisterRoute
+  '/': typeof MainLayoutIndexRoute
   '/events/$eventId': typeof MainLayoutEventsEventIdRoute
   '/events': typeof MainLayoutEventsIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
+  '/_authLayout': typeof AuthLayoutRouteWithChildren
   '/_mainLayout': typeof MainLayoutRouteWithChildren
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '/_authLayout/login': typeof AuthLayoutLoginRoute
+  '/_authLayout/register': typeof AuthLayoutRegisterRoute
+  '/_mainLayout/': typeof MainLayoutIndexRoute
   '/_mainLayout/events/$eventId': typeof MainLayoutEventsEventIdRoute
   '/_mainLayout/events/': typeof MainLayoutEventsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | ''
-    | '/auth/login'
-    | '/auth/register'
-    | '/events/$eventId'
-    | '/events'
+  fullPaths: '' | '/login' | '/register' | '/' | '/events/$eventId' | '/events'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | ''
-    | '/auth/login'
-    | '/auth/register'
-    | '/events/$eventId'
-    | '/events'
+  to: '' | '/login' | '/register' | '/' | '/events/$eventId' | '/events'
   id:
     | '__root__'
-    | '/'
+    | '/_authLayout'
     | '/_mainLayout'
-    | '/auth/login'
-    | '/auth/register'
+    | '/_authLayout/login'
+    | '/_authLayout/register'
+    | '/_mainLayout/'
     | '/_mainLayout/events/$eventId'
     | '/_mainLayout/events/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   MainLayoutRoute: typeof MainLayoutRouteWithChildren
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthLayoutRoute: AuthLayoutRouteWithChildren,
   MainLayoutRoute: MainLayoutRouteWithChildren,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
 }
 
 export const routeTree = rootRoute
@@ -200,27 +215,36 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/_mainLayout",
-        "/auth/login",
-        "/auth/register"
+        "/_authLayout",
+        "/_mainLayout"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_authLayout": {
+      "filePath": "_authLayout.tsx",
+      "children": [
+        "/_authLayout/login",
+        "/_authLayout/register"
+      ]
     },
     "/_mainLayout": {
       "filePath": "_mainLayout.tsx",
       "children": [
+        "/_mainLayout/",
         "/_mainLayout/events/$eventId",
         "/_mainLayout/events/"
       ]
     },
-    "/auth/login": {
-      "filePath": "auth/login.tsx"
+    "/_authLayout/login": {
+      "filePath": "_authLayout/login.tsx",
+      "parent": "/_authLayout"
     },
-    "/auth/register": {
-      "filePath": "auth/register.tsx"
+    "/_authLayout/register": {
+      "filePath": "_authLayout/register.tsx",
+      "parent": "/_authLayout"
+    },
+    "/_mainLayout/": {
+      "filePath": "_mainLayout/index.tsx",
+      "parent": "/_mainLayout"
     },
     "/_mainLayout/events/$eventId": {
       "filePath": "_mainLayout/events/$eventId.tsx",

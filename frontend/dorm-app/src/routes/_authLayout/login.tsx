@@ -1,14 +1,24 @@
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { authApi } from "@/lib/api";
+import { Label } from "@radix-ui/react-label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { authApi } from "@/lib/api";
+export const Route = createFileRoute("/_authLayout/login")({
+  component: RouteComponent,
+});
 
 // Login validation schema with Yup
 const loginSchema = Yup.object().shape({
@@ -26,7 +36,7 @@ const initialValues = {
   password: "",
 };
 
-export default function LoginPage() {
+function RouteComponent() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient(); // Add this line to get queryClient
@@ -59,7 +69,9 @@ export default function LoginPage() {
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardDescription>
+            Enter your credentials to access your account
+          </CardDescription>
         </CardHeader>
         <Formik
           initialValues={initialValues}
@@ -91,7 +103,10 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-primary hover:underline"
+                    >
                       Forgot password?
                     </Link>
                   </div>
@@ -102,7 +117,9 @@ export default function LoginPage() {
                     type="password"
                   />
                   {errors.password && touched.password && (
-                    <p className="text-sm text-destructive">{errors.password}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
               </CardContent>
