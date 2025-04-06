@@ -29,7 +29,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="w-full border-b fixed top-0 bg-background z-50">
+    <header className="w-full border-b bg-background z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <h2 className="text-2xl font-bold">Dorm System</h2>
         <div className="flex gap-4">
