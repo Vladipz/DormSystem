@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Add this import
-import { Switch } from "@/components/ui/switch"; // Add this import
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import { AlertCircle, LogIn } from "lucide-react";
 import * as Yup from "yup";
 
 // Define validation schema using Yup
@@ -35,14 +35,7 @@ export const Route = createFileRoute("/_mainLayout/events/create")({
 function RouteComponent() {
   const navigate = useNavigate();
   const { createEventMutation } = useEvents();
-  const { isAuthenticated, requireAuth, isLoading } = useAuth();
-
-  // Check if user is authenticated and redirect if not
-  useEffect(() => {
-    if (!isLoading) {
-      requireAuth("/events/create");
-    }
-  }, [isLoading, requireAuth]);
+  const { isAuthenticated, isLoading } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -72,18 +65,38 @@ function RouteComponent() {
           navigate({ to: "/events" });
         },
         onError: (error) => {
-          // If it's an authentication error, redirect to login
-          if (error.message?.includes("Authentication required")) {
-            requireAuth("/events/create");
-          }
+          console.error("Failed to create event:", error);
         },
       });
     },
   });
 
-  // Don't render the form if not authenticated or still loading
-  if (isLoading || !isAuthenticated) {
-    return null;
+  // Instead of redirecting automatically, show login message if not authenticated
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-8 rounded mb-4 flex flex-col items-center text-center">
+          <AlertCircle className="h-10 w-10 mb-4" />
+          <h3 className="text-lg font-medium mb-2">Authentication Required</h3>
+          <p className="text-center mb-6">
+            You need to sign in before you can create events.
+          </p>
+          <Button
+            onClick={() =>
+              navigate({ to: "/login", search: { returnTo: "/events/create" } })
+            }
+          >
+            <LogIn className="mr-2 h-4 w-4" />
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render while checking auth status
+  if (isLoading) {
+    return <div className="max-w-2xl mx-auto p-6">Loading...</div>;
   }
 
   return (
@@ -199,10 +212,12 @@ function RouteComponent() {
             id="isPublic"
             name="isPublic"
             checked={formik.values.isPublic}
-            onCheckedChange={(checked) => formik.setFieldValue("isPublic", checked)}
+            onCheckedChange={(checked) =>
+              formik.setFieldValue("isPublic", checked)
+            }
           />
           <Label htmlFor="isPublic">
-            Make this event public 
+            Make this event public
             <span className="text-sm text-gray-500 block">
               Public events can be joined by anyone without an invitation
             </span>

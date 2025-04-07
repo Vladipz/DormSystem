@@ -96,7 +96,6 @@ function RouteComponent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
           <EventCard
-            key={event.id}
             event={event}
             onJoin={handleJoinEvent}
             isJoining={joiningEventId === event.id}
