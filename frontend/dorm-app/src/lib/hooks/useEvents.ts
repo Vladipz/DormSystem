@@ -9,19 +9,17 @@ export const useEvents = () => {
     data: events = [],
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
-      try {
-        console.log("Fetching events...");
-        const events = await EventService.getAllEvents();
-        console.log("Events fetched successfully:", events);
-        return events;
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        return []; // Always return a defined value (empty array) in case of error
-      }
+      console.log("Fetching events...");
+      const events = await EventService.getAllEvents();
+      console.log("Events fetched successfully:", events);
+      return events;
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const joinEventMutation = useMutation({
@@ -44,9 +42,7 @@ export const useEvents = () => {
     events,
     loading: isLoading,
     error,
-    refreshEvents: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
-    },
+    refreshEvents: () => refetch(),
     joinEvent: (eventId: string, userId: string) =>
       joinEventMutation.mutate({ eventId, userId }),
     createEvent: (eventData: CreateEventRequest) => 
