@@ -6,6 +6,7 @@ export interface Event {
   location: string;
   lastParticipants: EventParticipant[];
   numberOfAttendees: number;
+  isPublic: boolean;
 }
 
 export interface EventParticipant {
@@ -30,4 +31,17 @@ export interface CreateEventDto {
   date: string;
   location: string;
   numberOfAttendees?: number;
+  isPublic: boolean;
+}
+
+/**
+ * Matches the C# CreateEventRequest model exactly
+ * @see Events.API.Contracts.CreateEventRequest
+ */
+export interface CreateEventRequest {
+  name: string;
+  date: string; // ISO format string representation of DateTime
+  location: string;
+  numberOfAttendees: number | null;
+  isPublic: boolean;
 }

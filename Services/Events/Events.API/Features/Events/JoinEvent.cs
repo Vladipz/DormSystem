@@ -24,7 +24,7 @@ namespace Events.API.Features.Events
         {
             public Guid EventId { get; set; }
 
-            public string Token { get; set; } = string.Empty;
+            public string? Token { get; set; }
 
             public Guid UserId { get; set; }
         }
@@ -34,7 +34,6 @@ namespace Events.API.Features.Events
             public Validator()
             {
                 RuleFor(x => x.EventId).NotEmpty();
-                RuleFor(x => x.Token).NotEmpty();
                 RuleFor(x => x.UserId).NotEmpty();
             }
         }
@@ -59,21 +58,6 @@ namespace Events.API.Features.Events
                     return validationResult.ToValidationError<Success>();
                 }
 
-                // Validate the invitation token
-                var invitation = await _dbContext.InvitationTokens
-                    .FirstOrDefaultAsync(
-                        i =>
-                        i.Token == request.Token &&
-                        i.EventId == request.EventId &&
-                        i.IsActive &&
-                        i.ExpiresAt > DateTime.UtcNow,
-                        cancellationToken);
-
-                if (invitation == null)
-                {
-                    return Error.NotFound("Invitation.Invalid", "The invitation is invalid or has expired");
-                }
-
                 // Check if the event exists
                 var eventEntity = await _dbContext.Events
                     .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
@@ -81,6 +65,29 @@ namespace Events.API.Features.Events
                 if (eventEntity == null)
                 {
                     return Error.NotFound("Event.NotFound", "Event not found");
+                }
+
+                // For private events, validate the invitation token
+                if (!eventEntity.IsPublic)
+                {
+                    if (string.IsNullOrEmpty(request.Token))
+                    {
+                        return Error.Validation("Token.Required", "This event requires an invitation token to join");
+                    }
+
+                    var invitation = await _dbContext.InvitationTokens
+                        .FirstOrDefaultAsync(
+                            i =>
+                            i.Token == request.Token &&
+                            i.EventId == request.EventId &&
+                            i.IsActive &&
+                            i.ExpiresAt > DateTime.UtcNow,
+                            cancellationToken);
+
+                    if (invitation == null)
+                    {
+                        return Error.NotFound("Invitation.Invalid", "The invitation is invalid or has expired");
+                    }
                 }
 
                 // Check if user is already a participant

@@ -17,7 +17,9 @@ import { Route as MainLayoutIndexImport } from './routes/_mainLayout/index'
 import { Route as AuthLayoutRegisterImport } from './routes/_authLayout/register'
 import { Route as AuthLayoutLoginImport } from './routes/_authLayout/login'
 import { Route as MainLayoutEventsIndexImport } from './routes/_mainLayout/events/index'
+import { Route as MainLayoutEventsCreateImport } from './routes/_mainLayout/events/create'
 import { Route as MainLayoutEventsEventIdImport } from './routes/_mainLayout/events/$eventId'
+import { Route as MainLayoutEventsEventIdEditImport } from './routes/_mainLayout/events/$eventId/edit'
 
 // Create/Update Routes
 
@@ -55,11 +57,24 @@ const MainLayoutEventsIndexRoute = MainLayoutEventsIndexImport.update({
   getParentRoute: () => MainLayoutRoute,
 } as any)
 
+const MainLayoutEventsCreateRoute = MainLayoutEventsCreateImport.update({
+  id: '/events/create',
+  path: '/events/create',
+  getParentRoute: () => MainLayoutRoute,
+} as any)
+
 const MainLayoutEventsEventIdRoute = MainLayoutEventsEventIdImport.update({
   id: '/events/$eventId',
   path: '/events/$eventId',
   getParentRoute: () => MainLayoutRoute,
 } as any)
+
+const MainLayoutEventsEventIdEditRoute =
+  MainLayoutEventsEventIdEditImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => MainLayoutEventsEventIdRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -107,12 +122,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainLayoutEventsEventIdImport
       parentRoute: typeof MainLayoutImport
     }
+    '/_mainLayout/events/create': {
+      id: '/_mainLayout/events/create'
+      path: '/events/create'
+      fullPath: '/events/create'
+      preLoaderRoute: typeof MainLayoutEventsCreateImport
+      parentRoute: typeof MainLayoutImport
+    }
     '/_mainLayout/events/': {
       id: '/_mainLayout/events/'
       path: '/events'
       fullPath: '/events'
       preLoaderRoute: typeof MainLayoutEventsIndexImport
       parentRoute: typeof MainLayoutImport
+    }
+    '/_mainLayout/events/$eventId/edit': {
+      id: '/_mainLayout/events/$eventId/edit'
+      path: '/edit'
+      fullPath: '/events/$eventId/edit'
+      preLoaderRoute: typeof MainLayoutEventsEventIdEditImport
+      parentRoute: typeof MainLayoutEventsEventIdImport
     }
   }
 }
@@ -133,15 +162,31 @@ const AuthLayoutRouteWithChildren = AuthLayoutRoute._addFileChildren(
   AuthLayoutRouteChildren,
 )
 
+interface MainLayoutEventsEventIdRouteChildren {
+  MainLayoutEventsEventIdEditRoute: typeof MainLayoutEventsEventIdEditRoute
+}
+
+const MainLayoutEventsEventIdRouteChildren: MainLayoutEventsEventIdRouteChildren =
+  {
+    MainLayoutEventsEventIdEditRoute: MainLayoutEventsEventIdEditRoute,
+  }
+
+const MainLayoutEventsEventIdRouteWithChildren =
+  MainLayoutEventsEventIdRoute._addFileChildren(
+    MainLayoutEventsEventIdRouteChildren,
+  )
+
 interface MainLayoutRouteChildren {
   MainLayoutIndexRoute: typeof MainLayoutIndexRoute
-  MainLayoutEventsEventIdRoute: typeof MainLayoutEventsEventIdRoute
+  MainLayoutEventsEventIdRoute: typeof MainLayoutEventsEventIdRouteWithChildren
+  MainLayoutEventsCreateRoute: typeof MainLayoutEventsCreateRoute
   MainLayoutEventsIndexRoute: typeof MainLayoutEventsIndexRoute
 }
 
 const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MainLayoutIndexRoute: MainLayoutIndexRoute,
-  MainLayoutEventsEventIdRoute: MainLayoutEventsEventIdRoute,
+  MainLayoutEventsEventIdRoute: MainLayoutEventsEventIdRouteWithChildren,
+  MainLayoutEventsCreateRoute: MainLayoutEventsCreateRoute,
   MainLayoutEventsIndexRoute: MainLayoutEventsIndexRoute,
 }
 
@@ -154,8 +199,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/': typeof MainLayoutIndexRoute
-  '/events/$eventId': typeof MainLayoutEventsEventIdRoute
+  '/events/$eventId': typeof MainLayoutEventsEventIdRouteWithChildren
+  '/events/create': typeof MainLayoutEventsCreateRoute
   '/events': typeof MainLayoutEventsIndexRoute
+  '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
 }
 
 export interface FileRoutesByTo {
@@ -163,8 +210,10 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLayoutLoginRoute
   '/register': typeof AuthLayoutRegisterRoute
   '/': typeof MainLayoutIndexRoute
-  '/events/$eventId': typeof MainLayoutEventsEventIdRoute
+  '/events/$eventId': typeof MainLayoutEventsEventIdRouteWithChildren
+  '/events/create': typeof MainLayoutEventsCreateRoute
   '/events': typeof MainLayoutEventsIndexRoute
+  '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
 }
 
 export interface FileRoutesById {
@@ -174,15 +223,33 @@ export interface FileRoutesById {
   '/_authLayout/login': typeof AuthLayoutLoginRoute
   '/_authLayout/register': typeof AuthLayoutRegisterRoute
   '/_mainLayout/': typeof MainLayoutIndexRoute
-  '/_mainLayout/events/$eventId': typeof MainLayoutEventsEventIdRoute
+  '/_mainLayout/events/$eventId': typeof MainLayoutEventsEventIdRouteWithChildren
+  '/_mainLayout/events/create': typeof MainLayoutEventsCreateRoute
   '/_mainLayout/events/': typeof MainLayoutEventsIndexRoute
+  '/_mainLayout/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/login' | '/register' | '/' | '/events/$eventId' | '/events'
+  fullPaths:
+    | ''
+    | '/login'
+    | '/register'
+    | '/'
+    | '/events/$eventId'
+    | '/events/create'
+    | '/events'
+    | '/events/$eventId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/login' | '/register' | '/' | '/events/$eventId' | '/events'
+  to:
+    | ''
+    | '/login'
+    | '/register'
+    | '/'
+    | '/events/$eventId'
+    | '/events/create'
+    | '/events'
+    | '/events/$eventId/edit'
   id:
     | '__root__'
     | '/_authLayout'
@@ -191,7 +258,9 @@ export interface FileRouteTypes {
     | '/_authLayout/register'
     | '/_mainLayout/'
     | '/_mainLayout/events/$eventId'
+    | '/_mainLayout/events/create'
     | '/_mainLayout/events/'
+    | '/_mainLayout/events/$eventId/edit'
   fileRoutesById: FileRoutesById
 }
 
@@ -231,6 +300,7 @@ export const routeTree = rootRoute
       "children": [
         "/_mainLayout/",
         "/_mainLayout/events/$eventId",
+        "/_mainLayout/events/create",
         "/_mainLayout/events/"
       ]
     },
@@ -248,11 +318,22 @@ export const routeTree = rootRoute
     },
     "/_mainLayout/events/$eventId": {
       "filePath": "_mainLayout/events/$eventId.tsx",
+      "parent": "/_mainLayout",
+      "children": [
+        "/_mainLayout/events/$eventId/edit"
+      ]
+    },
+    "/_mainLayout/events/create": {
+      "filePath": "_mainLayout/events/create.tsx",
       "parent": "/_mainLayout"
     },
     "/_mainLayout/events/": {
       "filePath": "_mainLayout/events/index.tsx",
       "parent": "/_mainLayout"
+    },
+    "/_mainLayout/events/$eventId/edit": {
+      "filePath": "_mainLayout/events/$eventId/edit.tsx",
+      "parent": "/_mainLayout/events/$eventId"
     }
   }
 }

@@ -40,6 +40,7 @@ namespace Events.API.Features.Events
                     Location = x.Location,
                     NumberOfAttendees = x.NumberOfAttendees,
                     OwnerId = x.OwnerId,
+                    IsPublic = x.IsPublic,
                     LastParticipants = x.Participants
                     .OrderByDescending(p => p.JoinedAt)
                     .Take(3)

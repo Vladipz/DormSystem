@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Calendar, MapPin, Plus, Search, Users } from "lucide-react";
+import { Calendar, Globe, Lock, MapPin, Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/")({
@@ -64,8 +64,10 @@ function RouteComponent() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Create Event
+        <Button asChild>
+          <Link to="/events/create">
+            <Plus className="mr-2 h-4 w-4" /> Create Event
+          </Link>
         </Button>
       </div>
 
@@ -117,6 +119,19 @@ function RouteComponent() {
                       {event.numberOfAttendees &&
                         ` (max ${event.numberOfAttendees})`}
                     </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    {event.isPublic ? (
+                      <div className="flex items-center text-green-600">
+                        <Globe className="mr-2 h-4 w-4" />
+                        <span>Public event</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-gray-600">
+                        <Lock className="mr-2 h-4 w-4" />
+                        <span>Private event - Invitation required</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

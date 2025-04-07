@@ -14,6 +14,8 @@ namespace Events.API.Entities
 
         public Guid OwnerId { get; set; }
 
+        public bool IsPublic { get; set; }
+
         public ICollection<EventParticipant> Participants { get; init; } = new List<EventParticipant>();
     }
 }

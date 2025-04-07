@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventService } from "../services/eventService";
+import { CreateEventRequest } from "../types/event";
 
 export const useEvents = () => {
   const queryClient = useQueryClient();
@@ -31,6 +32,14 @@ export const useEvents = () => {
     },
   });
 
+  const createEventMutation = useMutation({
+    mutationFn: (eventData: CreateEventRequest) => 
+      EventService.createEvent(eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
   return {
     events,
     loading: isLoading,
@@ -40,5 +49,8 @@ export const useEvents = () => {
     },
     joinEvent: (eventId: string, userId: string) =>
       joinEventMutation.mutate({ eventId, userId }),
+    createEvent: (eventData: CreateEventRequest) => 
+      createEventMutation.mutate(eventData),
+    createEventMutation, // Export the mutation for more granular access to status
   };
 };

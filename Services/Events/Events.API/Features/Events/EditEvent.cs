@@ -30,6 +30,8 @@ namespace Events.API.Features.Events
             public string Location { get; set; } = string.Empty;
 
             public int? NumberOfAttendees { get; set; }
+
+            public bool IsPublic { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -84,6 +86,7 @@ namespace Events.API.Features.Events
                 existingEvent.Date = request.Date;
                 existingEvent.Location = request.Location;
                 existingEvent.NumberOfAttendees = request.NumberOfAttendees;
+                existingEvent.IsPublic = request.IsPublic;
 
                 await _eventDbContext.SaveChangesAsync(cancellationToken);
 

@@ -15,5 +15,7 @@ namespace Events.API.Contracts
         public ICollection<ParticipantResponse> LastParticipants { get; init; } = new List<ParticipantResponse>();
 
         public int? NumberOfAttendees { get; set; }
+
+        public bool IsPublic { get; set; }
     }
 }

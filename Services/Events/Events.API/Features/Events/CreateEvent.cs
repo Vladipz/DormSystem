@@ -33,6 +33,8 @@ namespace Events.API.Features.Events
             public int? NumberOfAttendees { get; set; }
 
             public Guid OwnerId { get; set; }
+
+            public bool IsPublic { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>

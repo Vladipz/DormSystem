@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api";
 import { Label } from "@radix-ui/react-label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
@@ -39,7 +39,11 @@ const initialValues = {
 function RouteComponent() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const queryClient = useQueryClient(); // Add this line to get queryClient
+  const queryClient = useQueryClient();
+  
+  // Get the returnTo parameter from the URL
+  const search = useSearch({ from: "/_authLayout/login" });
+  const returnTo = search.returnTo || "/";
 
   // Use TanStack Query for login API call
   const loginMutation = useMutation({
@@ -48,8 +52,9 @@ function RouteComponent() {
       // Token is already stored in localStorage by the login function
       // Invalidate the auth status query to trigger a refresh of navbar
       queryClient.invalidateQueries({ queryKey: ["authStatus"] });
-      // Redirect to home or dashboard
-      navigate({ to: "/" });
+      
+      // Redirect to returnTo path or home as fallback
+      navigate({ to: returnTo });
     },
     onError: (error: any) => {
       console.error("Login error details:", error);
@@ -71,6 +76,11 @@ function RouteComponent() {
           <CardTitle>Login</CardTitle>
           <CardDescription>
             Enter your credentials to access your account
+            {returnTo !== "/" && (
+              <p className="text-xs text-muted-foreground mt-1">
+                You'll be redirected back after login
+              </p>
+            )}
           </CardDescription>
         </CardHeader>
         <Formik
