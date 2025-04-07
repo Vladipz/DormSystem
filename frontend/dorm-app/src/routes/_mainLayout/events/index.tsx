@@ -95,13 +95,13 @@ function RouteComponent() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <Card key={event.id} className="overflow-hidden">
+            <Card key={event.id} className="overflow-hidden h-full">
               <CardHeader>
                 <CardTitle className="text-lg font-bold">
                   {event.name}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1">
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Calendar className="mr-2 h-4 w-4" />
@@ -135,7 +135,7 @@ function RouteComponent() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between ">
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/events/$eventId" params={{ eventId: event.id }}>
                     Details
