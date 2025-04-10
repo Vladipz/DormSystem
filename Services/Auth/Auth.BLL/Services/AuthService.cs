@@ -72,6 +72,8 @@ namespace Auth.BLL.Services
             var claims = new List<Claim>
             {
                 new (ClaimTypes.NameIdentifier, userId.ToString()),
+                new (ClaimTypes.GivenName, user.FirstName),
+                new (ClaimTypes.Surname, user.LastName),
             };
 
             foreach (var role in roles)
