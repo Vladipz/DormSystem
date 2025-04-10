@@ -38,7 +38,8 @@ export function Navbar() {
           {isLoggedIn ? (
             <>
               <span className="flex items-center mr-2">
-                Role: {authData?.role || "User"}
+                Role: {authData?.role || "User"} {authData?.firstName || "User"}{" "}
+                {authData?.lastName || "User"}
               </span>
               <Button
                 onClick={handleLogout}
