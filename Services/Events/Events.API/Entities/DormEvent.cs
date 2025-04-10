@@ -10,6 +10,8 @@ namespace Events.API.Entities
 
         public string Location { get; set; } = string.Empty;
 
+        public string Description { get; set; } = string.Empty;
+
         public int? NumberOfAttendees { get; set; }
 
         public Guid OwnerId { get; set; }

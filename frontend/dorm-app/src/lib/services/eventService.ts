@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CreateEventRequest, Event, PagedEventsResponse } from "../types/event";
+import { CreateEventRequest, Event, EventDetails, PagedEventsResponse } from "../types/event";
 
 const API_URL = "http://localhost:5095/api/events";
 
@@ -11,6 +11,19 @@ export const EventService = {
     return response.data.items;
   },
 
+  // Отримати подію за ID
+  async getEventById(eventId: string): Promise<EventDetails> {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    console.log("Makes request with headers:", headers); // Додано для налагодження
+    const response = await axios.get<EventDetails>(`${API_URL}/${eventId}`, { headers });
+    return response.data;
+  },
+
   // Приєднатися до події
   async joinEvent(eventId: string, userId: string): Promise<void> {
     await axios.post(`${API_URL}/${eventId}/participants`, { userId });
@@ -19,7 +32,6 @@ export const EventService = {
   // Створити нову подію
   async createEvent(eventData: CreateEventRequest): Promise<Event> {
     const accessToken = localStorage.getItem('accessToken');
-    
     if (!accessToken) {
       throw new Error('Authentication required to create an event');
     }

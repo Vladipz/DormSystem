@@ -9,6 +9,11 @@ export interface Event {
   isPublic: boolean;
 }
 
+export interface EventDetails extends Event {
+  description?: string;
+  ownerName?: string;
+  isUserAttending?: boolean;
+}
 export interface EventParticipant {
   userId: string;
   joinedAt: string;

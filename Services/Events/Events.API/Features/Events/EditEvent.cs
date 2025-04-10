@@ -29,6 +29,8 @@ namespace Events.API.Features.Events
 
             public string Location { get; set; } = string.Empty;
 
+            public string Description { get; set; } = string.Empty;
+
             public int? NumberOfAttendees { get; set; }
 
             public bool IsPublic { get; set; }
@@ -46,6 +48,9 @@ namespace Events.API.Features.Events
                     .WithMessage("The event date must be in the future.");
 
                 RuleFor(x => x.Location).NotEmpty();
+
+                RuleFor(x => x.Description).MaximumLength(2000)
+                    .WithMessage("Description cannot exceed 2000 characters.");
 
                 RuleFor(x => x.NumberOfAttendees)
                     .Must(x => x == null || x > 0)
@@ -85,6 +90,7 @@ namespace Events.API.Features.Events
                 existingEvent.Name = request.Name;
                 existingEvent.Date = request.Date;
                 existingEvent.Location = request.Location;
+                existingEvent.Description = request.Description;
                 existingEvent.NumberOfAttendees = request.NumberOfAttendees;
                 existingEvent.IsPublic = request.IsPublic;
 

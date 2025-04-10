@@ -38,6 +38,7 @@ namespace Events.API.Features.Events
                     Name = x.Name,
                     Date = x.Date,
                     Location = x.Location,
+                    Description = x.Description,
                     NumberOfAttendees = x.NumberOfAttendees,
                     OwnerId = x.OwnerId,
                     IsPublic = x.IsPublic,

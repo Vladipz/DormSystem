@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -26,6 +27,10 @@ const EventSchema = Yup.object().shape({
     .min(1, "Number of attendees must be at least 1")
     .integer("Number of attendees must be a whole number"),
   isPublic: Yup.boolean().required("Please specify if the event is public"),
+  description: Yup.string().max(
+    2000,
+    "Description must be less than 2000 characters"
+  ),
 });
 
 export const Route = createFileRoute("/_mainLayout/events/create")({
@@ -44,6 +49,7 @@ function RouteComponent() {
       location: "",
       numberOfAttendees: null as number | null,
       isPublic: false,
+      description: "",
     },
     validationSchema: EventSchema,
     onSubmit: (values) => {
@@ -57,6 +63,7 @@ function RouteComponent() {
         location: values.location,
         numberOfAttendees: values.numberOfAttendees,
         isPublic: values.isPublic,
+        description: values.description,
       };
 
       // Trigger the mutation using our centralized hook
@@ -174,6 +181,32 @@ function RouteComponent() {
           {formik.errors.location && formik.touched.location && (
             <p className="text-red-500 text-xs mt-1">
               {formik.errors.location}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium mb-1"
+          >
+            Description
+          </label>
+          <Textarea
+            id="description"
+            name="description"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.description}
+            className={
+              formik.errors.description && formik.touched.description
+                ? "border-red-500"
+                : ""
+            }
+          />
+          {formik.errors.description && formik.touched.description && (
+            <p className="text-red-500 text-xs mt-1">
+              {formik.errors.description}
             </p>
           )}
         </div>

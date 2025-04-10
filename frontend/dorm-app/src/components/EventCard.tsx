@@ -17,6 +17,17 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, onJoin, isJoining }: EventCardProps) {
+  // Format date and time for display
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString();
+    const formattedTime = date.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${formattedDate}, ${formattedTime}`;
+  };
+
   return (
     <Card key={event.id} className="overflow-hidden h-full">
       <CardHeader>
@@ -26,7 +37,7 @@ export function EventCard({ event, onJoin, isJoining }: EventCardProps) {
         <div className="space-y-2">
           <div className="flex items-center text-sm">
             <Calendar className="mr-2 h-4 w-4" />
-            <span>{new Date(event.date).toLocaleDateString()}</span>
+            <span>{formatDateTime(event.date)}</span>
           </div>
           <div className="flex items-center text-sm">
             <MapPin className="mr-2 h-4 w-4" />

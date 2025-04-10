@@ -12,6 +12,8 @@ namespace Events.API.Contracts
 
         public string Location { get; set; } = string.Empty;
 
+        public string Description { get; set; } = string.Empty;
+
         public ICollection<ParticipantResponse> LastParticipants { get; init; } = new List<ParticipantResponse>();
 
         public int? NumberOfAttendees { get; set; }
