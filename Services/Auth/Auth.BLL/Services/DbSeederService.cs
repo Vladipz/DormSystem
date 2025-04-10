@@ -41,6 +41,8 @@ namespace Auth.BLL.Services
                         UserName = adminEmail,
                         Email = adminEmail,
                         EmailConfirmed = true,
+                        FirstName = _adminSettings.Value.FirstName,
+                        LastName = _adminSettings.Value.LastName,
                     };
 
                     var password = _adminSettings.Value.Password;
@@ -58,6 +60,22 @@ namespace Auth.BLL.Services
                 {
                     // Ensure the user is in Admin role if they already exist
                     await _userManager.AddToRoleAsync(existingUser, "Admin");
+
+                    // Update FirstName and LastName if they are empty
+                    if (string.IsNullOrEmpty(existingUser.FirstName) && !string.IsNullOrEmpty(_adminSettings.Value.FirstName))
+                    {
+                        existingUser.FirstName = _adminSettings.Value.FirstName;
+                    }
+
+                    if (string.IsNullOrEmpty(existingUser.LastName) && !string.IsNullOrEmpty(_adminSettings.Value.LastName))
+                    {
+                        existingUser.LastName = _adminSettings.Value.LastName;
+                    }
+
+                    if (!string.IsNullOrEmpty(_adminSettings.Value.FirstName) || !string.IsNullOrEmpty(_adminSettings.Value.LastName))
+                    {
+                        await _userManager.UpdateAsync(existingUser);
+                    }
                 }
             }
         }

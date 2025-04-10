@@ -152,9 +152,9 @@ namespace Auth.BLL.Services
             };
         }
 
-        public async Task<ErrorOr<Guid>> RegisterUserAsync(string email, string password)
+        public async Task<ErrorOr<Guid>> RegisterUserAsync(RegisterUserRequest request)
         {
-            var existingUser = await _userManager.FindByEmailAsync(email);
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
             if (existingUser != null)
             {
                 return Error.Conflict(description: "User with this email already exists");
@@ -162,11 +162,13 @@ namespace Auth.BLL.Services
 
             var newUser = new User
             {
-                Email = email,
-                UserName = email,
+                Email = request.Email,
+                UserName = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
             };
 
-            var result = await _userManager.CreateAsync(newUser, password);
+            var result = await _userManager.CreateAsync(newUser, request.Password);
 
             if (result.Succeeded)
             {

@@ -24,7 +24,7 @@ namespace Auth.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            var result = await _authService.RegisterUserAsync(request.Email, request.Password);
+            var result = await _authService.RegisterUserAsync(request.ToModel());
 
             return result.Match(
                 success => Ok(success),

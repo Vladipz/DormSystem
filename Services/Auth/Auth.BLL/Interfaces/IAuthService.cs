@@ -26,10 +26,9 @@ namespace Auth.BLL.Interfaces
         /// <summary>
         /// Registers a new user in the system.
         /// </summary>
-        /// <param name="email">The user's email address.</param>
-        /// <param name="password">The user's password.</param>
+        /// <param name="request">The registration request containing user information.</param>
         /// <returns>The unique identifier of the newly registered user or an error.</returns>
-        Task<ErrorOr<Guid>> RegisterUserAsync(string email, string password);
+        Task<ErrorOr<Guid>> RegisterUserAsync(RegisterUserRequest request);
 
         /// <summary>
         /// Refreshes an expired access token using a refresh token.
