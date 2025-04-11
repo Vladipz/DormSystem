@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { EventService } from "@/lib/services/eventService";
+import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Calendar, Clock, MapPin, Users } from "lucide-react";
@@ -225,7 +231,7 @@ function EventDetailsPage() {
                   <div className="min-w-0">
                     <p className="font-medium">Participants</p>
                     <p className="text-sm text-muted-foreground truncate">
-                      {event.lastParticipants?.length || 0} attending
+                      {event.participants?.length || 0} attending
                       {event.numberOfAttendees
                         ? ` (max ${event.numberOfAttendees})`
                         : ""}
@@ -244,23 +250,30 @@ function EventDetailsPage() {
 
               <h3 className="font-medium mb-2">Participants</h3>
               <div className="flex flex-wrap gap-1">
-                {event.lastParticipants &&
-                  event.lastParticipants
-                    .slice(0, 5)
-                    .map((participant, index) => (
-                      <div
-                        key={index}
-                        className="h-8 w-8 rounded-full bg-gray-300 border-2 border-background"
-                      ></div>
-                    ))}
-                {event.lastParticipants &&
-                  event.lastParticipants.length > 5 && (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-xs font-medium">
-                      +{event.lastParticipants.length - 5}
-                    </div>
-                  )}
-                {(!event.lastParticipants ||
-                  event.lastParticipants.length === 0) && (
+                {event.participants &&
+                  event.participants.slice(0, 5).map((participant, index) => (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="h-8 w-8 rounded-full bg-gray-300 border-2 border-background flex items-center justify-center cursor-default"
+                          aria-label={`Participant: ${participant.firstName} ${participant.lastName}`}
+                        >
+                          {getPlaceholderAvatar(index, participant.userId)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          {participant.firstName} {participant.lastName}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                {event.participants && event.participants.length > 5 && (
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-xs font-medium">
+                    +{event.participants.length - 5}
+                  </div>
+                )}
+                {(!event.participants || event.participants.length === 0) && (
                   <p className="text-sm text-muted-foreground">
                     No participants yet
                   </p>

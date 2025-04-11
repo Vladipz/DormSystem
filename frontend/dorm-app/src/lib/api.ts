@@ -33,7 +33,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   } catch (error) {
     if (error instanceof SyntaxError) {
       // This catches JSON parse errors
-      throw new Error('Invalid response from server');
+        throw new Error('Invalid response from server');
     }
     throw error;
   }

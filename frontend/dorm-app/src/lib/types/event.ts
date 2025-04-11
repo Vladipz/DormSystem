@@ -9,14 +9,28 @@ export interface Event {
   isPublic: boolean;
 }
 
-export interface EventDetails extends Event {
+export interface EventDetails {
+  id: string;
+  ownerId: string;
+  name: string;
+  date: string;
+  location: string;
   description?: string;
-  ownerName?: string;
-  isUserAttending?: boolean;
+  numberOfAttendees: number;
+  participants: EventParticipantDetails[];
+  isPublic: boolean;
+  currentParticipantsCount: number;
 }
+
 export interface EventParticipant {
   userId: string;
   joinedAt: string;
+}
+export interface EventParticipantDetails {
+  userId: string;
+  joinedAt: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface PagedResponse<T> {
