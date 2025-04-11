@@ -81,5 +81,33 @@ namespace Auth.API.Controllers
 
             return BadRequest(new { Errors = result.Errors });
         }
+
+        /// <summary>
+        /// Gets user information by ID.
+        /// </summary>
+        /// <param name="userId">User ID.</param>
+        /// <returns>User information including ID, username, email and roles.</returns>
+        /// <response code="200">Returns the user's ID, username, email and assigned roles.</response>
+        /// <response code="404">User not found.</response>
+        [HttpGet("{userId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserById(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new
+            {
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                Roles = roles,
+            });
+        }
     }
 }
