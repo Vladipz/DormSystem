@@ -4,6 +4,8 @@ namespace Events.API.Contracts
     {
         public Guid Id { get; set; }
 
+        public Guid OwnerId { get; set; }
+
         public string Name { get; set; } = string.Empty;
 
         public DateTime Date { get; set; }
@@ -14,6 +16,10 @@ namespace Events.API.Contracts
 
         public int? NumberOfAttendees { get; set; }
 
+        public bool IsPublic { get; set; }
+
         public int CurrentParticipantsCount { get; set; }
+
+        public ICollection<ParticipantDetailedResponse> Participants { get; init; } = new List<ParticipantDetailedResponse>();
     }
 }

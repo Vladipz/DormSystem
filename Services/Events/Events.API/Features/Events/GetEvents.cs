@@ -45,7 +45,7 @@ namespace Events.API.Features.Events
                         LastParticipants = x.Participants
                             .OrderByDescending(p => p.JoinedAt)
                             .Take(3)
-                            .Select(p => new ParticipantResponse
+                            .Select(p => new ParticipantShortResponse
                             {
                                 UserId = p.UserId,
                                 JoinedAt = p.JoinedAt,

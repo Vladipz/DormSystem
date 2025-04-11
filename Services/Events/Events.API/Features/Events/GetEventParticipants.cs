@@ -7,6 +7,7 @@ using ErrorOr;
 using Events.API.Contracts;
 using Events.API.Database;
 using Events.API.Mappins;
+using Events.API.Services;
 
 using MediatR;
 
@@ -16,21 +17,23 @@ namespace Events.API.Features.Events
 {
     public static class GetEventParticipants
     {
-        internal sealed class Query : IRequest<ErrorOr<List<ParticipantResponse>>>
+        internal sealed class Query : IRequest<ErrorOr<List<ParticipantDetailedResponse>>>
         {
             public Guid EventId { get; set; }
         }
 
-        internal sealed class Handler : IRequestHandler<Query, ErrorOr<List<ParticipantResponse>>>
+        internal sealed class Handler : IRequestHandler<Query, ErrorOr<List<ParticipantDetailedResponse>>>
         {
             private readonly EventsDbContext _eventDbContext;
+            private readonly ParticipantEnricher _participantEnricher;
 
-            public Handler(EventsDbContext eventDbContext)
+            public Handler(EventsDbContext eventDbContext, ParticipantEnricher participantEnricher)
             {
                 _eventDbContext = eventDbContext;
+                _participantEnricher = participantEnricher;
             }
 
-            public async Task<ErrorOr<List<ParticipantResponse>>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<ErrorOr<List<ParticipantDetailedResponse>>> Handle(Query request, CancellationToken cancellationToken)
             {
                 // Check if event exists
                 var eventExists = await _eventDbContext.Events
@@ -41,17 +44,20 @@ namespace Events.API.Features.Events
                     return Error.NotFound("Event.NotFound", "The specified event was not found.");
                 }
 
-                // Get participants
-                var participants = await _eventDbContext.EventParticipants
+                // Get participants as short responses
+                var shortParticipants = await _eventDbContext.EventParticipants
                     .Where(p => p.EventId == request.EventId)
-                    .Select(p => new ParticipantResponse
+                    .Select(p => new ParticipantShortResponse
                     {
                         UserId = p.UserId,
                         JoinedAt = p.JoinedAt,
                     })
                     .ToListAsync(cancellationToken);
 
-                return participants;
+                // Enrich participants with user information, converting to detailed responses
+                var detailedParticipants = await _participantEnricher.EnrichParticipantsAsync(shortParticipants);
+
+                return detailedParticipants;
             }
         }
     }
@@ -73,8 +79,8 @@ namespace Events.API.Features.Events
                     success => Results.Ok(success),
                     errors => errors.ToResponse());
             })
-            .Produces<List<ParticipantResponse>>(200)
-            .Produces<Error>(404)
+            .Produces<List<ParticipantDetailedResponse>>(200)
+            .Produces<ErrorOr.Error>(404)
             .WithTags("EventParticipants")
             .WithName("GetEventParticipants")
             .WithOpenApi(operation =>

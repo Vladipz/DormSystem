@@ -103,7 +103,7 @@ namespace Events.API.Features.Events
                 var query = new ValidateEventInvitation.Query
                 {
                     EventId = id,
-                    Token = token
+                    Token = token,
                 };
 
                 var result = await mediator.Send(query);

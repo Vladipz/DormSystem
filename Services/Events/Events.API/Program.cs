@@ -3,6 +3,7 @@ using Carter.OpenApi;
 
 using Events.API.Database;
 using Events.API.Features.Events;
+using Events.API.Services;
 
 using FluentValidation;
 
@@ -71,6 +72,11 @@ builder.Services.AddDbContext<EventsDbContext>(options =>
     // Add PostgreSQL support with default connection string
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+// Configure Auth Service integration
+builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
+builder.Services.AddHttpClient<IAuthServiceClient, HttpAuthServiceClient>();
+builder.Services.AddScoped<ParticipantEnricher>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 

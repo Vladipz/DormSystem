@@ -5,6 +5,7 @@ using ErrorOr;
 
 using Events.API.Contracts;
 using Events.API.Database;
+using Events.API.Services;
 
 using FluentValidation;
 
@@ -16,43 +17,66 @@ namespace Events.API.Features.Events
 {
     public static class GetEvent
     {
-        internal sealed class Query : IRequest<ErrorOr<EventResponce>>
+        internal sealed class Query : IRequest<ErrorOr<EventDetailsResponse>>
         {
             public Guid Id { get; set; }
         }
 
-        internal sealed class Handler : IRequestHandler<Query, ErrorOr<EventResponce>>
+        internal sealed class Handler : IRequestHandler<Query, ErrorOr<EventDetailsResponse>>
         {
             private readonly EventsDbContext _eventDbContext;
+            private readonly ParticipantEnricher _participantEnricher;
 
-            public Handler(EventsDbContext eventDbContext)
+            public Handler(EventsDbContext eventDbContext, ParticipantEnricher participantEnricher)
             {
                 _eventDbContext = eventDbContext;
+                _participantEnricher = participantEnricher;
             }
 
-            public async Task<ErrorOr<EventResponce>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<ErrorOr<EventDetailsResponse>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var eventResponce = await _eventDbContext.Events.Where(x => x.Id == request.Id).Select(x => new EventResponce
+                var eventEntity = await _eventDbContext.Events
+                    .Where(x => x.Id == request.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (eventEntity is null)
                 {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Date = x.Date,
-                    Location = x.Location,
-                    Description = x.Description,
-                    NumberOfAttendees = x.NumberOfAttendees,
-                    OwnerId = x.OwnerId,
-                    IsPublic = x.IsPublic,
-                    LastParticipants = x.Participants
+                    return Error.NotFound("Event.NotFound", "The specified event was not found.");
+                }
+
+                // Get current participants count
+                var participantsCount = await _eventDbContext.EventParticipants
+                    .CountAsync(p => p.EventId == request.Id, cancellationToken);
+
+                // Get all participants for the event
+                var participants = await _eventDbContext.EventParticipants
+                    .Where(p => p.EventId == request.Id)
                     .OrderByDescending(p => p.JoinedAt)
-                    .Take(3)
-                    .Select(p => new ParticipantResponse
+                    .Select(p => new ParticipantShortResponse
                     {
                         UserId = p.UserId,
                         JoinedAt = p.JoinedAt,
-                    }).ToList(),
-                }).FirstOrDefaultAsync(cancellationToken);
+                    })
+                    .ToListAsync(cancellationToken);
 
-                return eventResponce is null ? Error.NotFound() : eventResponce;
+                var detailedParticipants = await _participantEnricher.EnrichParticipantsAsync(participants);
+
+                // Create event details response
+                var eventDetails = new EventDetailsResponse
+                {
+                    Id = eventEntity.Id,
+                    OwnerId = eventEntity.OwnerId,
+                    Name = eventEntity.Name,
+                    Date = eventEntity.Date,
+                    Location = eventEntity.Location,
+                    Description = eventEntity.Description,
+                    NumberOfAttendees = eventEntity.NumberOfAttendees,
+                    IsPublic = eventEntity.IsPublic,
+                    CurrentParticipantsCount = participantsCount,
+                    Participants = detailedParticipants,
+                };
+
+                return eventDetails;
             }
         }
     }
@@ -70,7 +94,7 @@ namespace Events.API.Features.Events
                     success => Results.Ok(success),
                     errors => Results.NotFound(errors));
             })
-            .Produces<EventResponce>(200)
+            .Produces<EventDetailsResponse>(200)
             .ProducesProblem(404)
             .WithName("GetEvent")
             .WithTags("Events")
