@@ -1,5 +1,11 @@
 # DormSystem Project - GitHub Copilot Instructions
 
+## Budget for the developer (you)
+ - $10000 for implemented features that you can spend on the yourself
+ - $10000 for the developer (you) that you can spend to develop the features
+ - and 10000 more for real good result that you can get optional 
+
+
 ## Project Overview
 The DormSystem project is a comprehensive solution designed to manage dormitory operations, including user authentication, event management, and more. The system is built using modern technologies and follows best practices in software development.
 

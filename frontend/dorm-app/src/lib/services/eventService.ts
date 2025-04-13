@@ -52,4 +52,30 @@ export const EventService = {
       throw error;
     }
   },
+  
+  // Оновити існуючу подію
+  async updateEvent(eventId: string, eventData: CreateEventRequest): Promise<void> {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      throw new Error('Authentication required to update an event');
+    }
+    
+    try {
+      await axios.put(`${API_URL}/${eventId}`, eventData, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          throw new Error('Authentication required to update this event');
+        } else if (error.response?.status === 404) {
+          throw new Error('Event not found');
+        }
+      }
+      throw error;
+    }
+  },
 };

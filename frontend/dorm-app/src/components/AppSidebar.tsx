@@ -14,7 +14,7 @@ const navigationItems = [
   { path: "/profile", icon: Users, label: "Profile" },
 ];
 
-export function Sidebar() {
+export function AppSidebar() {
   const location = useLocation();
 
   const isRouteActive = (path: string) => {
@@ -22,7 +22,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 border-r bg-card p-4 shadow-lg">
+    <div className="w-64 border-r bg-card p-4 shadow-lg hidden md:block">
       <div className="flex flex-col h-full">
         <div className="flex items-center mb-8">
           <Home className="w-6 h-6 mr-2 text-primary" />

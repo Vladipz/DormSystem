@@ -7,6 +7,7 @@ interface PageHeaderProps {
   backButtonLabel?: string;
   backTo?: string;
   children?: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
 export function PageHeader({
@@ -14,6 +15,7 @@ export function PageHeader({
   backButtonLabel = "Back",
   backTo,
   children,
+  actions,
 }: PageHeaderProps) {
   const navigate = useNavigate();
 
@@ -26,13 +28,14 @@ export function PageHeader({
   };
 
   return (
-    <div className="flex items-center gap-4 mb-6">
+    <div className="flex items-center gap-4 mb-6 flex-wrap">
       <Button variant="ghost" onClick={handleBack}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         {backButtonLabel}
       </Button>
       <h1 className="text-2xl font-bold">{title}</h1>
       {children && <div className="ml-auto">{children}</div>}
+      {actions && <div className="ml-auto flex gap-2">{actions}</div>}
     </div>
   );
 }

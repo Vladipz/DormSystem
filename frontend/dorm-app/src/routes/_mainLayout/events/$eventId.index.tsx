@@ -6,12 +6,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { EventService } from "@/lib/services/eventService";
 import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, Clock, MapPin, Users } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Calendar, Clock, Edit, MapPin, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
   component: EventDetailsPage,
@@ -21,6 +22,8 @@ function EventDetailsPage() {
   const { eventId } = Route.useParams();
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
+  const { user, isAuthenticated } = useAuth();
+  const [canEdit, setCanEdit] = useState(false);
 
   // Fetch event details using React Query
   const {
@@ -33,6 +36,17 @@ function EventDetailsPage() {
     queryFn: () => EventService.getEventById(eventId),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Check if the user can edit this event (is owner or admin)
+  useEffect(() => {
+    if (event && user && isAuthenticated) {
+      const isOwner = event.ownerId === user.id;
+      const isAdmin = user.role === "Admin";
+      setCanEdit(isOwner || isAdmin);
+    } else {
+      setCanEdit(false);
+    }
+  }, [event, user, isAuthenticated]);
 
   // Mutation for joining/leaving an event
   const attendanceMutation = useMutation({
@@ -160,6 +174,16 @@ function EventDetailsPage() {
         title={event.name}
         backTo="/events"
         backButtonLabel="Back to Events"
+        actions={
+          canEdit && (
+            <Button asChild>
+              <Link to="/events/$eventId/edit" params={{ eventId }}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Event
+              </Link>
+            </Button>
+          )
+        }
       />
 
       {/* Event Header Card */}

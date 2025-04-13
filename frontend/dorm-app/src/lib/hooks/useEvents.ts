@@ -38,6 +38,14 @@ export const useEvents = () => {
     },
   });
 
+  const updateEventMutation = useMutation({
+    mutationFn: ({ eventId, eventData }: { eventId: string; eventData: CreateEventRequest }) => 
+      EventService.updateEvent(eventId, eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
   return {
     events,
     loading: isLoading,
@@ -47,6 +55,9 @@ export const useEvents = () => {
       joinEventMutation.mutate({ eventId, userId }),
     createEvent: (eventData: CreateEventRequest) => 
       createEventMutation.mutate(eventData),
+    updateEvent: (eventId: string, eventData: CreateEventRequest) =>
+      updateEventMutation.mutate({ eventId, eventData }),
     createEventMutation, // Export the mutation for more granular access to status
+    updateEventMutation, // Export the update mutation for access to status
   };
 };

@@ -1,7 +1,6 @@
+import { AppSidebar } from "@/components/AppSidebar";
 import { Navbar } from "@/components/Navbar";
-import { Sidebar } from "@/components/Sidebar";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
 export const Route = createFileRoute("/_mainLayout")({
   component: RouteComponent,
 });
@@ -16,7 +15,7 @@ function RouteComponent() {
 
   return (
     <div className="h-screen flex overflow-hidden">
-      <Sidebar />
+      <AppSidebar />
       <div className="flex-1 flex flex-col h-screen">
         <header className="min-h-[60px]">
           <Navbar />
