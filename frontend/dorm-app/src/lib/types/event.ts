@@ -63,4 +63,5 @@ export interface CreateEventRequest {
   location: string;
   numberOfAttendees: number | null;
   isPublic: boolean;
+  description: string;
 }

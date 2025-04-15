@@ -2,19 +2,39 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
 import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Calendar, Clock, Edit, MapPin, Users } from "lucide-react";
+import { Calendar, Clock, Copy, Edit, MapPin, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
+  async beforeLoad({ params }) {
+    const { eventId } = params;
+    const event = await EventService.getEventById(eventId);
+    const user = authService.checkAuthStatus();
+    const isOwner = user && event.ownerId === user.id;
+    const isAdmin = user && user.role === "Admin";
+    const canInvite = event.isPublic || isOwner || isAdmin;
+    return { canInvite };
+  },
   component: EventDetailsPage,
 });
 
@@ -24,6 +44,10 @@ function EventDetailsPage() {
   const [comment, setComment] = useState("");
   const { user, isAuthenticated } = useAuth();
   const [canEdit, setCanEdit] = useState(false);
+  const { canInvite } = Route.useRouteContext();
+  const [copied, setCopied] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string>("");
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   // Fetch event details using React Query
   const {
@@ -84,6 +108,17 @@ function EventDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["events", eventId] });
     },
   });
+
+  // Function to fetch invite link
+  const handleOpenInvite = async () => {
+    setInviteLoading(true);
+    try {
+      const link = await EventService.getEventInviteLink(eventId);
+      setInviteLink(link);
+    } finally {
+      setInviteLoading(false);
+    }
+  };
 
   const toggleAttendance = () => {
     if (!event) return;
@@ -175,14 +210,49 @@ function EventDetailsPage() {
         backTo="/events"
         backButtonLabel="Back to Events"
         actions={
-          canEdit && (
-            <Button asChild>
-              <Link to="/events/$eventId/edit" params={{ eventId }}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Event
-              </Link>
-            </Button>
-          )
+          <div className="flex gap-2">
+            {canInvite && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={handleOpenInvite}>Invite Link</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Invitation Link</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex items-center gap-2">
+                    <Input readOnly value={inviteLoading ? "Loading..." : inviteLink} className="flex-1" />
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        if (inviteLink) {
+                          navigator.clipboard.writeText(inviteLink);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 1200);
+                        }
+                      }}
+                      disabled={inviteLoading}
+                    >
+                      <Copy className="mr-1 h-4 w-4" /> {copied ? "Copied!" : "Copy"}
+                    </Button>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Close</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+            {canEdit && (
+              <Button asChild>
+                <Link to="/events/$eventId/edit" params={{ eventId }}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Event
+                </Link>
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -263,7 +333,7 @@ function EventDetailsPage() {
               <h3 className="font-medium mb-2">Organized by</h3>
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 rounded-full bg-gray-300"></div>
-                <span>{event.ownerName || "Event Organizer"}</span>
+                <span>Event Organizer</span>
               </div>
 
               <h3 className="font-medium mb-2">Participants</h3>

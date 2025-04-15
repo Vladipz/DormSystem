@@ -78,4 +78,10 @@ export const EventService = {
       throw error;
     }
   },
+
+  // Fake: Get invitation link for event
+  async getEventInviteLink(eventId: string): Promise<string> {
+    // In a real implementation, this would call the backend
+    return Promise.resolve(`https://dormsystem.app/invite/${eventId}/super-link`);
+  },
 };
