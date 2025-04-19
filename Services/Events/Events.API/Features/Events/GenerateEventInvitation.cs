@@ -139,12 +139,12 @@ namespace Events.API.Features.Events
                     Guid? ownerId = null;
                     if (!eventEntity.IsPublic)
                     {
-                        if (userIdResult.IsError)
-                        {
-                            return Results.Unauthorized();
+                    if (userIdResult.IsError)
+                    {
+                        return Results.Unauthorized();
                         }
 
-                        ownerId = userIdResult.Value;
+                    ownerId = userIdResult.Value;
                     }
 
                     var command = new GenerateEventInvitation.Command

@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { authService } from "@/lib/services/authService";
 import type { EventDetails } from "@/lib/types/event";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { AxiosError } from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/invite")({
   async beforeLoad({ search }) {
@@ -33,48 +34,24 @@ function RouteComponent() {
     typeof search["token"] === "string"
       ? (search["token"] as string)
       : undefined;
+  const { validateInvitation, joinEventWithToken } = useEvents();
 
-  const [loading, setLoading] = useState(true);
-  const [event, setEvent] = useState<EventDetails | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // React Query for invitation validation
+  const {
+    data: event,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<EventDetails, AxiosError>({
+    queryKey: ["event-invite", eventId, token],
+    queryFn: () => validateInvitation(eventId, token || ""),
+    retry: 1,
+  });
+
   const [joinStatus, setJoinStatus] = useState<
     "idle" | "joining" | "success" | "error"
   >("idle");
   const [joinError, setJoinError] = useState<string | null>(null);
-  const { validateInvitation, joinEventWithToken } = useEvents();
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    if (token) {
-      // Приватний івент — валідуємо токен
-      validateInvitation(eventId, token)
-        .then((data: EventDetails) => {
-          setEvent(data);
-          setLoading(false);
-        })
-        .catch((err: unknown) => {
-          const axiosErr = err as AxiosError<{ message?: string }>;
-          setError(
-            axiosErr?.response?.data?.message ||
-              "Invalid or expired invitation link."
-          );
-          setLoading(false);
-        });
-    } else {
-      // Публічний івент — просто отримуємо дані події
-      validateInvitation(eventId, "")
-        .then((data: EventDetails) => {
-          setEvent(data);
-          setLoading(false);
-        })
-        .catch((err: unknown) => {
-          const axiosErr = err as AxiosError<{ message?: string }>;
-          setError(axiosErr?.response?.data?.message || "Event not found.");
-          setLoading(false);
-        });
-    }
-  }, [eventId, token]);
 
   const handleJoin = async () => {
     const user = authService.checkAuthStatus();
@@ -103,11 +80,11 @@ function RouteComponent() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="p-6">Loading invitation...</div>;
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="p-6">
         <PageHeader
@@ -115,7 +92,11 @@ function RouteComponent() {
           backTo="/events"
           backButtonLabel="Back to Events"
         />
-        <div className="mt-8 text-center text-red-500">{error}</div>
+        <div className="mt-8 text-center text-red-500">
+          {error instanceof Error
+            ? error.message
+            : "Invalid or expired invitation link."}
+        </div>
       </div>
     );
   }
