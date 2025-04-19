@@ -9,7 +9,15 @@ import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/invite")({
   async beforeLoad({ search }) {
-    const token = typeof search.token === "string" ? search.token : undefined;
+    let token: string | undefined = undefined;
+    if (
+      search &&
+      typeof search === "object" &&
+      "token" in search &&
+      typeof search["token"] === "string"
+    ) {
+      token = search["token"] as string;
+    }
     const user = authService.checkAuthStatus();
     if (token && (!user || !user.isAuthenticated)) {
       throw redirect({ to: "/login" });
@@ -21,7 +29,10 @@ export const Route = createFileRoute("/_mainLayout/events/$eventId/invite")({
 function RouteComponent() {
   const { eventId } = Route.useParams();
   const search = Route.useSearch() as Record<string, unknown>;
-  const token = typeof search["token"] === "string" ? (search["token"] as string) : undefined;
+  const token =
+    typeof search["token"] === "string"
+      ? (search["token"] as string)
+      : undefined;
 
   const [loading, setLoading] = useState(true);
   const [event, setEvent] = useState<EventDetails | null>(null);
@@ -66,6 +77,12 @@ function RouteComponent() {
   }, [eventId, token]);
 
   const handleJoin = async () => {
+    const user = authService.checkAuthStatus();
+    if (!user || !user.isAuthenticated) {
+      setJoinStatus("error");
+      setJoinError("You must be logged in to join the event.");
+      return;
+    }
     setJoinStatus("joining");
     setJoinError(null);
     try {
