@@ -31,7 +31,7 @@ export const useEvents = () => {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (eventData: CreateEventRequest) => 
+    mutationFn: (eventData: CreateEventRequest) =>
       EventService.createEvent(eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -39,12 +39,27 @@ export const useEvents = () => {
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ eventId, eventData }: { eventId: string; eventData: CreateEventRequest }) => 
-      EventService.updateEvent(eventId, eventData),
+    mutationFn: ({
+      eventId,
+      eventData,
+    }: {
+      eventId: string;
+      eventData: CreateEventRequest;
+    }) => EventService.updateEvent(eventId, eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
+
+  // Додаю методи для інвайт-логіки
+  const validateInvitation = (eventId: string, token: string) =>
+    EventService.validateInvitation(eventId, token);
+
+  const joinEventWithToken = (eventId: string, token: string) =>
+    EventService.joinEventWithToken(eventId, token);
+
+  const getEventInviteLink = (eventId: string) =>
+    EventService.getEventInviteLink(eventId);
 
   return {
     events,
@@ -53,11 +68,14 @@ export const useEvents = () => {
     refreshEvents: () => refetch(),
     joinEvent: (eventId: string, userId: string) =>
       joinEventMutation.mutate({ eventId, userId }),
-    createEvent: (eventData: CreateEventRequest) => 
+    createEvent: (eventData: CreateEventRequest) =>
       createEventMutation.mutate(eventData),
     updateEvent: (eventId: string, eventData: CreateEventRequest) =>
       updateEventMutation.mutate({ eventId, eventData }),
     createEventMutation, // Export the mutation for more granular access to status
     updateEventMutation, // Export the update mutation for access to status
+    getEventInviteLink,
+    validateInvitation,
+    joinEventWithToken,
   };
 };

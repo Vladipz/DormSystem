@@ -31,7 +31,6 @@ namespace Events.API.Features.Events
             public Validator()
             {
                 RuleFor(x => x.EventId).NotEmpty();
-                RuleFor(x => x.Token).NotEmpty();
             }
         }
 
@@ -55,6 +54,32 @@ namespace Events.API.Features.Events
                     return validationResult.ToValidationError<EventDetailsResponse>();
                 }
 
+                // Get event details
+                var eventEntity = await _dbContext.Events
+                    .Where(e => e.Id == request.EventId)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (eventEntity == null)
+                {
+                    return Error.NotFound("Event.NotFound", "Event not found");
+                }
+
+                if (eventEntity.IsPublic)
+                {
+                    // Для публічних івентів токен не потрібен, повертаємо дані події
+                    var participantsCount = await _dbContext.EventParticipants
+                        .CountAsync(p => p.EventId == request.EventId, cancellationToken);
+                    var eventDetails = eventEntity.Adapt<EventDetailsResponse>();
+                    eventDetails.CurrentParticipantsCount = participantsCount;
+                    return eventDetails;
+                }
+
+                // Для приватних івентів — перевіряємо токен
+                if (string.IsNullOrWhiteSpace(request.Token))
+                {
+                    return Error.Validation("Token.Required", "This event requires an invitation token to join");
+                }
+
                 // Check if token exists and is valid
                 var invitation = await _dbContext.InvitationTokens
                     .FirstOrDefaultAsync(i =>
@@ -69,24 +94,12 @@ namespace Events.API.Features.Events
                     return Error.NotFound("Invitation.Invalid", "The invitation is invalid or has expired");
                 }
 
-                // Get event details
-                var eventEntity = await _dbContext.Events
-                    .Where(e => e.Id == request.EventId)
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                if (eventEntity == null)
-                {
-                    return Error.NotFound("Event.NotFound", "Event not found");
-                }
-
                 // Get current participants count
-                var participantsCount = await _dbContext.EventParticipants
+                var participantsCountPrivate = await _dbContext.EventParticipants
                     .CountAsync(p => p.EventId == request.EventId, cancellationToken);
-
-                var eventDetails = eventEntity.Adapt<EventDetailsResponse>();
-                eventDetails.CurrentParticipantsCount = participantsCount;
-
-                return eventDetails;
+                var eventDetailsPrivate = eventEntity.Adapt<EventDetailsResponse>();
+                eventDetailsPrivate.CurrentParticipantsCount = participantsCountPrivate;
+                return eventDetailsPrivate;
             }
         }
     }

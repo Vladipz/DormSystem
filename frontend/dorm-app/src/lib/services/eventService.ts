@@ -79,9 +79,40 @@ export const EventService = {
     }
   },
 
-  // Fake: Get invitation link for event
+  // Валідувати інвайт токен
+  async validateInvitation(eventId: string, token: string) {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    const response = await axios.get(`${API_URL}/${eventId}/validate-invitation`, {
+      params: { token },
+      headers,
+    });
+    return response.data;
+  },
+
+  // Приєднатися до події з токеном (новий ендпоінт)
+  async joinEventWithToken(eventId: string, token: string): Promise<void> {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    // Якщо токен порожній, не передаємо поле зовсім (для публічних)
+    const body = token ? { token } : {};
+    await axios.post(`${API_URL}/${eventId}/join`, body, { headers });
+  },
+
+  // Отримати інвайт-лінк для події
   async getEventInviteLink(eventId: string): Promise<string> {
-    // In a real implementation, this would call the backend
-    return Promise.resolve(`https://dormsystem.app/invite/${eventId}/super-link`);
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    const response = await axios.get(`${API_URL}/${eventId}/generate-invitation`, { headers });
+    return response.data.invitationLink;
   },
 };

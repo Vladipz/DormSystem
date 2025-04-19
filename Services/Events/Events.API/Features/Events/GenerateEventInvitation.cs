@@ -39,7 +39,6 @@ namespace Events.API.Features.Events
             public Validator()
             {
                 RuleFor(x => x.EventId).NotEmpty();
-                RuleFor(x => x.OwnerId).NotEmpty();
             }
         }
 
@@ -64,7 +63,7 @@ namespace Events.API.Features.Events
                     return validationResult.Errors.ConvertAll(e => Error.Validation(e.PropertyName, e.ErrorMessage));
                 }
 
-                // Check if the event exists and user is the owner
+                // Check if the event exists
                 var eventEntity = await _dbContext.Events
                     .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
 
@@ -73,9 +72,20 @@ namespace Events.API.Features.Events
                     return Error.NotFound("Event.NotFound", "Event not found");
                 }
 
+                if (eventEntity.IsPublic)
+                {
+                    // Для публічних подій — не потрібен токен, може генерувати будь-хто
+                    return new InvitationResult
+                    {
+                        Token = string.Empty,
+                        ExpiresAt = DateTime.UtcNow.AddDays(ExpiresInDays), // не використовується
+                    };
+                }
+
+                // Для приватних — тільки власник
                 if (eventEntity.OwnerId != request.OwnerId)
                 {
-                    return Error.Forbidden("Event.NotOwner", "Only event owner can generate invitations");
+                    return Error.Forbidden("Event.NotOwner", "Only event owner can generate invitations for private events");
                 }
 
                 // Generate a unique token
@@ -118,17 +128,29 @@ namespace Events.API.Features.Events
                     HttpContext httpContext,
                     ITokenService tokenService) =>
                 {
-                    var userIdResult = tokenService.GetUserId(httpContext);
-
-                    if (userIdResult.IsError)
+                    var dbContext = httpContext.RequestServices.GetRequiredService<EventsDbContext>();
+                    var eventEntity = await dbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+                    if (eventEntity == null)
                     {
-                        return Results.Unauthorized();
+                        return Results.NotFound();
+                    }
+
+                    var userIdResult = tokenService.GetUserId(httpContext);
+                    Guid? ownerId = null;
+                    if (!eventEntity.IsPublic)
+                    {
+                        if (userIdResult.IsError)
+                        {
+                            return Results.Unauthorized();
+                        }
+
+                        ownerId = userIdResult.Value;
                     }
 
                     var command = new GenerateEventInvitation.Command
                     {
                         EventId = id,
-                        OwnerId = userIdResult.Value,
+                        OwnerId = ownerId ?? Guid.Empty,
                     };
 
                     var result = await mediator.Send(command);
@@ -136,10 +158,9 @@ namespace Events.API.Features.Events
                     return result.Match(
                         invitationData =>
                         {
-                            var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
-
-                            string invitationLink = $"{baseUrl}/events/{id}/invite?token={invitationData.Token}";
-
+                            string invitationLink = eventEntity.IsPublic
+                                ? $"/events/{id}/invite"
+                                : $"/events/{id}/invite?token={invitationData.Token}";
                             return Results.Ok(new GenerateInvitationResponse
                             {
                                 InvitationLink = invitationLink,
@@ -155,8 +176,7 @@ namespace Events.API.Features.Events
                 .Produces(401)
                 .Produces(403)
                 .Produces(404)
-                .IncludeInOpenApi()
-                .RequireAuthorization();
+                .IncludeInOpenApi();
         }
     }
 }

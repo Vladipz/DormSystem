@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useEvents } from "@/lib/hooks/useEvents";
 import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
 import { getPlaceholderAvatar } from "@/lib/utils";
@@ -46,8 +47,8 @@ function EventDetailsPage() {
   const [canEdit, setCanEdit] = useState(false);
   const { canInvite } = Route.useRouteContext();
   const [copied, setCopied] = useState(false);
-  const [inviteLink, setInviteLink] = useState<string>("");
-  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const { getEventInviteLink } = useEvents();
 
   // Fetch event details using React Query
   const {
@@ -109,29 +110,31 @@ function EventDetailsPage() {
     },
   });
 
-  // Function to fetch invite link
-  const handleOpenInvite = async () => {
-    setInviteLoading(true);
-    try {
-      const link = await EventService.getEventInviteLink(eventId);
-      setInviteLink(link);
-    } finally {
-      setInviteLoading(false);
-    }
-  };
+  // Use Query for invite link
+  const {
+    data: inviteLink,
+    isLoading: inviteLoading,
+    isError: inviteError,
+    error: inviteLinkError
+  } = useQuery({
+    queryKey: ["eventInviteLink", eventId],
+    queryFn: () => getEventInviteLink(eventId),
+    enabled: inviteDialogOpen,
+    retry: 1,
+  });
 
   const toggleAttendance = () => {
     if (!event) return;
-
-    // Check if user is currently attending and toggle the state
-    const isCurrentlyAttending = event.isUserAttending || false;
-    attendanceMutation.mutate(!isCurrentlyAttending);
+    attendanceMutation.mutate(!isAttending);
   };
 
   const handleAddComment = () => {
     if (comment.trim() === "") return;
     commentMutation.mutate(comment);
   };
+
+  // Визначаю isAttending через user.id у списку учасників
+  const isAttending = !!(event && user && event.participants && event.participants.some(p => p.userId === user.id));
 
   if (isLoading) {
     return (
@@ -201,8 +204,6 @@ function EventDetailsPage() {
     });
   };
 
-  const isAttending = event.isUserAttending || false;
-
   return (
     <div className="space-y-6 p-6">
       <PageHeader
@@ -212,30 +213,40 @@ function EventDetailsPage() {
         actions={
           <div className="flex gap-2">
             {canInvite && (
-              <Dialog>
+              <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" onClick={handleOpenInvite}>Invite Link</Button>
+                  <Button variant="outline">Invite Link</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Invitation Link</DialogTitle>
                   </DialogHeader>
                   <div className="flex items-center gap-2">
-                    <Input readOnly value={inviteLoading ? "Loading..." : inviteLink} className="flex-1" />
+                    <Input
+                      readOnly
+                      value={inviteLoading ? "Loading..." : inviteError ? "Failed to load link" : (inviteLink ? window.location.origin + inviteLink : "")}
+                      className="flex-1"
+                    />
                     <Button
                       variant="secondary"
                       onClick={() => {
                         if (inviteLink) {
-                          navigator.clipboard.writeText(inviteLink);
+                          const absLink = window.location.origin + inviteLink;
+                          navigator.clipboard.writeText(absLink);
                           setCopied(true);
                           setTimeout(() => setCopied(false), 1200);
                         }
                       }}
-                      disabled={inviteLoading}
+                      disabled={inviteLoading || !inviteLink}
                     >
                       <Copy className="mr-1 h-4 w-4" /> {copied ? "Copied!" : "Copy"}
                     </Button>
                   </div>
+                  {inviteError && (
+                    <div className="text-red-500 text-sm mt-2">
+                      {inviteLinkError instanceof Error ? inviteLinkError.message : "Failed to load invitation link."}
+                    </div>
+                  )}
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button variant="outline">Close</Button>
