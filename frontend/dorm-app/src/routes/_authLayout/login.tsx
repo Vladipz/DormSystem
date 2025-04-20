@@ -106,9 +106,11 @@ function RouteComponent() {
                     type="email"
                     placeholder="name@example.com"
                   />
-                  {errors.email && touched.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  <div className="h-5">
+                    {errors.email && touched.email && (
+                      <p className="text-sm text-destructive">{errors.email}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -126,11 +128,13 @@ function RouteComponent() {
                     name="password"
                     type="password"
                   />
-                  {errors.password && touched.password && (
-                    <p className="text-sm text-destructive">
-                      {errors.password}
-                    </p>
-                  )}
+                  <div className="h-5">
+                    {errors.password && touched.password && (
+                      <p className="text-sm text-destructive">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
