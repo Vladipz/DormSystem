@@ -22,7 +22,7 @@ import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
 import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Calendar, Clock, Copy, Edit, MapPin, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -48,7 +48,7 @@ function EventDetailsPage() {
   const { canInvite } = Route.useRouteContext();
   const [copied, setCopied] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const { getEventInviteLink } = useEvents();
+  const { getEventInviteLink, joinEvent, leaveEvent } = useEvents();
 
   // Fetch event details using React Query
   const {
@@ -56,6 +56,7 @@ function EventDetailsPage() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["events", eventId],
     queryFn: () => EventService.getEventById(eventId),
@@ -76,19 +77,21 @@ function EventDetailsPage() {
   // Mutation for joining/leaving an event
   const attendanceMutation = useMutation({
     mutationFn: async (isJoining: boolean) => {
+      if (!user || !user.id) {
+        throw new Error("You must be logged in to attend events");
+      }
+      
       if (isJoining) {
-        // TODO: Get actual user ID from auth context
-        const userId = "currentUserId";
-        await EventService.joinEvent(eventId, userId);
+        await joinEvent(eventId, user.id);
       } else {
-        // Leave event logic - to be implemented
-        // await EventService.leaveEvent(eventId);
+        await leaveEvent(eventId, user.id);
       }
     },
     onSuccess: () => {
       // Invalidate and refetch events data
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+      refetch(); // Immediately refetch this event's data
     },
     onError: (error) => {
       console.error("Failed to update attendance:", error);
@@ -123,8 +126,19 @@ function EventDetailsPage() {
     retry: 1,
   });
 
+  const navigate = useNavigate();
+
   const toggleAttendance = () => {
     if (!event) return;
+    
+    // Check if the user is logged in
+    if (!user || !isAuthenticated) {
+      // Redirect to login page with the current URL as the return destination
+      const returnTo = `/events/${eventId}`;
+      navigate({ to: "/login", search: { returnTo } });
+      return;
+    }
+    
     attendanceMutation.mutate(!isAttending);
   };
 

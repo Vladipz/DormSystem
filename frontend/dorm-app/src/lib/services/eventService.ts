@@ -26,9 +26,28 @@ export const EventService = {
 
   // Приєднатися до події
   async joinEvent(eventId: string, userId: string): Promise<void> {
-    await axios.post(`${API_URL}/${eventId}/participants`, { userId });
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    
+    await axios.post(`${API_URL}/${eventId}/participants`, { userId }, { headers });
   },
   
+  // Покинути подію
+  async leaveEvent(eventId: string, userId: string): Promise<void> {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {};
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    
+    await axios.delete(`${API_URL}/${eventId}/participants/${userId}`, { headers });
+  },
+
   // Створити нову подію
   async createEvent(eventData: CreateEventRequest): Promise<Event> {
     const accessToken = localStorage.getItem('accessToken');

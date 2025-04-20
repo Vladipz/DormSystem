@@ -30,6 +30,14 @@ export const useEvents = () => {
     },
   });
 
+  const leaveEventMutation = useMutation({
+    mutationFn: ({ eventId, userId }: { eventId: string; userId: string }) =>
+      EventService.leaveEvent(eventId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
   const createEventMutation = useMutation({
     mutationFn: (eventData: CreateEventRequest) =>
       EventService.createEvent(eventData),
@@ -68,6 +76,8 @@ export const useEvents = () => {
     refreshEvents: () => refetch(),
     joinEvent: (eventId: string, userId: string) =>
       joinEventMutation.mutate({ eventId, userId }),
+    leaveEvent: (eventId: string, userId: string) =>
+      leaveEventMutation.mutate({ eventId, userId }),
     createEvent: (eventData: CreateEventRequest) =>
       createEventMutation.mutate(eventData),
     updateEvent: (eventId: string, eventData: CreateEventRequest) =>
