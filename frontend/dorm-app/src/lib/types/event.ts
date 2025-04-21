@@ -4,33 +4,18 @@ export interface Event {
   name: string;
   date: string;
   location: string;
-  lastParticipants: EventParticipant[];
-  numberOfAttendees: number;
+  lastParticipants: Participant[];
+  numberOfAttendees?: number;
   isPublic: boolean;
 }
 
-export interface EventDetails {
-  id: string;
-  ownerId: string;
-  name: string;
-  date: string;
-  location: string;
-  description?: string;
-  numberOfAttendees: number;
-  participants: EventParticipantDetails[];
-  isPublic: boolean;
-  currentParticipantsCount: number;
+export interface EventDetails extends Event {
+  participants: Participant[];
 }
 
-export interface EventParticipant {
+export interface Participant {
   userId: string;
   joinedAt: string;
-}
-export interface EventParticipantDetails {
-  userId: string;
-  joinedAt: string;
-  firstName: string;
-  lastName: string;
 }
 
 export interface PagedResponse<T> {
@@ -61,7 +46,7 @@ export interface CreateEventRequest {
   name: string;
   date: string; // ISO format string representation of DateTime
   location: string;
-  numberOfAttendees: number | null;
+  numberOfAttendees?: number;
   isPublic: boolean;
   description: string;
 }

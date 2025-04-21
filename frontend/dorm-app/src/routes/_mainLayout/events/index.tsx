@@ -2,6 +2,7 @@ import { CardSkeleton } from "@/components/CardSkeleton";
 import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertCircle, Plus, RefreshCw, Search } from "lucide-react";
@@ -14,7 +15,13 @@ export const Route = createFileRoute("/_mainLayout/events/")({
 function RouteComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEventId] = useState<string | null>(null);
-  const { events, loading, error, refreshEvents, joinEvent } = useEvents();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 9; // Show 9 events per page (3x3 grid)
+  
+  const { events, loading, error, refreshEvents, joinEvent, totalPages } = useEvents({
+    pageNumber: currentPage,
+    pageSize,
+  });
   const [joiningEventId, setJoiningEventId] = useState<string | null>(null);
 
   const handleJoinEvent = async (eventId: string) => {
@@ -73,6 +80,35 @@ function RouteComponent() {
     );
   }
 
+  const paginationItems = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 || // Always show first page
+      i === totalPages || // Always show last page
+      (i >= currentPage - 1 && i <= currentPage + 1) // Show current page and neighbors
+    ) {
+      paginationItems.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setCurrentPage(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    } else if (
+      (i === 2 && currentPage > 3) ||
+      (i === totalPages - 1 && currentPage < totalPages - 2)
+    ) {
+      paginationItems.push(
+        <PaginationItem key={i}>
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+  }
+
   return (
     <div className="space-y-4 py-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -96,12 +132,37 @@ function RouteComponent() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
           <EventCard
+            key={event.id}
             event={event}
             onJoin={handleJoinEvent}
             isJoining={joiningEventId === event.id}
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  isDisabled={currentPage === 1}
+                />
+              </PaginationItem>
+              
+              {paginationItems}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  isDisabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,23 +2,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventService } from "../services/eventService";
 import { CreateEventRequest } from "../types/event";
 
-export const useEvents = () => {
+interface UseEventsParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+export const useEvents = ({ pageNumber = 1, pageSize = 10 }: UseEventsParams = {}) => {
   const queryClient = useQueryClient();
 
   const {
-    data: events = [],
+    data,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["events"],
-    queryFn: async () => {
-      console.log("Fetching events...");
-      const events = await EventService.getAllEvents();
-      console.log("Events fetched successfully:", events);
-      return events;
+    queryKey: ["events", { pageNumber, pageSize }],
+    queryFn: () => EventService.getAllEvents(pageNumber, pageSize),
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === 'Authentication required to fetch events') {
+        return false;
+      }
+      return failureCount < 1;
     },
-    retry: 1,
     retryDelay: 1000,
   });
 
@@ -70,7 +75,10 @@ export const useEvents = () => {
     EventService.getEventInviteLink(eventId);
 
   return {
-    events,
+    events: data?.items ?? [],
+    totalPages: data?.totalPages ?? 0,
+    currentPage: data?.pageNumber ?? pageNumber,
+    totalCount: data?.totalCount ?? 0,
     loading: isLoading,
     error,
     refreshEvents: () => refetch(),
@@ -82,8 +90,8 @@ export const useEvents = () => {
       createEventMutation.mutate(eventData),
     updateEvent: (eventId: string, eventData: CreateEventRequest) =>
       updateEventMutation.mutate({ eventId, eventData }),
-    createEventMutation, // Export the mutation for more granular access to status
-    updateEventMutation, // Export the update mutation for access to status
+    createEventMutation,
+    updateEventMutation,
     getEventInviteLink,
     validateInvitation,
     joinEventWithToken,
