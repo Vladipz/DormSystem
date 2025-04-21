@@ -25,7 +25,7 @@ export const EventService = {
   },
 
   // Приєднатися до події
-  async joinEvent(eventId: string, userId: string): Promise<void> {
+  async joinEvent(eventId: string): Promise<void> {
     const accessToken = localStorage.getItem('accessToken');
     const headers: Record<string, string> = {};
     
@@ -33,7 +33,8 @@ export const EventService = {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
     
-    await axios.post(`${API_URL}/${eventId}/participants`, { userId }, { headers });
+    // Using the correct endpoint from JoinEvent.cs
+    await axios.post(`${API_URL}/${eventId}/join`, {}, { headers });
   },
   
   // Покинути подію

@@ -14,6 +14,8 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using Shared.TokenService.Services;
+
 namespace Events.API.Features.Events
 {
     public static class AddParticipant
@@ -23,6 +25,8 @@ namespace Events.API.Features.Events
             public Guid EventId { get; set; }
 
             public Guid UserId { get; set; }
+
+            public Guid RequesterId { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -63,6 +67,12 @@ namespace Events.API.Features.Events
                     return Error.NotFound("Event.NotFound", "The specified event was not found.");
                 }
 
+                // Check if requester is the owner of the event
+                if (eventEntity.OwnerId != request.RequesterId)
+                {
+                    return Error.Forbidden("Event.NotOwner", "Only the event owner can add participants.");
+                }
+
                 // Check if participant already exists
                 var existingParticipant = await _eventDbContext.EventParticipants
                     .FirstOrDefaultAsync(p => p.EventId == request.EventId && p.UserId == request.UserId, cancellationToken);
@@ -93,12 +103,25 @@ namespace Events.API.Features.Events
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/events/{eventId}/participants", async (Guid eventId, AddParticipantRequest request, IMediator mediator) =>
+            app.MapPost("/events/{eventId}/participants", async (
+                Guid eventId,
+                AddParticipantRequest request,
+                IMediator mediator,
+                HttpContext httpContext,
+                ITokenService tokenService) =>
             {
+                var userIdResult = tokenService.GetUserId(httpContext);
+
+                if (userIdResult.IsError)
+                {
+                    return Results.Unauthorized();
+                }
+
                 var command = new AddParticipant.Command
                 {
                     EventId = eventId,
                     UserId = request.UserId,
+                    RequesterId = userIdResult.Value,
                 };
 
                 var result = await mediator.Send(command);
@@ -109,17 +132,21 @@ namespace Events.API.Features.Events
             })
             .Produces(201)
             .Produces<Error>(400)
+            .Produces<Error>(401)
+            .Produces<Error>(403)
             .Produces<Error>(404)
             .Produces<Error>(409)
             .WithTags("EventParticipants")
             .WithName("AddParticipant")
             .WithOpenApi(operation =>
             {
-                operation.Summary = "Add a participant to an event";
+                operation.Summary = "Add a participant to an event (event owner only)";
+                operation.Description = "Allows event owners to add participants to their events";
                 operation.Parameters[0].Description = "Event ID";
                 return operation;
             })
-            .IncludeInOpenApi();
+            .IncludeInOpenApi()
+            .RequireAuthorization();
         }
     }
 }
