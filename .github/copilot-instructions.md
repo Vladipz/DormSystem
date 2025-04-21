@@ -9,6 +9,9 @@
 ## Project Overview
 The DormSystem project is a comprehensive solution designed to manage dormitory operations, including user authentication, event management, and more. The system is built using modern technologies and follows best practices in software development.
 
+## Documentation
+Important: When making significant changes to the project structure, architecture, or adding new features, always update the PROJECT_DOCUMENTATION.md file to keep it in sync with the actual implementation. This ensures that all team members have access to up-to-date documentation.
+
 ## Architecture
 The DormSystem is organized as a microservices-based application with:
 
