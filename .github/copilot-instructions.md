@@ -15,11 +15,10 @@ Important: When making significant changes to the project structure, architectur
 ## Architecture
 The DormSystem is organized as a microservices-based application with:
 
-- **Frontend**: React-based SPA using TypeScript and Vite
+- **Frontend**: React-based SPA using TypeScript and Vite and IMPORTANT yarn for package management
 - **Backend Services**:
   - Auth Service - User authentication and authorization
   - Events Service - Event management functionality
-  - More services... <!-- Add other services as needed -->
 - **Infrastructure**:
   - API Gateway (YARP)
   - Service Discovery
