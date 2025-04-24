@@ -6,6 +6,10 @@ namespace Rooms.API.Entities
     {
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Gets or sets reference to the room this place belongs to.
+        /// Only regular dormitory rooms have places.
+        /// </summary>
         public Guid RoomId { get; set; }
 
         public int Index { get; set; }
@@ -15,5 +19,10 @@ namespace Rooms.API.Entities
         public DateTime? MovedInAt { get; set; }
 
         public DateTime? MovedOutAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets navigation property for the room this place belongs to.
+        /// </summary>
+        public Room Room { get; set; } = null!;
     }
 }

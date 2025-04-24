@@ -29,12 +29,19 @@ namespace Rooms.API.Entities
 
         public Guid RoomId { get; set; }
 
+        public string Title { get; set; } = string.Empty;
+
         public string Description { get; set; } = string.Empty;
 
-        public MaintenanceStatus Status { get; set; } // Enum for status
-
-        public Guid ReportedBy { get; set; }
+        public bool IsResolved { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public DateTime? ResolvedAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets navigation property for the room this maintenance ticket is related to.
+        /// </summary>
+        public Room Room { get; set; } = null!;
     }
 }
