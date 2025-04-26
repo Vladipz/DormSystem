@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Rooms.API.Entities
 {
     public class Floor

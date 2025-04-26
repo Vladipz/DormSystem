@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Rooms.API.Entities;
 
-namespace Rooms.API.Database
+namespace Rooms.API.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -16,5 +16,6 @@ namespace Rooms.API.Database
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Place> Places { get; set; }
         public DbSet<MaintenanceTicket> MaintenanceTickets { get; set; }
+        public DbSet<Building> Buildings { get; set; }
     }
 }

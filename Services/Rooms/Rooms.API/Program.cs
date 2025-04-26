@@ -1,11 +1,14 @@
 using Carter;
 
+using FluentValidation;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Rooms.API.Database;
+using Rooms.API.Data;
+using Rooms.API.Features.Rooms;
 
 using Shared.TokenService.Services;
 
@@ -35,6 +38,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+builder.Services.AddTransient<IValidator<CreateRoom.Command>, CreateRoom.Validator>();
+builder.Services.AddTransient<IValidator<GetRooms.Query>, GetRooms.Validator>();
+builder.Services.AddTransient<IValidator<GetRoomById.Query>, GetRoomById.Validator>();
+builder.Services.AddTransient<IValidator<UpdateRoom.Command>, UpdateRoom.Validator>();
+builder.Services.AddTransient<IValidator<DeleteRoom.Command>, DeleteRoom.Validator>();
 
 // Register TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -91,9 +100,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+await SeedData.InitializeAsync(dbContext);
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapCarter();
+app.MapGroup("/api")
+   .WithOpenApi()
+   .MapCarter();
 
 app.Run();
