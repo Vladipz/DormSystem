@@ -5,22 +5,23 @@ using ErrorOr;
 
 using Events.API.Contracts;
 using Events.API.Database;
-using Events.API.Shared;
 
 using MediatR;
+
+using Shared.PagedList;
 
 namespace Events.API.Features.Events
 {
     public static class GetEvents
     {
-        internal sealed class Query : IRequest<ErrorOr<PagedEventsResponse>>
+        internal sealed class Query : IRequest<ErrorOr<PagedResponse<EventResponce>>>
         {
             public int PageNumber { get; set; } = 1;
 
             public int PageSize { get; set; } = 10;
         }
 
-        internal sealed class Handler : IRequestHandler<Query, ErrorOr<PagedEventsResponse>>
+        internal sealed class Handler : IRequestHandler<Query, ErrorOr<PagedResponse<EventResponce>>>
         {
             private readonly EventsDbContext _eventDbContext;
 
@@ -29,7 +30,7 @@ namespace Events.API.Features.Events
                 _eventDbContext = eventDbContext;
             }
 
-            public async Task<ErrorOr<PagedEventsResponse>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<ErrorOr<PagedResponse<EventResponce>>> Handle(Query request, CancellationToken cancellationToken)
             {
                 var query = _eventDbContext.Events
                     .OrderByDescending(e => e.Date)
@@ -58,7 +59,7 @@ namespace Events.API.Features.Events
                     request.PageSize,
                     cancellationToken);
 
-                return PagedEventsResponse.FromPagedList(pagedEvents);
+                return PagedResponse<EventResponce>.FromPagedList(pagedEvents);
             }
         }
     }
@@ -84,7 +85,7 @@ namespace Events.API.Features.Events
                     success => Results.Ok(success),
                     errors => Results.Problem(errors.FirstOrDefault().Description));
             })
-            .Produces<PagedEventsResponse>(200)
+            .Produces<PagedResponse<EventResponce>>(StatusCodes.Status200OK)
             .WithName("GetEvents")
             .WithTags("Events")
             .WithOpenApi(operation =>
