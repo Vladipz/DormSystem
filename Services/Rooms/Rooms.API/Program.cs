@@ -107,8 +107,6 @@ await SeedData.InitializeAsync(dbContext);
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapGroup("/api")
-   .WithOpenApi()
-   .MapCarter();
+app.MapCarter();
 
 app.Run();
