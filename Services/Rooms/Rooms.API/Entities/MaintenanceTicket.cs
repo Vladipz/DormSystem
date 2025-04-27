@@ -1,10 +1,5 @@
-using System;
-
 namespace Rooms.API.Entities
 {
-    /// <summary>
-    /// Represents the status of a maintenance ticket.
-    /// </summary>
     public enum MaintenanceStatus
     {
         /// <summary>
@@ -38,6 +33,8 @@ namespace Rooms.API.Entities
         public DateTime CreatedAt { get; set; }
 
         public DateTime? ResolvedAt { get; set; }
+
+        public MaintenanceStatus Status { get; set; } = MaintenanceStatus.Open; // <<<< ADD THIS FIELD
 
         /// <summary>
         /// Gets or sets navigation property for the room this maintenance ticket is related to.
