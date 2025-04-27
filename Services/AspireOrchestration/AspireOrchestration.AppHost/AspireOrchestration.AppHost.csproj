@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\Auth\Auth.API\Auth.API.csproj" />
     <ProjectReference Include="..\..\Events\Events.API\Events.API.csproj" />
     <ProjectReference Include="..\..\..\Infrastructure-services\ApiGateways\ApiGateway.YARP\ApiGateway.YARP.csproj" />
+    <ProjectReference Include="..\..\Rooms\Rooms.API\Rooms.API.csproj" />
   </ItemGroup>
 
 </Project>
