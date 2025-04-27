@@ -119,7 +119,8 @@ namespace Rooms.API.Features.Rooms
             .WithName("CreateRoom")
             .WithTags("Rooms")
             .Accepts<CreateRoomRequest>("application/json")
-            .IncludeInOpenApi();
+            .IncludeInOpenApi()
+            .RequireAuthorization("AdminOnly");
         }
     }
 }

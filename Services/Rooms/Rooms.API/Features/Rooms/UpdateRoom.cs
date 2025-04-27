@@ -129,7 +129,8 @@ namespace Rooms.API.Features.Rooms
             .WithName("UpdateRoom")
             .WithTags("Rooms")
             .Accepts<UpdateRoomRequest>("application/json")
-            .IncludeInOpenApi();
+            .IncludeInOpenApi()
+            .RequireAuthorization("AdminOnly");
         }
     }
 }

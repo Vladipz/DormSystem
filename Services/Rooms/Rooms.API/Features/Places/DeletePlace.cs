@@ -9,15 +9,15 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
-using Rooms.API.Contracts.Room;
+using Rooms.API.Contracts.Place;
 using Rooms.API.Data;
 using Rooms.API.Mappings;
 
-namespace Rooms.API.Features.Rooms
+namespace Rooms.API.Features.Places
 {
-    public static class DeleteRoom
+    public static class DeletePlace
     {
-        internal sealed class Command : IRequest<ErrorOr<DeletedRoomResponse>>
+        internal sealed class Command : IRequest<ErrorOr<DeletedPlaceResponse>>
         {
             public Guid Id { get; set; }
         }
@@ -28,11 +28,11 @@ namespace Rooms.API.Features.Rooms
             {
                 RuleFor(x => x.Id)
                     .NotEmpty()
-                    .WithMessage("Room ID must not be empty.");
+                    .WithMessage("Place ID must not be empty.");
             }
         }
 
-        internal sealed class Handler : IRequestHandler<Command, ErrorOr<DeletedRoomResponse>>
+        internal sealed class Handler : IRequestHandler<Command, ErrorOr<DeletedPlaceResponse>>
         {
             private readonly ApplicationDbContext _dbContext;
             private readonly IValidator<Command> _validator;
@@ -43,57 +43,57 @@ namespace Rooms.API.Features.Rooms
                 _validator = validator;
             }
 
-            public async Task<ErrorOr<DeletedRoomResponse>> Handle(Command request, CancellationToken ct)
+            public async Task<ErrorOr<DeletedPlaceResponse>> Handle(Command request, CancellationToken ct)
             {
                 var validation = await _validator.ValidateAsync(request, ct);
                 if (!validation.IsValid)
                 {
-                    return validation.ToValidationError<DeletedRoomResponse>();
+                    return validation.ToValidationError<DeletedPlaceResponse>();
                 }
 
-                var room = await _dbContext.Rooms
-                    .FirstOrDefaultAsync(r => r.Id == request.Id, ct);
+                var place = await _dbContext.Places
+                    .FirstOrDefaultAsync(p => p.Id == request.Id, ct);
 
-                if (room is null)
+                if (place is null)
                 {
                     return Error.NotFound(
-                        code: "Room.NotFound",
-                        description: $"Room with ID {request.Id} was not found.");
+                        code: "Place.NotFound",
+                        description: $"Place with ID {request.Id} was not found.");
                 }
 
-                _dbContext.Rooms.Remove(room);
+                _dbContext.Places.Remove(place);
                 await _dbContext.SaveChangesAsync(ct);
 
-                return new DeletedRoomResponse { Id = room.Id };
+                return new DeletedPlaceResponse { Id = place.Id };
             }
         }
     }
 
-    public sealed class DeleteRoomEndpoint : ICarterModule
+    public sealed class DeletePlaceEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapDelete("/rooms/{id:guid}", async (Guid id, ISender sender) =>
+            app.MapDelete("/places/{id:guid}", async (Guid id, ISender sender) =>
             {
-                var command = new DeleteRoom.Command { Id = id };
+                var command = new DeletePlace.Command { Id = id };
                 var result = await sender.Send(command);
 
                 return result.Match(
                     deleted => Results.Ok(deleted),
                     error => error.ToResponse());
             })
-            .Produces<DeletedRoomResponse>(200)
-            .Produces<Error>(404)
-            .WithName("DeleteRoom")
-            .WithTags("Rooms")
+            .Produces<DeletedPlaceResponse>(200)
+            .Produces(404)
+            .WithName("Place.Delete")
+            .WithTags("Places")
             .WithOpenApi(op =>
             {
-                op.Summary = "Delete room by ID";
-                op.Parameters[0].Description = "Room ID";
+                op.Summary = "Delete place by ID";
+                op.Parameters[0].Description = "Place ID";
                 return op;
             })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }
     }
-}
+} 
