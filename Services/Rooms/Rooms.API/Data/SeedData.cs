@@ -10,51 +10,214 @@ namespace Rooms.API.Data
         {
             ArgumentNullException.ThrowIfNull(dbContext);
 
-            // Apply any pending migrations
             await dbContext.Database.MigrateAsync(cancellationToken);
 
-            if (!await dbContext.Rooms.AnyAsync(cancellationToken))
+            await SeedBuildingsAsync(dbContext, cancellationToken);
+            await SeedFloorsAsync(dbContext, cancellationToken);
+            await SeedBlocksAsync(dbContext, cancellationToken);
+            await SeedRoomsAsync(dbContext, cancellationToken);
+            await SeedPlacesAsync(dbContext, cancellationToken);
+            await SeedMaintenanceTicketsAsync(dbContext, cancellationToken);
+        }
+
+        private static async Task SeedFloorsAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.Floors.AnyAsync(cancellationToken))
             {
-                var rooms = new List<Room>
+                return;
+            }
+
+            var buildingIds = await dbContext.Buildings
+                .Select(b => b.Id)
+                .ToListAsync(cancellationToken);
+
+            var floors = new List<Floor>();
+
+            foreach (var buildingId in buildingIds)
+            {
+                for (int i = 1; i <= 3; i++) // 3 floors for each building
                 {
-                    new Room
+                    floors.Add(new Floor
                     {
                         Id = Guid.NewGuid(),
-                        Label = "Room A101",
+                        BuildingId = buildingId,
+                        Number = i,
+                        BlocksCount = 2,
+                    });
+                }
+            }
+
+            dbContext.Floors.AddRange(floors);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private static async Task SeedBlocksAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.Blocks.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var floorIds = await dbContext.Floors
+                .Select(f => f.Id)
+                .ToListAsync(cancellationToken);
+
+            var blocks = new List<Block>();
+
+            foreach (var floorId in floorIds)
+            {
+                for (int i = 1; i <= 2; i++) // 2 blocks per floor
+                {
+                    blocks.Add(new Block
+                    {
+                        Id = Guid.NewGuid(),
+                        FloorId = floorId,
+                        Label = $"Block {i}",
+                        GenderRule = i % 2 == 0 ? "Female" : "Male",
+                    });
+                }
+            }
+
+            dbContext.Blocks.AddRange(blocks);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private static async Task SeedBuildingsAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.Buildings.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var buildings = new List<Building>
+            {
+                new Building
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Alpha Building",
+                    Address = "123 Alpha Street",
+                    FloorsCount = 5,
+                    YearBuilt = 2010,
+                    AdministratorContact = "admin@alpha.com",
+                    IsActive = true,
+                },
+                new Building
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Beta Building",
+                    Address = "456 Beta Avenue",
+                    FloorsCount = 3,
+                    YearBuilt = 2015,
+                    AdministratorContact = "admin@beta.com",
+                    IsActive = true,
+                },
+            };
+
+            dbContext.Buildings.AddRange(buildings);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private static async Task SeedPlacesAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.Places.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var rooms = await dbContext.Rooms
+                .Select(r => new { r.Id, r.Capacity })
+                .ToListAsync(cancellationToken);
+
+            var places = new List<Place>();
+
+            foreach (var room in rooms)
+            {
+                for (int i = 1; i <= room.Capacity; i++)
+                {
+                    places.Add(new Place
+                    {
+                        Id = Guid.NewGuid(),
+                        RoomId = room.Id,
+                        Index = i,
+                    });
+                }
+            }
+
+            dbContext.Places.AddRange(places);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private static async Task SeedRoomsAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.Rooms.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var blockIds = await dbContext.Blocks
+                .Select(b => b.Id)
+                .ToListAsync(cancellationToken);
+
+            var rooms = new List<Room>();
+
+            foreach (var blockId in blockIds)
+            {
+                for (int i = 1; i <= 3; i++) // 3 rooms per block
+                {
+                    rooms.Add(new Room
+                    {
+                        Id = Guid.NewGuid(),
+                        BlockId = blockId,
+                        Label = $"Room {i}",
                         Capacity = 2,
                         Status = RoomStatus.Available,
                         RoomType = RoomType.Regular,
-                        Amenities =
-                            ["WiFi", "Desk", "Closet"],
-                    },
-                    new Room
-                    {
-                        Id = Guid.NewGuid(),
-                        Label = "Study Room 1",
-                        Capacity = 8,
-                        Status = RoomStatus.Available,
-                        RoomType = RoomType.Specialized,
-                        Purpose = "Group Study",
-                        Amenities =
-                            ["Whiteboard", "Projector"],
-                    },
-                    new Room
-                    {
-                        Id = Guid.NewGuid(),
-                        Label = "Laundry Room",
-                        Capacity = 1,
-                        Status = RoomStatus.Maintenance,
-                        RoomType = RoomType.Specialized,
-                        Purpose = "Laundry Machines",
-                        Amenities =
-                            ["Washing Machine", "Dryer"],
-                    },
-                };
-
-                dbContext.Rooms.AddRange(rooms);
-
-                await dbContext.SaveChangesAsync(cancellationToken);
+                        Amenities = ["WiFi", "Desk"],
+                    });
+                }
             }
+
+            dbContext.Rooms.AddRange(rooms);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        private static async Task SeedMaintenanceTicketsAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        {
+            if (await dbContext.MaintenanceTickets.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            var firstRoom = await dbContext.Rooms.FirstOrDefaultAsync(cancellationToken);
+            if (firstRoom is null)
+            {
+                return; // No rooms to assign maintenance tickets
+            }
+
+            var tickets = new List<MaintenanceTicket>
+            {
+                new MaintenanceTicket
+                {
+                    Id = Guid.NewGuid(),
+                    RoomId = firstRoom.Id,
+                    Title = "Fix broken window",
+                    Description = "Window in room is broken and needs replacement.",
+                    Status = MaintenanceStatus.Open,
+                    CreatedAt = DateTime.UtcNow,
+                },
+                new MaintenanceTicket
+                {
+                    Id = Guid.NewGuid(),
+                    RoomId = firstRoom.Id,
+                    Title = "Fix lights",
+                    Description = "Light bulbs are not working.",
+                    Status = MaintenanceStatus.InProgress,
+                    CreatedAt = DateTime.UtcNow.AddDays(-2),
+                },
+            };
+
+            dbContext.MaintenanceTickets.AddRange(tickets);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
