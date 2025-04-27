@@ -8,7 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using Rooms.API.Data;
+using Rooms.API.Features.Blocks;
+using Rooms.API.Features.Buildings;
+using Rooms.API.Features.Floors;
+using Rooms.API.Features.Places;
 using Rooms.API.Features.Rooms;
+using Rooms.API.Features.Maintenance;
 
 using Shared.TokenService.Services;
 
@@ -30,6 +35,21 @@ builder.Services.AddAuthentication()
         };
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddAuthorization();
 
 // Реєструємо DbContext з SQLite
@@ -39,16 +59,53 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Register MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
+// Room Validators
 builder.Services.AddTransient<IValidator<CreateRoom.Command>, CreateRoom.Validator>();
 builder.Services.AddTransient<IValidator<GetRooms.Query>, GetRooms.Validator>();
 builder.Services.AddTransient<IValidator<GetRoomById.Query>, GetRoomById.Validator>();
 builder.Services.AddTransient<IValidator<UpdateRoom.Command>, UpdateRoom.Validator>();
 builder.Services.AddTransient<IValidator<DeleteRoom.Command>, DeleteRoom.Validator>();
 
+// Block Validators
+builder.Services.AddTransient<IValidator<CreateBlock.Command>, CreateBlock.Validator>();
+builder.Services.AddTransient<IValidator<GetBlocks.Query>, GetBlocks.Validator>();
+builder.Services.AddTransient<IValidator<GetBlockById.Query>, GetBlockById.Validator>();
+builder.Services.AddTransient<IValidator<UpdateBlock.Command>, UpdateBlock.Validator>();
+builder.Services.AddTransient<IValidator<DeleteBlock.Command>, DeleteBlock.Validator>();
+
+// Floor Validators
+builder.Services.AddTransient<IValidator<CreateFloor.Command>, CreateFloor.Validator>();
+builder.Services.AddTransient<IValidator<GetFloors.Query>, GetFloors.Validator>();
+builder.Services.AddTransient<IValidator<GetFloorById.Query>, GetFloorById.Validator>();
+builder.Services.AddTransient<IValidator<UpdateFloor.Command>, UpdateFloor.Validator>();
+builder.Services.AddTransient<IValidator<DeleteFloor.Command>, DeleteFloor.Validator>();
+
+// Place Validators
+builder.Services.AddTransient<IValidator<CreatePlace.Command>, CreatePlace.Validator>();
+builder.Services.AddTransient<IValidator<GetPlaces.Query>, GetPlaces.Validator>();
+builder.Services.AddTransient<IValidator<GetPlaceById.Query>, GetPlaceById.Validator>();
+builder.Services.AddTransient<IValidator<UpdatePlace.Command>, UpdatePlace.Validator>();
+builder.Services.AddTransient<IValidator<DeletePlace.Command>, DeletePlace.Validator>();
+builder.Services.AddTransient<IValidator<VacatePlace.Command>, VacatePlace.Validator>();
+builder.Services.AddTransient<IValidator<OccupyPlace.Command>, OccupyPlace.Validator>();
+
+// Building Validators
+builder.Services.AddTransient<IValidator<CreateBuilding.Command>, CreateBuilding.Validator>();
+builder.Services.AddTransient<IValidator<GetBuildings.Query>, GetBuildings.Validator>();
+builder.Services.AddTransient<IValidator<GetBuildingById.Query>, GetBuildingById.Validator>();
+builder.Services.AddTransient<IValidator<UpdateBuilding.Command>, UpdateBuilding.Validator>();
+builder.Services.AddTransient<IValidator<DeleteBuilding.Command>, DeleteBuilding.Validator>();
+
+// Maintenance Validators
+builder.Services.AddTransient<IValidator<CreateMaintenanceTicket.Command>, CreateMaintenanceTicket.Validator>();
+builder.Services.AddTransient<IValidator<UpdateMaintenanceTicket.Command>, UpdateMaintenanceTicket.Validator>();
+builder.Services.AddTransient<IValidator<DeleteMaintenanceTicket.Command>, DeleteMaintenanceTicket.Validator>();
+builder.Services.AddTransient<IValidator<GetMaintenanceTickets.Query>, GetMaintenanceTickets.Validator>();
+builder.Services.AddTransient<IValidator<GetMaintenanceTicketById.Query>, GetMaintenanceTicketById.Validator>();
+builder.Services.AddTransient<IValidator<ChangeMaintenanceTicketStatus.Command>, ChangeMaintenanceTicketStatus.Validator>();
+
 // Register TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
-
-// Register Validators (will be added as we create features)
 
 // Configure Carter
 builder.Services.AddCarter();
@@ -108,5 +165,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();
+app.UseCors("AllowAll");
 
 app.Run();
