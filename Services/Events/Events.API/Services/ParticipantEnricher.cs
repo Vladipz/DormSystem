@@ -2,6 +2,8 @@ using ErrorOr;
 
 using Events.API.Contracts;
 
+using Shared.UserServiceClient;
+
 namespace Events.API.Services
 {
     public class ParticipantEnricher
@@ -18,9 +20,12 @@ namespace Events.API.Services
         /// <summary>
         /// Enriches a collection of short participants with user information, converting them to detailed responses.
         /// </summary>
+        /// <param name="participants">The list of short participant responses to enrich.</param>
+        /// <returns>A list of <see cref="ParticipantDetailedResponse"/> containing enriched participant information.</returns>
         public async Task<List<ParticipantDetailedResponse>> EnrichParticipantsAsync(List<ParticipantShortResponse> participants)
         {
             ArgumentNullException.ThrowIfNull(participants);
+
             if (participants.Count == 0)
             {
                 return new List<ParticipantDetailedResponse>();

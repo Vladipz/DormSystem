@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Calendar, Home, Settings, ShoppingCart, Users } from "lucide-react";
+import { Building, Calendar, Home, Settings, ShoppingCart, Users } from "lucide-react";
 
 const navigationItems = [
   { path: "/", icon: Home, label: "Overview" },
   { path: "/residents", icon: Users, label: "Residents" },
   { path: "/spaces", icon: Home, label: "Available Spaces" },
   { path: "/events", icon: Calendar, label: "Events" },
+  { path: "/room-dashboard", icon: Building, label: "Room Dashboard" },
   { path: "/bookings", icon: Calendar, label: "Room Bookings" },
   { path: "/laundry", icon: Calendar, label: "Laundry Booking" },
   { path: "/requests", icon: ShoppingCart, label: "Purchase Requests" },

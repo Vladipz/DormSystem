@@ -1,3 +1,5 @@
+using Rooms.API.Entities;
+
 namespace Rooms.API.Contracts.Maintenance
 {
     public sealed class UpdateMaintenanceTicketRequest
@@ -7,5 +9,9 @@ namespace Rooms.API.Contracts.Maintenance
         public string Title { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
+
+        public Guid? AssignedToId { get; set; }
+
+        public MaintenancePriority Priority { get; set; }
     }
 }

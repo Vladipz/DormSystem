@@ -27,6 +27,12 @@ namespace Rooms.API.Features.Maintenance
             public string Title { get; set; } = string.Empty;
 
             public string Description { get; set; } = string.Empty;
+
+            public Guid ReporterById { get; set; }
+
+            public Guid? AssignedToId { get; set; }
+
+            public MaintenancePriority Priority { get; set; } = MaintenancePriority.Medium;
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -43,6 +49,14 @@ namespace Rooms.API.Features.Maintenance
 
                 RuleFor(x => x.Description)
                     .MaximumLength(1000);
+
+                RuleFor(x => x.ReporterById)
+                    .NotEmpty()
+                    .WithMessage("ReporterById must not be empty.");
+
+                RuleFor(x => x.Priority)
+                    .IsInEnum()
+                    .WithMessage("Priority must be a valid value.");
             }
         }
 
@@ -85,6 +99,9 @@ namespace Rooms.API.Features.Maintenance
                     IsResolved = false,
                     CreatedAt = DateTime.UtcNow,
                     Status = MaintenanceStatus.Open,
+                    ReporterById = request.ReporterById,
+                    AssignedToId = request.AssignedToId,
+                    Priority = request.Priority,
                 };
 
                 _dbContext.MaintenanceTickets.Add(ticket);

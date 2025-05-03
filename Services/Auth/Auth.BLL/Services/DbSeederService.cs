@@ -9,6 +9,11 @@ namespace Auth.BLL.Services
 {
     public class DbSeederService : IDbSeederService
     {
+        // Static GUIDs for seeding user references - matching the ones in Rooms.API
+        private static readonly Guid AdminUserId = new Guid("11111111-1111-1111-1111-111111111111");
+        private static readonly Guid RegularUserId = new Guid("22222222-2222-2222-2222-222222222222");
+        private static readonly Guid MaintenanceStaffId = new Guid("33333333-3333-3333-3333-333333333333");
+
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly IOptions<AdminSettings> _adminSettings;
@@ -28,54 +33,119 @@ namespace Auth.BLL.Services
             // Seed roles first
             await SeedRolesAsync();
 
-            // Create admin user if it doesn't exist
-            var adminEmail = _adminSettings.Value.Email;
-            if (!string.IsNullOrEmpty(adminEmail))
-            {
-                var existingUser = await _userManager.FindByEmailAsync(adminEmail);
+            // Create admin user with specific GUID if it doesn't exist
+            await SeedAdminUserAsync();
 
-                if (existingUser == null)
+            // Create regular users with specific GUIDs
+            await SeedRegularUsersAsync();
+        }
+
+        private async Task SeedAdminUserAsync()
+        {
+            var adminEmail = _adminSettings.Value.Email;
+            if (string.IsNullOrEmpty(adminEmail))
+            {
+                adminEmail = "admin@dorm.com";
+            }
+
+            // Check if admin exists by ID first
+            var adminUser = await _userManager.FindByIdAsync(AdminUserId.ToString());
+            if (adminUser == null)
+            {
+                // Also check by email as fallback
+                adminUser = await _userManager.FindByEmailAsync(adminEmail);
+
+                if (adminUser == null)
                 {
-                    var adminUser = new User
+                    // Create new admin user with predefined ID
+                    adminUser = new User
                     {
+                        Id = AdminUserId,
                         UserName = adminEmail,
                         Email = adminEmail,
                         EmailConfirmed = true,
-                        FirstName = _adminSettings.Value.FirstName,
-                        LastName = _adminSettings.Value.LastName,
+                        FirstName = _adminSettings.Value.FirstName ?? "Admin",
+                        LastName = _adminSettings.Value.LastName ?? "User",
                     };
 
                     var password = _adminSettings.Value.Password;
-                    if (!string.IsNullOrEmpty(password))
+                    if (string.IsNullOrEmpty(password))
                     {
-                        var result = await _userManager.CreateAsync(adminUser, password);
+                        password = "Admin123!";
+                    }
 
-                        if (result.Succeeded)
-                        {
-                            await _userManager.AddToRoleAsync(adminUser, "Admin");
-                        }
+                    var result = await _userManager.CreateAsync(adminUser, password);
+
+                    if (result.Succeeded)
+                    {
+                        await _userManager.AddToRoleAsync(adminUser, "Admin");
                     }
                 }
-                else if (!await _userManager.IsInRoleAsync(existingUser, "Admin"))
+                else if (!await _userManager.IsInRoleAsync(adminUser, "Admin"))
                 {
                     // Ensure the user is in Admin role if they already exist
-                    await _userManager.AddToRoleAsync(existingUser, "Admin");
+                    await _userManager.AddToRoleAsync(adminUser, "Admin");
 
                     // Update FirstName and LastName if they are empty
-                    if (string.IsNullOrEmpty(existingUser.FirstName) && !string.IsNullOrEmpty(_adminSettings.Value.FirstName))
+                    if (string.IsNullOrEmpty(adminUser.FirstName) && !string.IsNullOrEmpty(_adminSettings.Value.FirstName))
                     {
-                        existingUser.FirstName = _adminSettings.Value.FirstName;
+                        adminUser.FirstName = _adminSettings.Value.FirstName;
                     }
 
-                    if (string.IsNullOrEmpty(existingUser.LastName) && !string.IsNullOrEmpty(_adminSettings.Value.LastName))
+                    if (string.IsNullOrEmpty(adminUser.LastName) && !string.IsNullOrEmpty(_adminSettings.Value.LastName))
                     {
-                        existingUser.LastName = _adminSettings.Value.LastName;
+                        adminUser.LastName = _adminSettings.Value.LastName;
                     }
 
                     if (!string.IsNullOrEmpty(_adminSettings.Value.FirstName) || !string.IsNullOrEmpty(_adminSettings.Value.LastName))
                     {
-                        await _userManager.UpdateAsync(existingUser);
+                        await _userManager.UpdateAsync(adminUser);
                     }
+                }
+            }
+        }
+
+        private async Task SeedRegularUsersAsync()
+        {
+            // Create a regular user with the Reporter1 ID if it doesn't exist
+            var regularUser = await _userManager.FindByIdAsync(RegularUserId.ToString());
+            if (regularUser == null)
+            {
+                regularUser = new User
+                {
+                    Id = RegularUserId,
+                    UserName = "student@dorm.com",
+                    Email = "student@dorm.com",
+                    EmailConfirmed = true,
+                    FirstName = "Student",
+                    LastName = "User",
+                };
+
+                var result = await _userManager.CreateAsync(regularUser, "Student123!");
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(regularUser, "Student");
+                }
+            }
+
+            // Create a maintenance staff user if it doesn't exist
+            var maintenanceUser = await _userManager.FindByIdAsync(MaintenanceStaffId.ToString());
+            if (maintenanceUser == null)
+            {
+                maintenanceUser = new User
+                {
+                    Id = MaintenanceStaffId,
+                    UserName = "maintenance@dorm.com",
+                    Email = "maintenance@dorm.com",
+                    EmailConfirmed = true,
+                    FirstName = "Maintenance",
+                    LastName = "Staff",
+                };
+
+                var result = await _userManager.CreateAsync(maintenanceUser, "Maintenance123!");
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(maintenanceUser, "Security");
                 }
             }
         }

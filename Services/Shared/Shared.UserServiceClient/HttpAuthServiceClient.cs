@@ -3,11 +3,10 @@ using System.Text.Json;
 
 using ErrorOr;
 
-using Events.API.Contracts;
-
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Events.API.Services
+namespace Shared.UserServiceClient
 {
     public class HttpAuthServiceClient : IAuthServiceClient
     {
@@ -34,7 +33,7 @@ namespace Events.API.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to get user information from Auth service: {StatusCode}", response.StatusCode);
+                    _logger.LogWarning("Failed to get user information from Auth service: {StatusCode} {Response}", response.StatusCode, await response.Content.ReadAsStringAsync());
                     return Error.Failure("Auth.GetUserFailed", $"Failed to get user information. Status: {response.StatusCode}");
                 }
 

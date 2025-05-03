@@ -15,6 +15,7 @@ using Rooms.API.Contracts.Maintenance;
 using Rooms.API.Data;
 using Rooms.API.Entities;
 using Rooms.API.Mappings;
+using Rooms.API.Services;
 
 using Shared.PagedList;
 
@@ -27,6 +28,12 @@ namespace Rooms.API.Features.Maintenance
             public Guid? RoomId { get; set; }
 
             public MaintenanceStatus? Status { get; set; }
+
+            public Guid? ReporterById { get; set; }
+
+            public Guid? AssignedToId { get; set; }
+
+            public MaintenancePriority? Priority { get; set; }
 
             public int Page { get; set; } = 1;
 
@@ -46,22 +53,29 @@ namespace Rooms.API.Features.Maintenance
         {
             private readonly ApplicationDbContext _dbContext;
             private readonly IValidator<Query> _validator;
+            private readonly MaintenanceTicketEnricher _ticketEnricher;
 
-            public Handler(ApplicationDbContext dbContext, IValidator<Query> validator)
+            public Handler(
+                ApplicationDbContext dbContext,
+                IValidator<Query> validator,
+                MaintenanceTicketEnricher ticketEnricher)
             {
                 _dbContext = dbContext;
                 _validator = validator;
+                _ticketEnricher = ticketEnricher;
             }
 
-            public async Task<ErrorOr<PagedResponse<MaintenanceTicketResponse>>> Handle(Query request, CancellationToken ct)
+            public async Task<ErrorOr<PagedResponse<MaintenanceTicketResponse>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var validation = await _validator.ValidateAsync(request, ct);
+                var validation = await _validator.ValidateAsync(request, cancellationToken);
                 if (!validation.IsValid)
                 {
                     return validation.ToValidationError<PagedResponse<MaintenanceTicketResponse>>();
                 }
 
-                IQueryable<MaintenanceTicket> query = _dbContext.MaintenanceTickets.AsNoTracking();
+                IQueryable<MaintenanceTicket> query = _dbContext.MaintenanceTickets
+                    .Include(mt => mt.Room) // Include room data
+                    .AsNoTracking();
 
                 if (request.RoomId is not null)
                 {
@@ -73,15 +87,37 @@ namespace Rooms.API.Features.Maintenance
                     query = query.Where(x => x.Status == request.Status);
                 }
 
-                var items = query
+                if (request.ReporterById is not null)
+                {
+                    query = query.Where(x => x.ReporterById == request.ReporterById);
+                }
+
+                if (request.AssignedToId is not null)
+                {
+                    query = query.Where(x => x.AssignedToId == request.AssignedToId);
+                }
+
+                if (request.Priority is not null)
+                {
+                    query = query.Where(x => x.Priority == request.Priority);
+                }
+
+                // First map to regular response and create paged list
+                var tickets = query
                     .OrderByDescending(x => x.CreatedAt)
                     .ProjectToType<MaintenanceTicketResponse>();
 
                 var pagedList = await PagedList<MaintenanceTicketResponse>.CreateAsync(
-                    items,
+                    tickets,
                     request.Page,
                     request.PageSize,
-                    ct);
+                    cancellationToken);
+
+                // Enrich with user information
+                var enrichedTickets = await _ticketEnricher.EnrichMaintenanceTicketsAsync(pagedList.Items.ToList());
+
+                pagedList.Items.Clear();
+                pagedList.Items.AddRange(enrichedTickets);
 
                 return PagedResponse<MaintenanceTicketResponse>.FromPagedList(pagedList);
             }
@@ -104,7 +140,6 @@ namespace Rooms.API.Features.Maintenance
             .Produces<Error>(400)
             .WithName("Maintenance.GetMaintenanceTickets")
             .WithTags("Maintenance")
-            .RequireAuthorization("AdminOnly")
             .WithOpenApi(op =>
             {
                 op.Summary = "Get a paged list of maintenance tickets with filters";

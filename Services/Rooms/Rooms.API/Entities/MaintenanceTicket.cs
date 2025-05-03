@@ -18,6 +18,29 @@ namespace Rooms.API.Entities
         Resolved,
     }
 
+    public enum MaintenancePriority
+    {
+        /// <summary>
+        /// Low priority maintenance issue.
+        /// </summary>
+        Low,
+
+        /// <summary>
+        /// Medium priority maintenance issue.
+        /// </summary>
+        Medium,
+
+        /// <summary>
+        /// High priority maintenance issue.
+        /// </summary>
+        High,
+
+        /// <summary>
+        /// Critical priority maintenance issue that needs immediate attention.
+        /// </summary>
+        Critical,
+    }
+
     public class MaintenanceTicket
     {
         public Guid Id { get; set; }
@@ -34,7 +57,19 @@ namespace Rooms.API.Entities
 
         public DateTime? ResolvedAt { get; set; }
 
-        public MaintenanceStatus Status { get; set; } = MaintenanceStatus.Open; // <<<< ADD THIS FIELD
+        public MaintenanceStatus Status { get; set; } = MaintenanceStatus.Open;
+
+        public Guid ReporterById { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ID of the user who is assigned to resolve the maintenance issue.
+        /// </summary>
+        public Guid? AssignedToId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the priority level of the maintenance issue.
+        /// </summary>
+        public MaintenancePriority Priority { get; set; } = MaintenancePriority.Medium;
 
         /// <summary>
         /// Gets or sets navigation property for the room this maintenance ticket is related to.

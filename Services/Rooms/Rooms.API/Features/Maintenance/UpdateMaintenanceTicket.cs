@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Rooms.API.Contracts.Maintenance;
 using Rooms.API.Data;
+using Rooms.API.Entities;
 using Rooms.API.Mappings;
 
 namespace Rooms.API.Features.Maintenance
@@ -26,6 +27,10 @@ namespace Rooms.API.Features.Maintenance
             public string Title { get; set; } = string.Empty;
 
             public string Description { get; set; } = string.Empty;
+
+            public Guid? AssignedToId { get; set; }
+
+            public MaintenancePriority Priority { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -42,6 +47,10 @@ namespace Rooms.API.Features.Maintenance
 
                 RuleFor(x => x.Description)
                     .MaximumLength(1000);
+
+                RuleFor(x => x.Priority)
+                    .IsInEnum()
+                    .WithMessage("Priority must be a valid value.");
             }
         }
 
@@ -76,6 +85,8 @@ namespace Rooms.API.Features.Maintenance
 
                 ticket.Title = request.Title;
                 ticket.Description = request.Description;
+                ticket.AssignedToId = request.AssignedToId;
+                ticket.Priority = request.Priority;
 
                 await _dbContext.SaveChangesAsync(ct);
 

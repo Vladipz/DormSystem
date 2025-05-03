@@ -12,10 +12,15 @@ namespace Rooms.API.Data
         }
 
         public DbSet<Floor> Floors { get; set; }
+
         public DbSet<Block> Blocks { get; set; }
+
         public DbSet<Room> Rooms { get; set; }
+
         public DbSet<Place> Places { get; set; }
+
         public DbSet<MaintenanceTicket> MaintenanceTickets { get; set; }
+
         public DbSet<Building> Buildings { get; set; }
     }
 }

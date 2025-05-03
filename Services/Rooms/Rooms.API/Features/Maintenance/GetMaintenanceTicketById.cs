@@ -53,18 +53,19 @@ namespace Rooms.API.Features.Maintenance
                     return validation.ToValidationError<MaintenanceTicketDetailsResponse>();
                 }
 
-                var ticket = await _dbContext.MaintenanceTickets
+                var maintenanceTicket = await _dbContext.MaintenanceTickets
+                    .Include(mt => mt.Room) // Include room data
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == request.TicketId, ct);
+                    .FirstOrDefaultAsync(m => m.Id == request.TicketId, ct);
 
-                if (ticket is null)
+                if (maintenanceTicket is null)
                 {
                     return Error.NotFound(
                         code: "MaintenanceTicket.NotFound",
                         description: $"Maintenance ticket with ID {request.TicketId} was not found.");
                 }
 
-                return ticket.Adapt<MaintenanceTicketDetailsResponse>();
+                return maintenanceTicket.Adapt<MaintenanceTicketDetailsResponse>();
             }
         }
     }

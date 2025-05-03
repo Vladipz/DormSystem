@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using Shared.TokenService.Services;
+using Shared.UserServiceClient;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication()
@@ -74,8 +75,13 @@ builder.Services.AddDbContext<EventsDbContext>(options =>
 });
 
 // Configure Auth Service integration
+string authServiceUrl = builder.Configuration.GetValue<string>("AuthService:ApiUrl") ?? throw new
+InvalidOperationException("AuthService:ApiUrl is not configured.");
+
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
-builder.Services.AddHttpClient<IAuthServiceClient, HttpAuthServiceClient>();
+
+builder.Services.AddUserServiceClient(authServiceUrl);
+
 builder.Services.AddScoped<ParticipantEnricher>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));

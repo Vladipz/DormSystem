@@ -1,8 +1,7 @@
 using ErrorOr;
 
-using Events.API.Contracts;
 
-namespace Events.API.Services
+namespace Shared.UserServiceClient
 {
     public interface IAuthServiceClient
     {

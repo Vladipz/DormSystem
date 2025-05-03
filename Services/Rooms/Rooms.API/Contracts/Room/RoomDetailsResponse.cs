@@ -9,6 +9,7 @@ namespace Rooms.API.Contracts.Room
         public Guid Id { get; init; }
 
         public Guid? BlockId { get; init; }
+        //add a block field to the response
 
         public string Label { get; init; } = string.Empty;
 

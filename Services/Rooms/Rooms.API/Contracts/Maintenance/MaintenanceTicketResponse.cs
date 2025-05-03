@@ -1,4 +1,7 @@
+using Rooms.API.Contracts.Room;
 using Rooms.API.Entities;
+
+using Shared.UserServiceClient;
 
 namespace Rooms.API.Contracts.Maintenance
 {
@@ -6,7 +9,8 @@ namespace Rooms.API.Contracts.Maintenance
     {
         public Guid Id { get; set; }
 
-        public Guid RoomId { get; set; }
+        // Remove RoomId and replace with Room object
+        public ShortRoomResponse Room { get; set; } = null!;
 
         public string Title { get; set; } = string.Empty;
 
@@ -17,5 +21,11 @@ namespace Rooms.API.Contracts.Maintenance
         public DateTime CreatedAt { get; set; }
 
         public DateTime? ResolvedAt { get; set; }
+
+        public UserDto Reporter { get; set; } = null!;
+
+        public UserDto? AssignedTo { get; set; } = null!;
+
+        public MaintenancePriority Priority { get; set; }
     }
 }

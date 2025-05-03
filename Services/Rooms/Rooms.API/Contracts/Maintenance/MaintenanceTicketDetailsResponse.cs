@@ -17,5 +17,11 @@ namespace Rooms.API.Contracts.Maintenance
         public DateTime CreatedAt { get; set; }
 
         public DateTime? ResolvedAt { get; set; }
+
+        public Guid ReporterById { get; set; }
+
+        public Guid? AssignedToId { get; set; }
+
+        public MaintenancePriority Priority { get; set; }
     }
 }

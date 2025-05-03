@@ -101,6 +101,9 @@ namespace Rooms.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("AssignedToId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -110,6 +113,12 @@ namespace Rooms.API.Migrations
 
                     b.Property<bool>("IsResolved")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ReporterById")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("TEXT");

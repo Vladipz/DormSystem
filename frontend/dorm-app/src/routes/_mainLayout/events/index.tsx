@@ -17,7 +17,7 @@ function RouteComponent() {
   const [selectedEventId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 9; // Show 9 events per page (3x3 grid)
-  
+
   const { events, loading, error, refreshEvents, joinEvent, totalPages } = useEvents({
     pageNumber: currentPage,
     pageSize,
@@ -150,7 +150,7 @@ function RouteComponent() {
                   isDisabled={currentPage === 1}
                 />
               </PaginationItem>
-              
+
               {paginationItems}
 
               <PaginationItem>

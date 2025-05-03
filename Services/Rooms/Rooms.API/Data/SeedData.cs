@@ -6,6 +6,11 @@ namespace Rooms.API.Data
 {
     public static class SeedData
     {
+        // Static GUIDs for seeding user references
+        private static readonly Guid ReporterUser1Id = new Guid("11111111-1111-1111-1111-111111111111");
+        private static readonly Guid ReporterUser2Id = new Guid("22222222-2222-2222-2222-222222222222");
+        private static readonly Guid MaintenanceStaffId = new Guid("33333333-3333-3333-3333-333333333333");
+
         public static async Task InitializeAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(dbContext);
@@ -204,6 +209,9 @@ namespace Rooms.API.Data
                     Description = "Window in room is broken and needs replacement.",
                     Status = MaintenanceStatus.Open,
                     CreatedAt = DateTime.UtcNow,
+                    ReporterById = ReporterUser1Id,
+                    AssignedToId = null, // Not assigned yet
+                    Priority = MaintenancePriority.High,
                 },
                 new MaintenanceTicket
                 {
@@ -213,6 +221,33 @@ namespace Rooms.API.Data
                     Description = "Light bulbs are not working.",
                     Status = MaintenanceStatus.InProgress,
                     CreatedAt = DateTime.UtcNow.AddDays(-2),
+                    ReporterById = ReporterUser2Id,
+                    AssignedToId = MaintenanceStaffId,
+                    Priority = MaintenancePriority.Medium,
+                },
+                new MaintenanceTicket
+                {
+                    Id = Guid.NewGuid(),
+                    RoomId = firstRoom.Id,
+                    Title = "Leaking faucet",
+                    Description = "The bathroom faucet is leaking and needs repair.",
+                    Status = MaintenanceStatus.Open,
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    ReporterById = ReporterUser1Id,
+                    AssignedToId = null,
+                    Priority = MaintenancePriority.Low,
+                },
+                new MaintenanceTicket
+                {
+                    Id = Guid.NewGuid(),
+                    RoomId = firstRoom.Id,
+                    Title = "No hot water",
+                    Description = "Urgent: No hot water in the shower. Need immediate assistance.",
+                    Status = MaintenanceStatus.Open,
+                    CreatedAt = DateTime.UtcNow.AddHours(-12),
+                    ReporterById = ReporterUser2Id,
+                    AssignedToId = MaintenanceStaffId,
+                    Priority = MaintenancePriority.Critical,
                 },
             };
 

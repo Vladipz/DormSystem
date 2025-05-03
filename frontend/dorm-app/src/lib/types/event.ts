@@ -1,3 +1,5 @@
+import { PagedResponse } from "./pagination";
+
 export interface Event {
   id: string;
   ownerId: string;
@@ -18,15 +20,6 @@ export interface Participant {
   joinedAt: string;
 }
 
-export interface PagedResponse<T> {
-  items: T[];
-  pageNumber: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-}
 
 export type PagedEventsResponse = PagedResponse<Event>;
 

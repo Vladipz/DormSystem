@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.PagedList", "Shared\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.TokenService", "Shared\Shared.TokenService\Shared.TokenService.csproj", "{F53F0ED6-589D-4934-B0F7-6FC9F980E8B6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{4F52FD11-658E-A102-6CD3-7D7C16FFA15B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.UserServiceClient", "Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj", "{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +145,18 @@ Global
 		{F53F0ED6-589D-4934-B0F7-6FC9F980E8B6}.Release|x64.Build.0 = Release|Any CPU
 		{F53F0ED6-589D-4934-B0F7-6FC9F980E8B6}.Release|x86.ActiveCfg = Release|Any CPU
 		{F53F0ED6-589D-4934-B0F7-6FC9F980E8B6}.Release|x86.Build.0 = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|x64.Build.0 = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Debug|x86.Build.0 = Debug|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|x64.ActiveCfg = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|x64.Build.0 = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|x86.ActiveCfg = Release|Any CPU
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,5 +171,6 @@ Global
 		{6E1F40A6-ECF2-4456-A5C5-C83FF14715D3} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
 		{8AB8FF19-242E-4DC2-BB5F-AD1687F0119C} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
 		{F53F0ED6-589D-4934-B0F7-6FC9F980E8B6} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
+		{B752351E-2A5E-4CB6-B6B6-0241C8D590F6} = {4F52FD11-658E-A102-6CD3-7D7C16FFA15B}
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,4 @@
-namespace Events.API.Services
+namespace Shared.UserServiceClient
 {
     public class AuthServiceSettings
     {

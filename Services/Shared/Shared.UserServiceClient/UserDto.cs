@@ -1,4 +1,4 @@
-namespace Events.API.Contracts
+namespace Shared.UserServiceClient
 {
     public class UserDto
     {

@@ -1,7 +1,14 @@
+using System.Text.Json.Serialization;
+
 using Carter;
 
 using FluentValidation;
 
+using Mapster;
+
+using MapsterMapper;
+
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -11,11 +18,14 @@ using Rooms.API.Data;
 using Rooms.API.Features.Blocks;
 using Rooms.API.Features.Buildings;
 using Rooms.API.Features.Floors;
+using Rooms.API.Features.Maintenance;
 using Rooms.API.Features.Places;
 using Rooms.API.Features.Rooms;
-using Rooms.API.Features.Maintenance;
+using Rooms.API.Mappings;
+using Rooms.API.Services;
 
 using Shared.TokenService.Services;
+using Shared.UserServiceClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +61,22 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Register Mapster
+var config = TypeAdapterConfig.GlobalSettings;
+config.Scan(typeof(Program).Assembly);
+builder.Services.AddSingleton(config);
+builder.Services.AddScoped<IMapper, Mapper>();
+
+// Register HttpClient for Auth Service
+string authServiceUrl = builder.Configuration["AuthService:ApiUrl"] ?? throw new InvalidOperationException("AuthServiceUrl:ApiUrl is not configured.");
+
+builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
+
+builder.Services.AddUserServiceClient(authServiceUrl);
+
+// Register MaintenanceTicketEnricher
+builder.Services.AddScoped<MaintenanceTicketEnricher>();
 
 // Реєструємо DbContext з SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -143,6 +169,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -161,10 +192,12 @@ using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 await SeedData.InitializeAsync(dbContext);
 
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapCarter();
-app.UseCors("AllowAll");
+app.MapGroup("/api")
+   .WithOpenApi()
+   .MapCarter();
 
 app.Run();
