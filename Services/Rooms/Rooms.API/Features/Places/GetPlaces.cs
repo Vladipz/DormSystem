@@ -5,8 +5,6 @@ using ErrorOr;
 
 using FluentValidation;
 
-using Mapster;
-
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +23,7 @@ namespace Rooms.API.Features.Places
         internal sealed class Query : IRequest<ErrorOr<PagedResponse<PlacesResponse>>>
         {
             public Guid? RoomId { get; set; }
-            
+
             public bool? IsOccupied { get; set; }
 
             public int Page { get; set; } = 1;
@@ -72,7 +70,7 @@ namespace Rooms.API.Features.Places
 
                 if (request.IsOccupied is not null)
                 {
-                    baseQuery = request.IsOccupied.Value 
+                    baseQuery = request.IsOccupied.Value
                         ? baseQuery.Where(p => p.OccupiedByUserId != null)
                         : baseQuery.Where(p => p.OccupiedByUserId == null);
                 }
@@ -85,7 +83,7 @@ namespace Rooms.API.Features.Places
                         Index = p.Index,
                         IsOccupied = p.OccupiedByUserId != null,
                         MovedInAt = p.MovedInAt,
-                        RoomLabel = p.Room.Label
+                        RoomLabel = p.Room.Label,
                     })
                     .OrderBy(p => p.RoomLabel)
                     .ThenBy(p => p.Index);
@@ -128,4 +126,4 @@ namespace Rooms.API.Features.Places
             .IncludeInOpenApi();
         }
     }
-} 
+}

@@ -6,4 +6,4 @@ namespace Rooms.API.Contracts.Floor
 
         public int Number { get; set; }
     }
-} 
+}

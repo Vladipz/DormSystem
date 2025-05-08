@@ -106,7 +106,7 @@ namespace Rooms.API.Features.Blocks
             {
                 var command = request.Adapt<UpdateBlock.Command>();
                 command.Id = id;
-                
+
                 var result = await mediator.Send(command);
 
                 return result.Match(
@@ -129,4 +129,4 @@ namespace Rooms.API.Features.Blocks
             .RequireAuthorization("AdminOnly");
         }
     }
-} 
+}

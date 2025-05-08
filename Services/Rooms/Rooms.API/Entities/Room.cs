@@ -49,6 +49,8 @@ namespace Rooms.API.Entities
         /// </summary>
         public Guid? BlockId { get; set; }
 
+        public Guid? FloorId { get; set; }
+
         public string Label { get; set; } = string.Empty;
 
         public int Capacity { get; set; }
@@ -72,6 +74,11 @@ namespace Rooms.API.Entities
         /// Null for event rooms or specialized rooms not within blocks.
         /// </summary>
         public Block? Block { get; set; }
+
+        /// <summary>
+        /// Gets or sets navigation property for the floor this room belongs to.
+        /// </summary>
+        public Floor? Floor { get; set; }
 
         /// <summary>
         /// Gets navigation property for the places in this room.

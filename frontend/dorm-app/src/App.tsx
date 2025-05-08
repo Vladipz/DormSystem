@@ -16,11 +16,13 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <SidebarProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </SidebarProvider>
+    <>
+      <SidebarProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </SidebarProvider>
+    </>
   );
 }
 

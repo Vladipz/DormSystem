@@ -12,4 +12,4 @@ namespace Rooms.API.Contracts.Floor
 
         public string BuildingName { get; set; } = string.Empty;
     }
-} 
+}

@@ -1,17 +1,17 @@
 import { axiosClient } from "@/lib/utils/axios-client";
 
 import type {
+  ChangeMaintenanceTicketStatusRequest,
   CreateMaintenanceTicketRequest,
   CreateMaintenanceTicketResponse,
-  MaintenanceTicketResponse,
+  DeletedMaintenanceTicketResponse,
+  MaintenancePriority,
+  MaintenanceStatus,
   MaintenanceTicketDetailsResponse,
+  MaintenanceTicketResponse,
   UpdateMaintenanceTicketRequest,
   UpdatedMaintenanceTicketResponse,
-  ChangeMaintenanceTicketStatusRequest,
   UpdatedMaintenanceTicketStatusResponse,
-  DeletedMaintenanceTicketResponse,
-  MaintenanceStatus,
-  MaintenancePriority,
 } from "@/lib/types/maintenanceTicket";
 import { PagedResponse } from "@/lib/types/pagination";
 
@@ -28,6 +28,7 @@ export const maintenanceTicketService = {
     reporterById?: string;
     assignedToId?: string;
     priority?: MaintenancePriority;
+    buildingId?: string;
     page?: number;
     pageSize?: number;
   }) {

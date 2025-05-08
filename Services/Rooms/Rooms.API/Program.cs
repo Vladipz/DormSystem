@@ -21,7 +21,6 @@ using Rooms.API.Features.Floors;
 using Rooms.API.Features.Maintenance;
 using Rooms.API.Features.Places;
 using Rooms.API.Features.Rooms;
-using Rooms.API.Mappings;
 using Rooms.API.Services;
 
 using Shared.TokenService.Services;

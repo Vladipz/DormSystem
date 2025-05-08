@@ -16,4 +16,4 @@ namespace Rooms.API.Contracts.Place
 
         public string RoomLabel { get; set; } = string.Empty;
     }
-} 
+}

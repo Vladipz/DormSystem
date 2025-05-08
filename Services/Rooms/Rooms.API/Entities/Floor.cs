@@ -13,5 +13,7 @@ namespace Rooms.API.Entities
         public Building Building { get; init; } = null!;
 
         public ICollection<Block> Blocks { get; init; } = new List<Block>();
+
+        public ICollection<Room> Rooms { get; init; } = new List<Room>();
     }
 }

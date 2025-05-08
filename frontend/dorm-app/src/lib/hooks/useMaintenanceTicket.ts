@@ -1,13 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { maintenanceTicketService } from "@/lib/services/maintenanceTicketService";
 import type {
-  CreateMaintenanceTicketRequest,
-  UpdateMaintenanceTicketRequest,
   ChangeMaintenanceTicketStatusRequest,
-  MaintenanceStatus,
+  CreateMaintenanceTicketRequest,
   MaintenancePriority,
+  MaintenanceStatus,
+  UpdateMaintenanceTicketRequest,
 } from "@/lib/types/maintenanceTicket";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 // Query keys for React Query
 const MAINTENANCE_TICKETS_KEY = "maintenanceTickets";
@@ -19,6 +19,7 @@ export const useMaintenanceTickets = (params?: {
   reporterById?: string;
   assignedToId?: string;
   priority?: MaintenancePriority;
+  buildingId?: string;
   page?: number;
   pageSize?: number;
 }) => {

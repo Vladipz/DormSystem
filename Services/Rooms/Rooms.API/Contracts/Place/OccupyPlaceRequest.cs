@@ -4,4 +4,4 @@ namespace Rooms.API.Contracts.Place
     {
         public Guid UserId { get; set; }
     }
-} 
+}

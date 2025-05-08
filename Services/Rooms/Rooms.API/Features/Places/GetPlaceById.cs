@@ -68,7 +68,7 @@ namespace Rooms.API.Features.Places
 
                 var response = place.Adapt<PlaceDetailsResponse>();
                 response.RoomLabel = place.Room.Label;
-                
+
                 return response;
             }
         }
@@ -100,4 +100,4 @@ namespace Rooms.API.Features.Places
             .IncludeInOpenApi();
         }
     }
-} 
+}

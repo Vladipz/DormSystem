@@ -3,7 +3,7 @@ namespace Rooms.API.Contracts.Place
     public sealed class UpdatePlaceRequest
     {
         public Guid Id { get; set; }
-        
+
         public int Index { get; set; }
 
         public Guid? OccupiedByUserId { get; set; }
@@ -12,4 +12,4 @@ namespace Rooms.API.Contracts.Place
 
         public DateTime? MovedOutAt { get; set; }
     }
-} 
+}

@@ -107,4 +107,4 @@ namespace Rooms.API.Features.Blocks
             .IncludeInOpenApi();
         }
     }
-} 
+}

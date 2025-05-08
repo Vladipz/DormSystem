@@ -35,6 +35,8 @@ namespace Rooms.API.Features.Maintenance
 
             public MaintenancePriority? Priority { get; set; }
 
+            public Guid? BuildingId { get; set; }
+
             public int Page { get; set; } = 1;
 
             public int PageSize { get; set; } = 20;
@@ -95,6 +97,12 @@ namespace Rooms.API.Features.Maintenance
                 if (request.AssignedToId is not null)
                 {
                     query = query.Where(x => x.AssignedToId == request.AssignedToId);
+                }
+
+                if (request.BuildingId is not null)
+                {
+                    query = query.Where(x => x.Room.Floor.BuildingId == request.BuildingId ||
+                                              x.Room.Block.Floor.BuildingId == request.BuildingId);
                 }
 
                 if (request.Priority is not null)

@@ -26,6 +26,8 @@ namespace Rooms.API.Features.Rooms
         {
             public Guid? BlockId { get; set; }
 
+            public Guid? FloorId { get; set; }
+
             public string Label { get; set; } = string.Empty;
 
             public int Capacity { get; set; }
@@ -49,6 +51,10 @@ namespace Rooms.API.Features.Rooms
                     .NotEmpty()
                     .When(x => x.RoomType != RoomType.Regular)
                     .WithMessage("Purpose is required for non-regular rooms.");
+
+                RuleFor(x => x)
+                    .Must(x => x.BlockId.HasValue ^ x.FloorId.HasValue)
+                    .WithMessage("Either BlockId or FloorId must be provided, but not both.");
             }
         }
 
@@ -81,6 +87,7 @@ namespace Rooms.API.Features.Rooms
                 {
                     Id = Guid.NewGuid(),
                     BlockId = request.BlockId,
+                    FloorId = request.FloorId,
                     Label = request.Label,
                     Capacity = request.Capacity,
                     Status = request.Status,

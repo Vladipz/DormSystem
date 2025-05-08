@@ -8,4 +8,4 @@ namespace Rooms.API.Contracts.Block
 
         public string GenderRule { get; set; } = string.Empty;
     }
-} 
+}

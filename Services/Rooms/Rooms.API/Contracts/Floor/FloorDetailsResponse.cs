@@ -14,4 +14,4 @@ namespace Rooms.API.Contracts.Floor
 
         public string BuildingAddress { get; set; } = string.Empty;
     }
-} 
+}

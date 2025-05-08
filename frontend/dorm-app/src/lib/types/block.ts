@@ -4,7 +4,7 @@ export interface BlockDetailsResponse {
   id: string;
   floorId: string;
   label: string;
-  genderRule: string;
+  genderRule: GenderRule;
   floorNumber: string;
   buildingName: string;
 }
@@ -40,3 +40,7 @@ export interface UpdateBlockResponse {
   id: string;
 }
 
+export interface BlockInfo {
+  id: string;
+  label: string;
+}

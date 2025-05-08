@@ -4,4 +4,4 @@ namespace Rooms.API.Contracts.Place
     {
         public DateTime? MovedOutAt { get; set; }
     }
-} 
+}

@@ -138,4 +138,4 @@ namespace Rooms.API.Features.Places
             .RequireAuthorization("AdminOnly");
         }
     }
-} 
+}

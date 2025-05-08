@@ -14,4 +14,4 @@ namespace Rooms.API.Contracts.Block
 
         public string BuildingName { get; set; } = string.Empty;
     }
-} 
+}

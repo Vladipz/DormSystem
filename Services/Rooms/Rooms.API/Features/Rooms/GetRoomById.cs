@@ -55,6 +55,9 @@ namespace Rooms.API.Features.Rooms
 
                 var room = await _dbContext.Rooms
                     .AsNoTracking()
+                    .Include(r => r.Block)
+                        .ThenInclude(b => b.Floor)
+                            .ThenInclude(f => f.Building)
                     .Where(r => r.Id == request.RoomId)
                     .FirstOrDefaultAsync(ct);
 

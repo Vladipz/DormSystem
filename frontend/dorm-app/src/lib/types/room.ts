@@ -1,3 +1,5 @@
+import { BlockInfo } from "./block";
+import { BuildingInfo } from "./building";
 
 export type RoomStatus = "Available" | "Occupied" | "Maintenance";
 export type RoomType = "Regular" | "Specialized";
@@ -22,7 +24,9 @@ export interface DeletedRoomResponse {
 
 export interface RoomDetailsResponse {
   id: string;
-  blockId?: string | null;
+  block?: BlockInfo | null;
+  floor: number;
+  building: BuildingInfo;
   label: string;
   capacity: number;
   status: RoomStatus;

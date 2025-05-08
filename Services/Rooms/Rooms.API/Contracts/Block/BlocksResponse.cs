@@ -12,4 +12,4 @@ namespace Rooms.API.Contracts.Block
 
         public int RoomsCount { get; set; }
     }
-} 
+}

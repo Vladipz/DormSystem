@@ -6,6 +6,8 @@ namespace Rooms.API.Contracts.Room
     {
         public Guid? BlockId { get; set; }
 
+        public Guid? FloorId { get; set; }
+
         public string Label { get; set; } = string.Empty;
 
         public int Capacity { get; set; }

@@ -1,23 +1,23 @@
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ChevronDown, ChevronRight, Building, Home, Layers, Bed } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
+import { Bed, Building, ChevronDown, ChevronRight, Home, Layers } from "lucide-react"
+import { useState } from "react"
 
+import { useBlocks } from "@/lib/hooks/useBlocks"
 import { useBuildings } from "@/lib/hooks/useBuildings"
 import { useFloors } from "@/lib/hooks/useFloors"
-import { useBlocks } from "@/lib/hooks/useBlocks"
 import { useRooms } from "@/lib/hooks/useRooms"
 
+import { BlocksResponse } from "@/lib/types/block"
 import { BuildingsResponse } from "@/lib/types/building"
 import { FloorsResponse } from "@/lib/types/floor"
-import { BlocksResponse } from "@/lib/types/block"
 import { RoomsResponse, RoomStatus } from "@/lib/types/room"
-import { GenderRule } from "@/lib/types/enums"
+import { getGenderRuleColor } from "@/lib/utils/genreRuleUtils"
 
 export function BuildingMap() {
   const { data: buildings = [], isLoading, isError } = useBuildings()
@@ -157,18 +157,6 @@ function BlockItem({ block, isExpanded, toggle }: BlockItemProps) {
   const open = isExpanded(block.id)
   const { data: rooms = [], isLoading, isError } = useRooms(block.id, open)
 
-  const getGenderRuleColor = (genderRule: GenderRule) => {
-    switch (genderRule) {
-      case GenderRule.Male:
-        return "bg-blue-100 text-blue-800"
-      case GenderRule.Female:
-        return "bg-pink-100 text-pink-800"
-      case GenderRule.Mixed:
-        return "bg-violet-100 text-violet-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   return (
     <div className="border-l border-l-primary/20 mt-1">

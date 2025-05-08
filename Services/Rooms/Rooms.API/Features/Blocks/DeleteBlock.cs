@@ -113,4 +113,4 @@ namespace Rooms.API.Features.Blocks
             .RequireAuthorization("AdminOnly");
         }
     }
-} 
+}

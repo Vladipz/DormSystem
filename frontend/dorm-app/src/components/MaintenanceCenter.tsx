@@ -13,18 +13,6 @@ export function MaintenanceCenter() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // Fetch data
-  const {
-    data: ticketsResponse,
-    isLoading,
-    isError,
-  } = useMaintenanceTickets({
-    page: 1,
-    pageSize: 100,
-  });
-
-  const { data: roomsResponse = [] } = useRooms(undefined, true);
-
   // Use the custom hook for filtering and sorting
   const {
     searchTerm,
@@ -36,9 +24,27 @@ export function MaintenanceCenter() {
     buildings,
     sortBy,
     sortOrder,
-    sortedTickets,
     toggleSort,
-  } = useTicketFiltering(ticketsResponse?.items || [], roomsResponse);
+  } = useTicketFiltering([]);
+
+  // Fetch data with filters
+  const {
+    data: ticketsResponse,
+    isLoading,
+    isError,
+  } = useMaintenanceTickets({
+    page: 1,
+    pageSize: 100,
+    status: statusFilter === "All" ? undefined : statusFilter,
+    buildingId: buildingFilter === "all" ? undefined : buildingFilter,
+  });
+
+  const { data: roomsResponse = [] } = useRooms(undefined, true);
+
+  // Filter and sort tickets client-side (only text search)
+  const {
+    sortedTickets,
+  } = useTicketFiltering(ticketsResponse?.items || []);
 
   // Room navigation handler
   const viewRoom = (id: string) =>

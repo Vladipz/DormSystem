@@ -47,3 +47,8 @@ export interface UpdateBuildingRequest {
 export interface UpdatedBuildingResponse {
   id: string;
 }
+
+export interface BuildingInfo {
+  id: string;
+  label: string;
+}

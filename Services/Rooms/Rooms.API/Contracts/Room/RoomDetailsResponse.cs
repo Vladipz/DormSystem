@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 
+using Rooms.API.Contracts.Block;
+using Rooms.API.Contracts.Building;
 using Rooms.API.Entities;
 
 namespace Rooms.API.Contracts.Room
@@ -8,8 +10,11 @@ namespace Rooms.API.Contracts.Room
     {
         public Guid Id { get; init; }
 
-        public Guid? BlockId { get; init; }
-        //add a block field to the response
+        public BlockInfo? Block { get; init; }
+
+        public int Floor { get; init; }
+
+        public BuildingInfo? Building { get; init; }
 
         public string Label { get; init; } = string.Empty;
 

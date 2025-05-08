@@ -1,18 +1,18 @@
 import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Textarea
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    Textarea,
 } from "@/components/ui";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useCreateMaintenanceTicket } from "@/lib/hooks/useMaintenanceTicket";
@@ -25,7 +25,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { DialogClose } from "../ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "../ui/form";
 
 // Type-safe priority values
 const PRIORITIES: MaintenancePriority[] = ["Low", "Medium", "High"];
@@ -41,19 +48,26 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface CreateTicketDialogProps {
-  rooms: RoomsResponse[];
+  rooms?: RoomsResponse[];
+  preselectedRoomId?: string;
+  preselectedRoomLabel?: string;
+  trigger?: React.ReactNode;
 }
 
-export function CreateTicketDialog({ rooms }: CreateTicketDialogProps) {
+export function CreateTicketDialog({
+  rooms,
+  preselectedRoomId,
+  preselectedRoomLabel,
+  trigger,
+}: CreateTicketDialogProps) {
   const { userId } = useAuth();
   const { mutate: createTicket, isPending } = useCreateMaintenanceTicket();
   const [open, setOpen] = useState(false);
-
   // Initialize form with default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      roomId: "",
+      roomId: preselectedRoomId || "",
       description: "",
       priority: "Medium",
     },
@@ -71,26 +85,31 @@ export function CreateTicketDialog({ rooms }: CreateTicketDialogProps) {
       },
       {
         onSuccess: () => {
-          toast.success("Ticket created successfully");
           setOpen(false);
           form.reset();
         },
         onError: () => toast.error("Failed to create ticket"),
-      }
+      },
     );
   });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Report issue
-        </Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Report issue
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Report maintenance issue</DialogTitle>
-          <DialogDescription>Fill the form below to report a maintenance issue.</DialogDescription>
+          <DialogDescription>
+            Fill the form below to report a maintenance issue.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-4 py-4">
@@ -100,20 +119,33 @@ export function CreateTicketDialog({ rooms }: CreateTicketDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  {preselectedRoomId ? (
                     <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a room" />
-                      </SelectTrigger>
+                      <div className="flex h-10 items-center rounded-md border px-3 py-2">
+                        Room {preselectedRoomLabel}
+                      </div>
                     </FormControl>
-                    <SelectContent className="z-[1001]">
-                      {rooms.map((room) => (
-                        <SelectItem key={room.id} value={room.id}>
-                          Room {room.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  ) : (
+                    <>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a room" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="z-[1001]">
+                          {rooms.map((room) => (
+                            <SelectItem key={room.id} value={room.id}>
+                              Room {room.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -126,10 +158,10 @@ export function CreateTicketDialog({ rooms }: CreateTicketDialogProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      rows={3} 
-                      placeholder="Describe the issue" 
-                      {...field} 
+                    <Textarea
+                      rows={3}
+                      placeholder="Describe the issue"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

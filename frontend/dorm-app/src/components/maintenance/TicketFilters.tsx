@@ -1,4 +1,5 @@
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
+import type { BuildingsResponse } from "@/lib/types/building";
 import type { MaintenanceStatus } from "@/lib/types/maintenanceTicket";
 import { Search } from "lucide-react";
 
@@ -9,7 +10,7 @@ interface TicketFiltersProps {
   setStatusFilter: (value: "All" | MaintenanceStatus) => void;
   buildingFilter: string;
   setBuildingFilter: (value: string) => void;
-  buildings: string[];
+  buildings: BuildingsResponse[];
 }
 
 export function TicketFilters({
@@ -58,10 +59,10 @@ export function TicketFilters({
             <SelectValue placeholder="Building" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {buildings.map((b) => (
-              <SelectItem value={b} key={b}>
-                {b}
+            <SelectItem value="all">All Buildings</SelectItem>
+            {buildings.map((building) => (
+              <SelectItem value={building.id} key={building.id}>
+                {building.name}
               </SelectItem>
             ))}
           </SelectContent>

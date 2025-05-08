@@ -4,4 +4,4 @@ namespace Rooms.API.Contracts.Floor
     {
         public Guid Id { get; set; }
     }
-} 
+}

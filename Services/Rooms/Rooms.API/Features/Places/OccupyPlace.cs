@@ -20,9 +20,9 @@ namespace Rooms.API.Features.Places
         internal sealed class Command : IRequest<ErrorOr<UpdatePlaceResponse>>
         {
             public Guid Id { get; set; }
-            
+
             public Guid UserId { get; set; }
-            
+
             public DateTime? MovedInAt { get; set; }
         }
 
@@ -88,13 +88,13 @@ namespace Rooms.API.Features.Places
         {
             app.MapPut("/places/{id:guid}/occupy", async (Guid id, OccupyPlaceRequest request, ISender sender) =>
             {
-                var command = new OccupyPlace.Command 
-                { 
+                var command = new OccupyPlace.Command
+                {
                     Id = id,
                     UserId = request.UserId,
                     MovedInAt = DateTime.UtcNow
                 };
-                
+
                 var result = await sender.Send(command);
 
                 return result.Match(
@@ -112,4 +112,4 @@ namespace Rooms.API.Features.Places
             .RequireAuthorization("AdminOnly");
         }
     }
-} 
+}

@@ -1,13 +1,12 @@
 import { type MaintenanceStatus, type MaintenanceTicketResponse } from "@/lib/types/maintenanceTicket";
-import { type RoomsResponse } from "@/lib/types/room";
 import { prioWeight, statusWeight } from "@/lib/utils/maintenanceUtils";
 import { useMemo, useState } from "react";
+import { useBuildings } from "./useBuildings";
 
 type SortField = "date" | "room" | "priority" | "status";
 
 export function useTicketFiltering(
-  tickets: MaintenanceTicketResponse[],
-  rooms: RoomsResponse[] = []
+  tickets: MaintenanceTicketResponse[]
 ) {
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,31 +17,25 @@ export function useTicketFiltering(
   const [sortBy, setSortBy] = useState<SortField>("date");
   const [sortOrder, setOrder] = useState<"asc" | "desc">("desc");
 
+  // Fetch buildings
+  const { data: buildingsResponse } = useBuildings();
+
   // Derived data
   const buildings = useMemo(
-    () => Array.from(new Set(rooms.map((r) => r.blockId || "Unknown"))).filter(Boolean),
-    [rooms]
+    () => buildingsResponse || [],
+    [buildingsResponse]
   );
 
-  // Filtered tickets
+  // Filtered tickets (text search only - status and building are filtered on backend)
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
       // Text search match
       const searchText = `${ticket.room.id} ${ticket.title} ${ticket.description}`.toLowerCase();
       const matchesSearch = searchText.includes(searchTerm.toLowerCase());
       
-      // Status filter match
-      const matchesStatus = statusFilter === "All" || ticket.status === statusFilter;
-      
-      // Building filter match
-      const room = rooms.find(r => r.id === ticket.room.id);
-      const matchesBuilding = 
-        buildingFilter === "all" || 
-        (room && room.blockId === buildingFilter);
-      
-      return matchesSearch && matchesStatus && matchesBuilding;
+      return matchesSearch;
     });
-  }, [tickets, searchTerm, statusFilter, buildingFilter, rooms]);
+  }, [tickets, searchTerm]);
 
   // Sorted tickets
   const sortedTickets = useMemo(() => {
