@@ -1,18 +1,17 @@
-import { axiosClient } from "@/lib/utils/axios-client";
 import {
-  PlaceResponse,
-  PlaceDetailsResponse,
   CreatePlaceRequest,
   CreatePlaceResponse,
-  UpdatePlaceRequest,
-  UpdatedPlaceResponse,
+  GetAvailablePlacesParams,
+  GetPlacesParams,
   MoveInRequest,
   MoveOutRequest,
+  PlaceDetailsResponse,
   PlaceOccupationResponse,
-  GetPlacesParams,
-  GetAvailablePlacesParams,
-  PlacePagedResponse
+  PlacePagedResponse,
+  UpdatePlaceRequest,
+  UpdatedPlaceResponse
 } from "@/lib/types/place";
+import { axiosClient } from "@/lib/utils/axios-client";
 
 const API_URL = `${import.meta.env.VITE_PLACES_API_URL ?? "http://localhost:5137/api/places"}`;
 

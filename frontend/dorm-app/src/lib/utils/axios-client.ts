@@ -44,7 +44,8 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear local storage and redirect to login
       localStorage.clear();
-      window.location.href = "/login";
+      // window.location.href = "/login";
+      console.log("401 Unauthorized error");
       return Promise.reject(error);
     }
 

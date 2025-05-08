@@ -31,6 +31,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { useMaintenanceTickets } from "@/lib/hooks/useMaintenanceTicket";
+import { usePlaces } from "@/lib/hooks/usePlaces";
 import { useRoomById } from "@/lib/hooks/useRooms";
 import {
   createFileRoute,
@@ -67,6 +68,10 @@ export function RoomDetails() {
     isLoading: isRoomLoading,
     error: roomError,
   } = useRoomById(roomId);
+
+  const { data: places, isLoading } = usePlaces({
+    roomId: roomId,
+  });
 
   // Fetch maintenance tickets for this room
   const { data: maintenanceData, isLoading: isMaintenanceLoading } =
@@ -132,24 +137,24 @@ export function RoomDetails() {
   }
 
   // Mock data for places and occupants, as these seem to be missing from the API
-  const places = Array.from({ length: room.capacity }, (_, i) => ({
-    id: i + 1,
-    roomId: room.id,
-    index: i + 1,
-    occupiedByUserId: i < 2 ? `${i}` : null,
-    movedInAt: i < 2 ? "2023-09-01" : null,
-    movedOutAt: null,
-    occupant:
-      i < 2
-        ? {
-            id: i.toString(),
-            name: ["Alex Kovalenko", "Maria Shevchenko", "Ivan Petrenko"][i],
-            avatar: "/placeholder.svg?height=40&width=40",
-            faculty: ["Computer Science", "Economics", "Law"][i],
-            year: (i % 4) + 1,
-          }
-        : null,
-  }));
+  // const places = Array.from({ length: room.capacity }, (_, i) => ({
+  //   id: i + 1,
+  //   roomId: room.id,
+  //   index: i + 1,
+  //   occupiedByUserId: i < 2 ? `${i}` : null,
+  //   movedInAt: i < 2 ? "2023-09-01" : null,
+  //   movedOutAt: null,
+  //   occupant:
+  //     i < 2
+  //       ? {
+  //           id: i.toString(),
+  //           name: ["Alex Kovalenko", "Maria Shevchenko", "Ivan Petrenko"][i],
+  //           avatar: "/placeholder.svg?height=40&width=40",
+  //           faculty: ["Computer Science", "Economics", "Law"][i],
+  //           year: (i % 4) + 1,
+  //         }
+  //       : null,
+  // }));
 
   return (
     <div className="space-y-6 pt-3">
@@ -240,7 +245,7 @@ export function RoomDetails() {
               <TabsTrigger value="maintenance">Maintenance History</TabsTrigger>
             </TabsList>
             <TabsContent value="places">
-              <PlacesAndResidents places={places} />
+              <PlacesAndResidents places={places?.items || []} />
             </TabsContent>
             <TabsContent value="maintenance">
               <MaintenanceHistory
@@ -272,7 +277,7 @@ export function RoomDetails() {
                   <span className="text-sm font-medium">Occupancy</span>
                   <span className="text-sm">
                     {/* This is mocked as the current API doesn't provide occupancy */}
-                    {places.filter((p) => p.occupiedByUserId).length}/
+                    {places?.items.filter((p) => p.isOccupied).length}/
                     {room.capacity}
                   </span>
                 </div>

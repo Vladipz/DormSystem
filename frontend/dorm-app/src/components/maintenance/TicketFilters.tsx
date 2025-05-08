@@ -11,6 +11,7 @@ interface TicketFiltersProps {
   buildingFilter: string;
   setBuildingFilter: (value: string) => void;
   buildings: BuildingsResponse[];
+  isLoading?: boolean;
 }
 
 export function TicketFilters({
@@ -21,6 +22,7 @@ export function TicketFilters({
   buildingFilter,
   setBuildingFilter,
   buildings,
+  isLoading = false,
 }: TicketFiltersProps) {
   return (
     <div className="space-y-4">
@@ -40,8 +42,9 @@ export function TicketFilters({
         <Select
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v as "All" | MaintenanceStatus)}
+          disabled={isLoading}
         >
-          <SelectTrigger className="w-[170px]">
+          <SelectTrigger className={`w-[170px] ${isLoading ? 'opacity-70' : ''}`}>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -54,8 +57,12 @@ export function TicketFilters({
           </SelectContent>
         </Select>
 
-        <Select value={buildingFilter} onValueChange={setBuildingFilter}>
-          <SelectTrigger className="w-[170px]">
+        <Select 
+          value={buildingFilter} 
+          onValueChange={setBuildingFilter}
+          disabled={isLoading}
+        >
+          <SelectTrigger className={`w-[170px] ${isLoading ? 'opacity-70' : ''}`}>
             <SelectValue placeholder="Building" />
           </SelectTrigger>
           <SelectContent>

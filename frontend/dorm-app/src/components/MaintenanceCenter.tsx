@@ -8,6 +8,7 @@ import { useRouter } from "@tanstack/react-router";
 import { CreateTicketDialog } from "./dialogs/CreateTicketDialog";
 import { TicketFilters } from "./maintenance/TicketFilters";
 import { TicketTabs } from "./maintenance/TicketTabs";
+import { Skeleton } from "./ui";
 
 export function MaintenanceCenter() {
   const { isAuthenticated } = useAuth();
@@ -32,6 +33,7 @@ export function MaintenanceCenter() {
     data: ticketsResponse,
     isLoading,
     isError,
+    isFetching,
   } = useMaintenanceTickets({
     page: 1,
     pageSize: 100,
@@ -52,8 +54,8 @@ export function MaintenanceCenter() {
       to: `/rooms/${id}`,
     });
 
-  // Loading and error states
-  if (isLoading) return <p className="p-6">Loading…</p>;
+  // Initial loading state
+  if (isLoading && !isFetching) return <p className="p-6">Loading…</p>;
   if (isError)
     return <p className="p-6 text-red-600">Failed to load tickets</p>;
 
@@ -70,6 +72,7 @@ export function MaintenanceCenter() {
             buildingFilter={buildingFilter}
             setBuildingFilter={setBuildingFilter}
             buildings={buildings}
+            isLoading={isFetching}
           />
         </div>
 
@@ -81,14 +84,21 @@ export function MaintenanceCenter() {
         )}
       </div>
 
-      {/* Ticket Tabs */}
-      <TicketTabs
-        tickets={sortedTickets}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        toggleSort={toggleSort}
-        viewRoom={viewRoom}
-      />
+      {/* Ticket Tabs with loading state */}
+      {isFetching ? (
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full max-w-md" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      ) : (
+        <TicketTabs
+          tickets={sortedTickets}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          toggleSort={toggleSort}
+          viewRoom={viewRoom}
+        />
+      )}
     </div>
   );
 }

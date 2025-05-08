@@ -9,6 +9,7 @@ export interface Event {
   lastParticipants: Participant[];
   numberOfAttendees?: number;
   isPublic: boolean;
+  description?: string 
 }
 
 export interface EventDetails extends Event {
@@ -18,6 +19,8 @@ export interface EventDetails extends Event {
 export interface Participant {
   userId: string;
   joinedAt: string;
+  firstName: string;
+  lastName: string;
 }
 
 

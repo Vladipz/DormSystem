@@ -35,8 +35,7 @@ namespace Rooms.API.Features.Places
         {
             public Validator()
             {
-                RuleFor(q => q.Page).GreaterThan(0);
-                RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
+                // Page and PageSize already have default values in the Query class
             }
         }
 
@@ -84,6 +83,7 @@ namespace Rooms.API.Features.Places
                         IsOccupied = p.OccupiedByUserId != null,
                         MovedInAt = p.MovedInAt,
                         RoomLabel = p.Room.Label,
+                        OccupiedByUserId = p.OccupiedByUserId,
                     })
                     .OrderBy(p => p.RoomLabel)
                     .ThenBy(p => p.Index);
@@ -105,9 +105,19 @@ namespace Rooms.API.Features.Places
         {
             // Carter automatically binds query-string parameters to the Query object
             app.MapGet("/places", async (
-                [AsParameters] GetPlaces.Query query,
-                ISender sender) =>
+                ISender sender,
+                int pageNumber = 1,
+                int pageSize = 20,
+                Guid? roomId = null,
+                bool? isOccupied = null) =>
             {
+                var query = new GetPlaces.Query
+                {
+                    Page = pageNumber,
+                    PageSize = pageSize,
+                    RoomId = roomId,
+                    IsOccupied = isOccupied,
+                };
                 var result = await sender.Send(query);
 
                 return result.Match(

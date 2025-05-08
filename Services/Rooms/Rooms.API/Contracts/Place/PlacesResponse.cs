@@ -13,5 +13,7 @@ namespace Rooms.API.Contracts.Place
         public DateTime? MovedInAt { get; set; }
 
         public string RoomLabel { get; set; } = string.Empty;
+
+        public Guid? OccupiedByUserId { get; set; }
     }
 }
