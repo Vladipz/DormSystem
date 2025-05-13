@@ -30,6 +30,7 @@ import {
   TabsTrigger,
   Textarea,
 } from "@/components/ui";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useMaintenanceTickets } from "@/lib/hooks/useMaintenanceTicket";
 import { usePlaces } from "@/lib/hooks/usePlaces";
 import { useRoomById } from "@/lib/hooks/useRooms";
@@ -42,6 +43,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Loader2,
+  PenIcon,
   PenToolIcon as Tool,
 } from "lucide-react";
 import { useState } from "react";
@@ -60,6 +62,7 @@ export function RoomDetails() {
   const { roomId } = Route.useParams();
   const router = useRouter();
   const navigate = useNavigate();
+  const { userRole } = useAuth();
   const [isRequestMoveDialogOpen, setIsRequestMoveDialogOpen] = useState(false);
 
   // Fetch room data from backend
@@ -69,7 +72,7 @@ export function RoomDetails() {
     error: roomError,
   } = useRoomById(roomId);
 
-  const { data: places, isLoading } = usePlaces({
+  const { data: places } = usePlaces({
     roomId: roomId,
   });
 
@@ -164,6 +167,15 @@ export function RoomDetails() {
         backButtonLabel="Back"
         actions={
           <div className="flex gap-2">
+            {(userRole === "Admin" || userRole === "Owner") && (
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: `/rooms/${roomId}/edit` })}
+              >
+                <PenIcon className="mr-2 h-4 w-4" />
+                Edit Room
+              </Button>
+            )}
             <CreateTicketDialog
               preselectedRoomId={room.id}
               preselectedRoomLabel={room.label}

@@ -96,14 +96,14 @@ function RouteComponent() {
           queryClient.invalidateQueries({ queryKey: ["events", eventId] });
           navigate({ to: `/events/${eventId}` });
         },
-      }
+      },
     );
   };
 
   // Show loading state
   if (isEventLoading) {
     return (
-      <div className="mx-auto p-4 sm:p-6 max-w-full sm:max-w-2xl">
+      <div className="mx-auto max-w-full p-4 sm:max-w-2xl sm:p-6">
         <PageHeader
           title="Edit Event"
           backTo={`/events/${eventId}`}
@@ -117,13 +117,13 @@ function RouteComponent() {
   // Show error state
   if (isError) {
     return (
-      <div className="mx-auto p-4 sm:p-6 max-w-full sm:max-w-2xl">
+      <div className="mx-auto max-w-full p-4 sm:max-w-2xl sm:p-6">
         <PageHeader
           title="Error"
           backTo="/events"
           backButtonLabel="Back to Events"
         />
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
           <p className="text-sm sm:text-base">
             {error instanceof Error
               ? error.message
@@ -135,7 +135,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="mx-auto p-4 sm:p-6 max-w-full sm:max-w-2xl">
+    <div className="mx-auto max-w-full p-4 sm:max-w-2xl sm:p-6">
       <PageHeader
         title="Edit Event"
         backTo={`/events/${eventId}`}
