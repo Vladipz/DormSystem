@@ -16,14 +16,16 @@ const API_URL = `${import.meta.env.VITE_ROOMS_API_URL ?? "http://localhost:5137/
 export class RoomService {
   // Отримати список кімнат
   public static async getAllRooms(
-    page = 1, 
-    pageSize = 100, 
-    blockId?: string, 
-    buildingId?: string
+    page = 1,
+    pageSize = 100,
+    blockId?: string,
+    buildingId?: string,
+    floorId?: string,
+    onlyBlockless?: boolean
   ): Promise<RoomsResponse[]> {
     try {
       const res = await axios.get<{ items: RoomsResponse[] }>(`${API_URL}`, {
-        params: { page, pageSize, blockId, buildingId }
+        params: { page, pageSize, blockId, buildingId, floorId, onlyBlockless }
       });
       return res.data.items;
     } catch (error) {

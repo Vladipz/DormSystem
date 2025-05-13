@@ -58,6 +58,9 @@ namespace Rooms.API.Features.Rooms
                     .Include(r => r.Block)
                         .ThenInclude(b => b.Floor)
                             .ThenInclude(f => f.Building)
+                    .Include(r => r.Floor)
+                        .ThenInclude(f => f.Building)
+                    .Include(r => r.Building)
                     .Where(r => r.Id == request.RoomId)
                     .FirstOrDefaultAsync(ct);
 

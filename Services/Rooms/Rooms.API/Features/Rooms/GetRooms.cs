@@ -28,6 +28,10 @@ namespace Rooms.API.Features.Rooms
 
             public Guid? BuildingId { get; set; }
 
+            public Guid? FloorId { get; set; }
+
+            public bool? OnlyBlockless { get; set; }
+
             public RoomStatus? Status { get; set; }
 
             public RoomType? RoomType { get; set; }
@@ -73,6 +77,18 @@ namespace Rooms.API.Features.Rooms
                 if (request.BlockId is not null)
                 {
                     baseQuery = baseQuery.Where(r => r.BlockId == request.BlockId);
+                }
+
+                if (request.FloorId is not null)
+                {
+                    baseQuery = baseQuery.Where(r =>
+                        (r.FloorId == request.FloorId) ||
+                        (r.Block != null && r.Block.Floor != null && r.Block.Floor.Id == request.FloorId));
+                }
+
+                if (request.OnlyBlockless is not null && request.OnlyBlockless == true)
+                {
+                    baseQuery = baseQuery.Where(r => r.BlockId == null);
                 }
 
                 if (request.BuildingId is not null)

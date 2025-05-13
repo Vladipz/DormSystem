@@ -24,23 +24,58 @@ namespace Rooms.API.Mappings
                             Label = src.Block.Label,
                         })
 
-                // Flatten Floor number from nested Floor
-                .Map(
-                    dest => dest.Floor,
-                    src => src.Block == null
-                    ? 0
-                    : src.Block.Floor.Number)
+                // Map Floor number based on the available data
+                .Map(dest => dest.Floor, src => GetFloorNumber(src))
 
-                // Map Building navigation to BuildingInfo DTO
-                .Map(
-                        dest => dest.Building,
-                        src => src.Block == null || src.Block.Floor.Building == null
-                        ? null
-                        : new BuildingInfo
-                        {
-                            Id = src.Block.Floor.Building.Id,
-                            Label = src.Block.Floor.Building.Name,
-                        });
+                // Map Building information based on available data
+                .Map(dest => dest.Building, src => GetBuildingInfo(src));
+        }
+
+        private static int GetFloorNumber(Room src)
+        {
+            if (src.Floor != null)
+            {
+                return src.Floor.Number;
+            }
+
+            if (src.Block?.Floor != null)
+            {
+                return src.Block.Floor.Number;
+            }
+
+            return 0;
+        }
+
+        private static BuildingInfo GetBuildingInfo(Room src)
+        {
+            if (src.Building != null)
+            {
+                return new BuildingInfo
+                {
+                    Id = src.Building.Id,
+                    Label = src.Building.Name,
+                };
+            }
+
+            if (src.Floor?.Building != null)
+            {
+                return new BuildingInfo
+                {
+                    Id = src.Floor.Building.Id,
+                    Label = src.Floor.Building.Name,
+                };
+            }
+
+            if (src.Block?.Floor?.Building != null)
+            {
+                return new BuildingInfo
+                {
+                    Id = src.Block.Floor.Building.Id,
+                    Label = src.Block.Floor.Building.Name,
+                };
+            }
+
+            return null;
         }
     }
 }
