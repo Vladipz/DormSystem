@@ -18,6 +18,10 @@ namespace Events.API.Entities
 
         public bool IsPublic { get; set; }
 
+        public Guid? BuildingId { get; set; }
+
+        public Guid? RoomId { get; set; }
+
         public ICollection<EventParticipant> Participants { get; init; } = new List<EventParticipant>();
     }
 }

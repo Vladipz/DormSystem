@@ -22,5 +22,9 @@ namespace Rooms.API.Data
         public DbSet<MaintenanceTicket> MaintenanceTickets { get; set; }
 
         public DbSet<Building> Buildings { get; set; }
+
+        public DbSet<BuildingEvent> BuildingEvents { get; set; }
+
+        public DbSet<RoomEvent> RoomEvents { get; set; }
     }
 }

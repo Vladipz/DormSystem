@@ -26,6 +26,8 @@ namespace Rooms.API.Features.Rooms
         {
             public Guid? BlockId { get; set; }
 
+            public Guid? BuildingId { get; set; }
+
             public RoomStatus? Status { get; set; }
 
             public RoomType? RoomType { get; set; }
@@ -63,11 +65,21 @@ namespace Rooms.API.Features.Rooms
                     return validation.ToValidationError<PagedResponse<RoomsResponse>>();
                 }
 
-                IQueryable<Room> baseQuery = _db.Rooms.AsNoTracking();
+                IQueryable<Room> baseQuery = _db.Rooms
+                    .Include(r => r.Block)
+                        .ThenInclude(b => b.Floor)
+                    .AsNoTracking();
 
                 if (request.BlockId is not null)
                 {
                     baseQuery = baseQuery.Where(r => r.BlockId == request.BlockId);
+                }
+
+                if (request.BuildingId is not null)
+                {
+                    baseQuery = baseQuery.Where(r =>
+                        r.BuildingId == request.BuildingId ||
+                        (r.Block != null && r.Block.Floor != null && r.Block.Floor.BuildingId == request.BuildingId));
                 }
 
                 if (request.Status is not null)

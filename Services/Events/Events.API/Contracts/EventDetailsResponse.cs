@@ -21,5 +21,9 @@ namespace Events.API.Contracts
         public int CurrentParticipantsCount { get; set; }
 
         public ICollection<ParticipantDetailedResponse> Participants { get; init; } = new List<ParticipantDetailedResponse>();
+
+        public Guid? BuildingId { get; set; }
+
+        public Guid? RoomId { get; set; }
     }
 }

@@ -74,6 +74,8 @@ namespace Events.API.Features.Events
                     IsPublic = eventEntity.IsPublic,
                     CurrentParticipantsCount = participantsCount,
                     Participants = detailedParticipants,
+                    BuildingId = eventEntity.BuildingId,
+                    RoomId = eventEntity.RoomId,
                 };
 
                 return eventDetails;

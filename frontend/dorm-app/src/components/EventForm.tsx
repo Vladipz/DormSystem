@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useBuildings } from "@/lib/hooks/useBuildings";
+import { useRooms } from "@/lib/hooks/useRooms";
+import { BuildingsResponse } from "@/lib/types/building";
 import { CreateEventRequest } from "@/lib/types/event";
+import { RoomsResponse } from "@/lib/types/room";
 import { useFormik } from "formik";
 import { Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 
 // Define validation schema using Yup
@@ -18,8 +24,21 @@ export const EventSchema = Yup.object().shape({
     .min(new Date(), "Date cannot be in the past")
     .required("Date is required"),
   location: Yup.string()
-    .min(3, "Location must be at least 3 characters")
-    .required("Location is required"),
+    .test(
+      'location-or-building',
+      'Either location or building must be specified',
+      function(value) {
+        const { buildingId } = this.parent;
+        return Boolean(value) || Boolean(buildingId);
+      }
+    )
+    .when('buildingId', {
+      is: (buildingId: string) => Boolean(buildingId),
+      then: (schema) => schema.optional(),
+      otherwise: (schema) => schema
+        .required('Location is required when not using a building')
+        .min(3, 'Location must be at least 3 characters'),
+    }),
   numberOfAttendees: Yup.number()
     .nullable()
     .min(1, "Number of attendees must be at least 1")
@@ -29,6 +48,16 @@ export const EventSchema = Yup.object().shape({
     2000,
     "Description must be less than 2000 characters"
   ),
+  buildingId: Yup.string()
+    .test(
+      'building-or-location', 
+      'Either location or building must be specified',
+      function(value) {
+        const { location } = this.parent;
+        return Boolean(value) || Boolean(location);
+      }
+    ),
+  roomId: Yup.string().optional(),
 });
 
 export interface EventFormValues {
@@ -38,6 +67,8 @@ export interface EventFormValues {
   numberOfAttendees: number | null;
   isPublic: boolean;
   description: string;
+  buildingId?: string;
+  roomId?: string;
 }
 
 interface EventFormProps {
@@ -57,6 +88,9 @@ export function EventForm({
   submitButtonText,
   error,
 }: EventFormProps) {
+  const [useCustomLocation, setUseCustomLocation] = useState<boolean>(!initialValues.buildingId);
+  const { data: buildings, isLoading: buildingsLoading } = useBuildings(1, 100, true);
+  
   const formik = useFormik({
     initialValues,
     validationSchema: EventSchema,
@@ -69,14 +103,39 @@ export function EventForm({
         name: values.name,
         date: formattedDate,
         location: values.location,
-        numberOfAttendees: values.numberOfAttendees,
+        numberOfAttendees: values.numberOfAttendees ?? undefined,
         isPublic: values.isPublic,
         description: values.description || "",
       };
 
+      // Only add buildingId and roomId if they are valid non-empty values
+      if (!useCustomLocation && values.buildingId) {
+        payload.buildingId = values.buildingId;
+        
+        // Only add roomId if it's a valid non-empty value
+        if (values.roomId) {
+          payload.roomId = values.roomId;
+        }
+      }
+
       onSubmit(payload);
     },
   });
+  
+  const { data: rooms, isLoading: roomsLoading } = useRooms(
+    formik.values.buildingId,
+    !!formik.values.buildingId
+  );
+  
+  // Toggle between custom location and building selection
+  useEffect(() => {
+    if (useCustomLocation) {
+      formik.setFieldValue('buildingId', undefined);
+      formik.setFieldValue('roomId', undefined);
+    } else {
+      formik.setFieldValue('location', '');
+    }
+  }, [useCustomLocation]);
 
   return (
     <>
@@ -128,28 +187,126 @@ export function EventForm({
             <p className="text-red-500 text-xs mt-1">{formik.errors.date}</p>
           )}
         </div>
-
-        <div>
-          <Label htmlFor="location" className="block text-sm font-medium mb-1">
-            Location
-          </Label>
-          <Input
-            id="location"
-            name="location"
-            type="text"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.location}
-            className={
-              formik.errors.location && formik.touched.location
-                ? "border-red-500"
-                : ""
-            }
+        
+        <div className="flex items-center space-x-2 mb-2">
+          <Switch
+            id="locationToggle"
+            checked={useCustomLocation}
+            onCheckedChange={setUseCustomLocation}
           />
-          {formik.errors.location && formik.touched.location && (
-            <p className="text-red-500 text-xs mt-1">{formik.errors.location}</p>
-          )}
+          <Label htmlFor="locationToggle" className="text-sm">
+            Use custom location instead of building/room
+          </Label>
         </div>
+
+        {useCustomLocation ? (
+          <div>
+            <Label htmlFor="location" className="block text-sm font-medium mb-1">
+              Location
+            </Label>
+            <Input
+              id="location"
+              name="location"
+              type="text"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.location}
+              className={
+                formik.errors.location && formik.touched.location
+                  ? "border-red-500"
+                  : ""
+              }
+            />
+            {formik.errors.location && formik.touched.location && (
+              <p className="text-red-500 text-xs mt-1">{formik.errors.location}</p>
+            )}
+          </div>
+        ) : (
+          <>
+            <div>
+              <Label htmlFor="buildingId" className="block text-sm font-medium mb-1">
+                Building
+              </Label>
+              <Select
+                value={formik.values.buildingId}
+                onValueChange={(value) => {
+                  formik.setFieldValue("buildingId", value);
+                  formik.setFieldValue("roomId", undefined);
+                }}
+              >
+                <SelectTrigger
+                  id="buildingId"
+                  className={
+                    formik.errors.buildingId && formik.touched.buildingId ? "border-red-500" : ""
+                  }
+                >
+                  <SelectValue placeholder="Select a building" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildingsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading buildings...
+                    </SelectItem>
+                  ) : !buildings ? (
+                    <SelectItem value="none" disabled>
+                      No buildings available
+                    </SelectItem>
+                  ) : (
+                    buildings.map((building: BuildingsResponse) => (
+                      <SelectItem key={building.id} value={building.id}>
+                        {building.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {formik.errors.buildingId && formik.touched.buildingId && (
+                <p className="text-red-500 text-xs mt-1">{formik.errors.buildingId}</p>
+              )}
+            </div>
+
+            {formik.values.buildingId && (
+              <div>
+                <Label htmlFor="roomId" className="block text-sm font-medium mb-1">
+                  Room (Optional)
+                </Label>
+                <Select
+                  value={formik.values.roomId}
+                  onValueChange={(value) => formik.setFieldValue("roomId", value)}
+                >
+                  <SelectTrigger
+                    id="roomId"
+                    className={
+                      formik.errors.roomId && formik.touched.roomId ? "border-red-500" : ""
+                    }
+                  >
+                    <SelectValue placeholder="Select a room (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roomsLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading rooms...
+                      </SelectItem>
+                    ) : !rooms || rooms.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No rooms available
+                      </SelectItem>
+                    ) : (
+                      rooms.map((room: RoomsResponse) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          {room.label}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {formik.errors.roomId && formik.touched.roomId && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.roomId}</p>
+                )}
+              </div>
+            )}
+          </>
+        )}
 
         <div>
           <Label htmlFor="description" className="block text-sm font-medium mb-1">

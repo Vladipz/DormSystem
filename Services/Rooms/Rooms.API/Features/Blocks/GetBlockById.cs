@@ -71,7 +71,7 @@ namespace Rooms.API.Features.Blocks
                     Label = block.Label,
                     GenderRule = block.GenderRule,
                     FloorNumber = block.Floor.Number.ToString(),
-                    BuildingName = block.Floor.Building.Name
+                    BuildingName = block.Floor.Building.Name,
                 };
 
                 return response;

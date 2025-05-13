@@ -1,12 +1,11 @@
-
 import { RoomService } from "@/lib/services/roomService";
 import { CreateRoomRequest, UpdateRoomRequest } from "@/lib/types/room";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useRooms(blockId?: string, enabled = true) {
+export function useRooms(buildingId?: string, enabled = true, blockId?: string) {
   return useQuery({
-    queryKey: ["rooms", blockId],
-    queryFn: () => RoomService.getAllRooms(1, 100, blockId),
+    queryKey: ["rooms", { buildingId, blockId }],
+    queryFn: () => RoomService.getAllRooms(1, 100, blockId, buildingId),
     enabled: enabled,
     staleTime: 5 * 60 * 1000,
   });

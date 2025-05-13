@@ -51,6 +51,11 @@ namespace Rooms.API.Entities
 
         public Guid? FloorId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the building this room belongs to.
+        /// </summary>
+        public Guid? BuildingId { get; set; }
+
         public string Label { get; set; } = string.Empty;
 
         public int Capacity { get; set; }
@@ -81,6 +86,11 @@ namespace Rooms.API.Entities
         public Floor? Floor { get; set; }
 
         /// <summary>
+        /// Gets or sets navigation property for the building this room belongs to.
+        /// </summary>
+        public Building? Building { get; set; }
+
+        /// <summary>
         /// Gets navigation property for the places in this room.
         /// Empty for event rooms or specialized rooms.
         /// </summary>
@@ -90,5 +100,10 @@ namespace Rooms.API.Entities
         /// Gets navigation property for maintenance tickets related to this room.
         /// </summary>
         public ICollection<MaintenanceTicket> MaintenanceTickets { get; init; } = new List<MaintenanceTicket>();
+
+        /// <summary>
+        /// Gets navigation property for events taking place in this room.
+        /// </summary>
+        public ICollection<RoomEvent> Events { get; init; } = new List<RoomEvent>();
     }
 }

@@ -95,7 +95,7 @@ namespace Rooms.API.Features.Places
                 var command = new VacatePlace.Command
                 {
                     Id = id,
-                    MovedOutAt = request.MovedOutAt ?? DateTime.UtcNow
+                    MovedOutAt = request.MovedOutAt ?? DateTime.UtcNow,
                 };
 
                 var result = await sender.Send(command);

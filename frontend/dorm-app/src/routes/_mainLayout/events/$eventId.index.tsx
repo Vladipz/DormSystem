@@ -17,9 +17,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useBuildings } from "@/lib/hooks/useBuildings";
 import { useEvents } from "@/lib/hooks/useEvents";
+import { useRooms } from "@/lib/hooks/useRooms";
 import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
+import { BuildingsResponse } from "@/lib/types/building";
+import { RoomsResponse } from "@/lib/types/room";
 import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -63,6 +67,25 @@ function EventDetailsPage() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Fetch building information if buildingId is available
+  const { data: buildings, isLoading: buildingLoading } = useBuildings(
+    1,
+    100,
+    true,
+  );
+
+  // Fetch room information if roomId and buildingId are available
+  const { data: rooms, isLoading: roomsLoading } = useRooms(
+    event?.buildingId,
+    !!event?.buildingId
+  );
+
+  // Find the specific building and room
+  const eventBuilding = buildings?.find(
+    (b: BuildingsResponse) => b.id === event?.buildingId,
+  );
+  const eventRoom = rooms?.find((r: RoomsResponse) => r.id === event?.roomId);
+
   // Check if the user can edit this event (is owner or admin)
   useEffect(() => {
     if (event && user && isAuthenticated) {
@@ -80,7 +103,7 @@ function EventDetailsPage() {
       if (!user || !user.id) {
         throw new Error("You must be logged in to attend events");
       }
-      
+
       if (isJoining) {
         await joinEvent(eventId, user.id);
       } else {
@@ -118,7 +141,7 @@ function EventDetailsPage() {
     data: inviteLink,
     isLoading: inviteLoading,
     isError: inviteError,
-    error: inviteLinkError
+    error: inviteLinkError,
   } = useQuery({
     queryKey: ["eventInviteLink", eventId],
     queryFn: () => getEventInviteLink(eventId),
@@ -130,7 +153,7 @@ function EventDetailsPage() {
 
   const toggleAttendance = () => {
     if (!event) return;
-    
+
     // Check if the user is logged in
     if (!user || !isAuthenticated) {
       // Redirect to login page with the current URL as the return destination
@@ -138,7 +161,7 @@ function EventDetailsPage() {
       navigate({ to: "/login", search: { returnTo } });
       return;
     }
-    
+
     attendanceMutation.mutate(!isAttending);
   };
 
@@ -148,15 +171,20 @@ function EventDetailsPage() {
   };
 
   // Визначаю isAttending через user.id у списку учасників
-  const isAttending = !!(event && user && event.participants && event.participants.some(p => p.userId === user.id));
+  const isAttending = !!(
+    event &&
+    user &&
+    event.participants &&
+    event.participants.some((p) => p.userId === user.id)
+  );
 
   if (isLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-8 w-1/4 rounded bg-gray-200"></div>
+          <div className="h-64 rounded bg-gray-200"></div>
+          <div className="h-32 rounded bg-gray-200"></div>
         </div>
       </div>
     );
@@ -218,6 +246,21 @@ function EventDetailsPage() {
     });
   };
 
+  // Get the location display text
+  const getLocationDisplay = () => {
+    // If there's a building selected
+    if (event.buildingId && eventBuilding) {
+      // If there's also a room selected
+      if (event.roomId && eventRoom) {
+        return `${eventBuilding.name}, ${eventRoom.label}`;
+      }
+      // Just building, no room
+      return eventBuilding.name;
+    }
+    // Custom location
+    return event.location;
+  };
+
   return (
     <div className="space-y-6 p-6">
       <PageHeader
@@ -227,7 +270,10 @@ function EventDetailsPage() {
         actions={
           <div className="flex gap-2">
             {canInvite && (
-              <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+              <Dialog
+                open={inviteDialogOpen}
+                onOpenChange={setInviteDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button variant="outline">Invite Link</Button>
                 </DialogTrigger>
@@ -238,7 +284,15 @@ function EventDetailsPage() {
                   <div className="flex items-center gap-2">
                     <Input
                       readOnly
-                      value={inviteLoading ? "Loading..." : inviteError ? "Failed to load link" : (inviteLink ? window.location.origin + inviteLink : "")}
+                      value={
+                        inviteLoading
+                          ? "Loading..."
+                          : inviteError
+                            ? "Failed to load link"
+                            : inviteLink
+                              ? window.location.origin + inviteLink
+                              : ""
+                      }
                       className="flex-1"
                     />
                     <Button
@@ -253,12 +307,15 @@ function EventDetailsPage() {
                       }}
                       disabled={inviteLoading || !inviteLink}
                     >
-                      <Copy className="mr-1 h-4 w-4" /> {copied ? "Copied!" : "Copy"}
+                      <Copy className="mr-1 h-4 w-4" />{" "}
+                      {copied ? "Copied!" : "Copy"}
                     </Button>
                   </div>
                   {inviteError && (
-                    <div className="text-red-500 text-sm mt-2">
-                      {inviteLinkError instanceof Error ? inviteLinkError.message : "Failed to load invitation link."}
+                    <div className="mt-2 text-sm text-red-500">
+                      {inviteLinkError instanceof Error
+                        ? inviteLinkError.message
+                        : "Failed to load invitation link."}
                     </div>
                   )}
                   <DialogFooter>
@@ -284,8 +341,8 @@ function EventDetailsPage() {
       {/* Event Header Card */}
       <Card>
         <div className="relative">
-          <div className="w-full h-64 bg-gray-200 rounded-t-lg"></div>
-          <div className="absolute bottom-4 right-4">
+          <div className="h-64 w-full rounded-t-lg bg-gray-200"></div>
+          <div className="absolute right-4 bottom-4">
             <Button
               variant={isAttending ? "outline" : "default"}
               className={isAttending ? "bg-background" : ""}
@@ -303,47 +360,57 @@ function EventDetailsPage() {
         <CardContent className="p-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <h2 className="text-xl font-semibold mb-2">About this Event</h2>
+              <h2 className="mb-2 text-xl font-semibold">About this Event</h2>
               <p className="text-muted-foreground mb-4 break-words whitespace-normal">
                 {event.description}
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary shrink-0" />
+                  <Calendar className="text-primary h-5 w-5 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium">Date</p>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-muted-foreground truncate text-sm">
                       {formatDate(event.date)}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary shrink-0" />
+                  <Clock className="text-primary h-5 w-5 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium">Time</p>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-muted-foreground truncate text-sm">
                       {formatTime(event.date) || "TBD"}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary shrink-0" />
+                  <MapPin className="text-primary h-5 w-5 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {event.location}
+                    <p className="text-muted-foreground truncate text-sm">
+                      {buildingLoading || roomsLoading
+                        ? "Loading location..."
+                        : getLocationDisplay()}
                     </p>
+                    {event.buildingId &&
+                      eventBuilding &&
+                      event.roomId &&
+                      eventRoom && (
+                        <p className="text-muted-foreground text-xs">
+                          Room capacity: {eventRoom.capacity} people
+                        </p>
+                      )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary shrink-0" />
+                  <Users className="text-primary h-5 w-5 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium">Participants</p>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-muted-foreground truncate text-sm">
                       {event.participants?.length || 0} attending
                       {event.numberOfAttendees
                         ? ` (max ${event.numberOfAttendees})`
@@ -355,20 +422,20 @@ function EventDetailsPage() {
             </div>
 
             <div>
-              <h3 className="font-medium mb-2">Organized by</h3>
-              <div className="flex items-center gap-2 mb-4">
+              <h3 className="mb-2 font-medium">Organized by</h3>
+              <div className="mb-4 flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-gray-300"></div>
                 <span>Event Organizer</span>
               </div>
 
-              <h3 className="font-medium mb-2">Participants</h3>
+              <h3 className="mb-2 font-medium">Participants</h3>
               <div className="flex flex-wrap gap-1">
                 {event.participants &&
                   event.participants.slice(0, 5).map((participant, index) => (
-                    <Tooltip>
+                    <Tooltip key={participant.userId}>
                       <TooltipTrigger asChild>
                         <div
-                          className="h-8 w-8 rounded-full bg-gray-300 border-2 border-background flex items-center justify-center cursor-default"
+                          className="border-background flex h-8 w-8 cursor-default items-center justify-center rounded-full border-2 bg-gray-300"
                           aria-label={`Participant: ${participant.firstName} ${participant.lastName}`}
                         >
                           {getPlaceholderAvatar(index, participant.userId)}
@@ -382,12 +449,12 @@ function EventDetailsPage() {
                     </Tooltip>
                   ))}
                 {event.participants && event.participants.length > 5 && (
-                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-xs font-medium">
+                  <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium">
                     +{event.participants.length - 5}
                   </div>
                 )}
                 {(!event.participants || event.participants.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     No participants yet
                   </p>
                 )}
@@ -411,7 +478,7 @@ function EventDetailsPage() {
                   <div className="h-10 w-10 rounded-full bg-gray-300"></div>
                   <div className="flex-1 space-y-2">
                     <textarea
-                      className="w-full p-2 border rounded-md"
+                      className="w-full rounded-md border p-2"
                       placeholder="Add a comment..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
@@ -433,10 +500,10 @@ function EventDetailsPage() {
                   </div>
                 </div>
 
-                <div className="h-px bg-gray-200 my-4"></div>
+                <div className="my-4 h-px bg-gray-200"></div>
 
                 <div className="space-y-4">
-                  <p className="text-center text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-center text-sm">
                     No comments yet. Be the first to start a conversation!
                   </p>
                 </div>

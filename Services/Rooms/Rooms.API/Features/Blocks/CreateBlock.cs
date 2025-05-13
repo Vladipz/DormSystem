@@ -87,7 +87,7 @@ namespace Rooms.API.Features.Blocks
                     Id = Guid.NewGuid(),
                     FloorId = request.FloorId,
                     Label = request.Label,
-                    GenderRule = request.GenderRule
+                    GenderRule = request.GenderRule,
                 };
 
                 _dbContext.Blocks.Add(block);

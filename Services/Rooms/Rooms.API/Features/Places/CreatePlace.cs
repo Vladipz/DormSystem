@@ -99,7 +99,7 @@ namespace Rooms.API.Features.Places
                     RoomId = request.RoomId,
                     Index = request.Index,
                     OccupiedByUserId = request.OccupiedByUserId,
-                    MovedInAt = request.MovedInAt
+                    MovedInAt = request.MovedInAt,
                 };
 
                 _dbContext.Places.Add(place);

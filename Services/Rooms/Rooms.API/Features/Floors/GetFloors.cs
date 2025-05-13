@@ -73,7 +73,7 @@ namespace Rooms.API.Features.Floors
                         BuildingId = f.BuildingId,
                         Number = f.Number,
                         BlocksCount = f.Blocks.Count,
-                        BuildingName = f.Building.Name
+                        BuildingName = f.Building.Name,
                     })
                     .OrderBy(f => f.Number);
 

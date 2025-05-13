@@ -71,7 +71,7 @@ namespace Rooms.API.Features.Floors
                     Number = floor.Number,
                     BlocksCount = floor.Blocks.Count,
                     BuildingName = floor.Building.Name,
-                    BuildingAddress = floor.Building.Address
+                    BuildingAddress = floor.Building.Address,
                 };
 
                 return response;

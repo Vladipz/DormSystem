@@ -13,5 +13,9 @@ namespace Events.API.Contracts
         public int? NumberOfAttendees { get; set; }
 
         public bool IsPublic { get; set; }
+
+        public Guid? BuildingId { get; set; }
+
+        public Guid? RoomId { get; set; }
     }
 }

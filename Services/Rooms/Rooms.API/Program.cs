@@ -8,6 +8,8 @@ using Mapster;
 
 using MapsterMapper;
 
+using MassTransit;
+
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -66,6 +68,38 @@ var config = TypeAdapterConfig.GlobalSettings;
 config.Scan(typeof(Program).Assembly);
 builder.Services.AddSingleton(config);
 builder.Services.AddScoped<IMapper, Mapper>();
+
+// Configure MassTransit
+builder.Services.AddMassTransit(config =>
+{
+    // Configure RabbitMQ as the message broker
+    config.SetKebabCaseEndpointNameFormatter();
+
+    // Register the consumer
+    config.AddConsumer<EventCreatedConsumer>();
+
+    config.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
+        var host = rabbitMqSettings["Host"] ?? "localhost";
+        var username = rabbitMqSettings["Username"] ?? "guest";
+        var password = rabbitMqSettings["Password"] ?? "guest";
+
+        cfg.Host(host, h =>
+        {
+            h.Username(username);
+            h.Password(password);
+        });
+
+        // Configure the consumer on this endpoint
+        cfg.ReceiveEndpoint("rooms-service-events", e =>
+        {
+            e.ConfigureConsumer<EventCreatedConsumer>(context);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 // Register HttpClient for Auth Service
 string authServiceUrl = builder.Configuration["AuthService:ApiUrl"] ?? throw new InvalidOperationException("AuthServiceUrl:ApiUrl is not configured.");

@@ -7,6 +7,8 @@ using Events.API.Services;
 
 using FluentValidation;
 
+using MassTransit;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -72,6 +74,31 @@ builder.Services.AddDbContext<EventsDbContext>(options =>
 {
     // Add PostgreSQL support with default connection string
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+// Configure MassTransit
+builder.Services.AddMassTransit(config =>
+{
+    // Configure RabbitMQ as the message broker
+    config.SetKebabCaseEndpointNameFormatter();
+
+    config.AddConsumers(typeof(Program).Assembly);
+
+    config.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
+        var host = rabbitMqSettings["Host"] ?? "localhost";
+        var username = rabbitMqSettings["Username"] ?? "guest";
+        var password = rabbitMqSettings["Password"] ?? "guest";
+
+        cfg.Host(host, h =>
+        {
+            h.Username(username);
+            h.Password(password);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
 });
 
 // Configure Auth Service integration

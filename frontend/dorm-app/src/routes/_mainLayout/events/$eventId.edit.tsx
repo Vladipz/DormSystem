@@ -69,9 +69,11 @@ function RouteComponent() {
         name: event.name || "",
         date: formattedLocalDate,
         location: event.location || "",
-        numberOfAttendees: event.numberOfAttendees,
+        numberOfAttendees: event.numberOfAttendees ?? null,
         isPublic: event.isPublic,
         description: event.description || "",
+        buildingId: event.buildingId,
+        roomId: event.roomId 
       };
     }
 
@@ -82,13 +84,22 @@ function RouteComponent() {
       numberOfAttendees: null,
       isPublic: false,
       description: "",
+      buildingId: undefined,
+      roomId: undefined
     };
   };
 
   // Handle form submission
   const handleSubmit = (eventData: CreateEventRequest) => {
+    // Clean up any empty fields before submission
+    const cleanedData = { ...eventData };
+    
+    // The EventForm component now handles this correctly, but adding this as an extra safeguard
+    if (!cleanedData.buildingId) delete cleanedData.buildingId;
+    if (!cleanedData.roomId) delete cleanedData.roomId;
+
     updateEventMutation.mutate(
-      { eventId, eventData },
+      { eventId, eventData: cleanedData },
       {
         onSuccess: () => {
           // Invalidate events query data to refetch

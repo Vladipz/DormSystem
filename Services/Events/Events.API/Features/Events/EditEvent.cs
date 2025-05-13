@@ -34,6 +34,10 @@ namespace Events.API.Features.Events
             public int? NumberOfAttendees { get; set; }
 
             public bool IsPublic { get; set; }
+
+            public Guid? BuildingId { get; set; }
+
+            public Guid? RoomId { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -47,14 +51,23 @@ namespace Events.API.Features.Events
                 RuleFor(x => x.Date).NotEmpty().GreaterThan(DateTime.UtcNow)
                     .WithMessage("The event date must be in the future.");
 
-                RuleFor(x => x.Location).NotEmpty();
-
                 RuleFor(x => x.Description).MaximumLength(2000)
                     .WithMessage("Description cannot exceed 2000 characters.");
 
                 RuleFor(x => x.NumberOfAttendees)
                     .Must(x => x == null || x > 0)
                     .WithMessage("Number of attendees must be greater than 0 if provided.");
+
+                RuleFor(x => x)
+                .Must(x =>
+                    !string.IsNullOrWhiteSpace(x.Location) || x.BuildingId.HasValue)
+                    .WithMessage("Either a location or a building must be specified.");
+
+                When(x => x.RoomId.HasValue, () =>
+                {
+                    RuleFor(x => x.BuildingId).NotNull()
+                        .WithMessage("A building must be specified when a room is specified.");
+                });
             }
         }
 
@@ -93,6 +106,8 @@ namespace Events.API.Features.Events
                 existingEvent.Description = request.Description;
                 existingEvent.NumberOfAttendees = request.NumberOfAttendees;
                 existingEvent.IsPublic = request.IsPublic;
+                existingEvent.BuildingId = request.BuildingId;
+                existingEvent.RoomId = request.RoomId;
 
                 await _eventDbContext.SaveChangesAsync(cancellationToken);
 

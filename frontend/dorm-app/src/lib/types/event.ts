@@ -9,7 +9,9 @@ export interface Event {
   lastParticipants: Participant[];
   numberOfAttendees?: number;
   isPublic: boolean;
-  description?: string 
+  description?: string;
+  buildingId?: string;
+  roomId?: string;
 }
 
 export interface EventDetails extends Event {
@@ -45,4 +47,6 @@ export interface CreateEventRequest {
   numberOfAttendees?: number;
   isPublic: boolean;
   description: string;
+  buildingId?: string;
+  roomId?: string;
 }

@@ -93,7 +93,7 @@ namespace Rooms.API.Features.Floors
                     Id = Guid.NewGuid(),
                     BuildingId = request.BuildingId,
                     Number = request.Number,
-                    BlocksCount = 0
+                    BlocksCount = 0,
                 };
 
                 _dbContext.Floors.Add(floor);

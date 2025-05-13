@@ -17,5 +17,9 @@ namespace Rooms.API.Entities
         public bool IsActive { get; set; } = true;
 
         public ICollection<Floor> Floors { get; init; } = new List<Floor>();
+
+        public ICollection<Room> Rooms { get; init; } = new List<Room>();
+
+        public ICollection<BuildingEvent> Events { get; init; } = new List<BuildingEvent>();
     }
 }

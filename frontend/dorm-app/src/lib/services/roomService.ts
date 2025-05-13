@@ -1,24 +1,29 @@
 // src/api/rooms.ts
 
-import axios from "axios";
 import {
-  RoomsResponse,
-  RoomDetailsResponse,
   CreateRoomRequest,
   CreateRoomResponse,
+  DeletedRoomResponse,
+  RoomDetailsResponse,
+  RoomsResponse,
   UpdateRoomRequest,
-  UpdatedRoomResponse,
-  DeletedRoomResponse
+  UpdatedRoomResponse
 } from "@/lib/types/room";
+import axios from "axios";
 
 const API_URL = `${import.meta.env.VITE_ROOMS_API_URL ?? "http://localhost:5137/api/rooms"}`;
 
 export class RoomService {
   // Отримати список кімнат
-  public static async getAllRooms(page = 1, pageSize = 100, blockId?: string): Promise<RoomsResponse[]> {
+  public static async getAllRooms(
+    page = 1, 
+    pageSize = 100, 
+    blockId?: string, 
+    buildingId?: string
+  ): Promise<RoomsResponse[]> {
     try {
       const res = await axios.get<{ items: RoomsResponse[] }>(`${API_URL}`, {
-        params: { page, pageSize, blockId }
+        params: { page, pageSize, blockId, buildingId }
       });
       return res.data.items;
     } catch (error) {

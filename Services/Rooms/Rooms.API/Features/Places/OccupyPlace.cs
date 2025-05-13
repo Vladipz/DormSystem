@@ -92,7 +92,7 @@ namespace Rooms.API.Features.Places
                 {
                     Id = id,
                     UserId = request.UserId,
-                    MovedInAt = DateTime.UtcNow
+                    MovedInAt = DateTime.UtcNow,
                 };
 
                 var result = await sender.Send(command);

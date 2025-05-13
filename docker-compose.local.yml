@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   shared-db:
     image: postgres:13
@@ -24,5 +25,20 @@ services:
     depends_on:
       - shared-db
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_container
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672" # AMQP порт
+      - "15672:15672" # Management UI порт
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    depends_on:
+      - shared-db
+
 volumes:
   shared_postgres_data:
+  rabbitmq_data:

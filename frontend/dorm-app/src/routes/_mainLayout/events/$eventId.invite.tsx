@@ -1,8 +1,12 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { useBuildings } from "@/lib/hooks/useBuildings";
 import { useEvents } from "@/lib/hooks/useEvents";
+import { useRooms } from "@/lib/hooks/useRooms";
 import { authService } from "@/lib/services/authService";
+import { BuildingsResponse } from "@/lib/types/building";
 import type { EventDetails } from "@/lib/types/event";
+import { RoomsResponse } from "@/lib/types/room";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { AxiosError } from "axios";
@@ -48,10 +52,42 @@ function RouteComponent() {
     retry: 1,
   });
 
+  // Fetch building information if buildingId is available
+  const { data: buildings, isLoading: buildingLoading } = useBuildings(1, 100, true);
+
+  // Fetch room information if roomId and buildingId are available
+  const { data: rooms, isLoading: roomsLoading } = useRooms(
+    event?.buildingId,
+    !!event?.buildingId
+  );
+
+  // Find the specific building and room
+  const eventBuilding = buildings?.find(
+    (b: BuildingsResponse) => b.id === event?.buildingId
+  );
+  const eventRoom = rooms?.find(
+    (r: RoomsResponse) => r.id === event?.roomId
+  );
+
   const [joinStatus, setJoinStatus] = useState<
     "idle" | "joining" | "success" | "error"
   >("idle");
   const [joinError, setJoinError] = useState<string | null>(null);
+
+  // Get the location display text
+  const getLocationDisplay = () => {
+    // If there's a building selected
+    if (event?.buildingId && eventBuilding) {
+      // If there's also a room selected
+      if (event.roomId && eventRoom) {
+        return `${eventBuilding.name}, ${eventRoom.label}`;
+      }
+      // Just building, no room
+      return eventBuilding.name;
+    }
+    // Custom location
+    return event?.location;
+  };
 
   const handleJoin = async () => {
     const user = authService.checkAuthStatus();
@@ -128,10 +164,12 @@ function RouteComponent() {
         <div>
           Date: {event?.date ? new Date(event.date).toLocaleString() : "-"}
         </div>
-        <div>Location: {event?.location}</div>
+        <div>
+          Location: {buildingLoading || roomsLoading ? "Loading location..." : getLocationDisplay()}
+        </div>
         <div>Description: {event?.description || "No description"}</div>
         <div>
-          Current participants: {event?.currentParticipantsCount ?? "-"}
+          Current participants: {event?.participants?.length ?? "-"}
         </div>
         <div className="mt-6">
           <Button onClick={handleJoin} disabled={joinStatus === "joining"}>

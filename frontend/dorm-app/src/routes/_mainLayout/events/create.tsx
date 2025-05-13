@@ -34,6 +34,8 @@ function RouteComponent() {
     numberOfAttendees: null,
     isPublic: false,
     description: "",
+    buildingId: undefined,
+    roomId: undefined,
   };
 
   // Handle form submission

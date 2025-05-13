@@ -12,8 +12,11 @@ using FluentValidation;
 
 using Mapster;
 
+using MassTransit;
+
 using MediatR;
 
+using Shared.Data;
 using Shared.TokenService.Services;
 
 using static Events.API.Features.Events.CreateEvent;
@@ -37,6 +40,10 @@ namespace Events.API.Features.Events
             public Guid OwnerId { get; set; }
 
             public bool IsPublic { get; set; }
+
+            public Guid? BuildingId { get; set; }
+
+            public Guid? RoomId { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -47,8 +54,6 @@ namespace Events.API.Features.Events
 
                 RuleFor(x => x.Date).NotEmpty().GreaterThan(DateTime.UtcNow).WithMessage("The event date must be in the future.");
 
-                RuleFor(x => x.Location).NotEmpty();
-
                 RuleFor(x => x.Description).MaximumLength(2000)
                     .WithMessage("Description cannot exceed 2000 characters.");
 
@@ -57,6 +62,19 @@ namespace Events.API.Features.Events
                     .WithMessage("Number of attendees must be greater than 0 if provided.");
 
                 RuleFor(x => x.OwnerId).NotEmpty();
+
+                // Either use a custom location or specify a building (for dorm events)
+                RuleFor(x => x)
+                .Must(x =>
+                    !string.IsNullOrWhiteSpace(x.Location) || x.BuildingId.HasValue)
+                    .WithMessage("Either a location or a building must be specified.");
+
+                // If a room is specified, a building must also be specified
+                When(x => x.RoomId.HasValue, () =>
+                {
+                    RuleFor(x => x.BuildingId).NotNull()
+                        .WithMessage("A building must be specified when a room is specified.");
+                });
             }
         }
 
@@ -65,15 +83,18 @@ namespace Events.API.Features.Events
             private readonly EventsDbContext _eventDbContext;
             private readonly IValidator<Command> _validator;
             private readonly ILogger<Handler> _logger;
+            private readonly IBus _bus;
 
             public Handler(
                 EventsDbContext eventDbContext,
                 IValidator<Command> validator,
-                ILogger<Handler> logger)
+                ILogger<Handler> logger,
+                IBus bus)
             {
                 _eventDbContext = eventDbContext;
                 _validator = validator;
                 _logger = logger;
+                _bus = bus;
             }
 
             public async Task<ErrorOr<Guid>> Handle(Command request, CancellationToken cancellationToken)
@@ -98,6 +119,20 @@ namespace Events.API.Features.Events
 
                 _eventDbContext.Events.Add(newEvent);
                 await _eventDbContext.SaveChangesAsync(cancellationToken);
+
+                // Publish the event creation message
+                await _bus.Publish(
+                    new EventCreated
+                {
+                    EventId = newEvent.Id,
+                    Name = newEvent.Name,
+                    Date = newEvent.Date,
+                    CustomLocation = newEvent.Location,
+                    BuildingId = newEvent.BuildingId,
+                    RoomId = newEvent.RoomId,
+                    OwnerId = newEvent.OwnerId,
+                    IsPublic = newEvent.IsPublic,
+                }, cancellationToken);
 
                 _logger.LogInformation("Event created successfully with ID: {EventId}", newEvent.Id);
 
