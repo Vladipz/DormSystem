@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Event } from "@/lib/types/event";
 import { Link } from "@tanstack/react-router";
@@ -41,7 +41,7 @@ export function EventCard({ event, onJoin, isJoining }: EventCardProps) {
           </div>
           <div className="flex items-center text-sm">
             <MapPin className="mr-2 h-4 w-4" />
-            <span>{event.location}</span>
+            <span>{event.location || "Inhouse"}</span>
           </div>
           <div className="flex items-center text-sm">
             <Users className="mr-2 h-4 w-4" />
