@@ -94,6 +94,8 @@ export function EventForm({
   const formik = useFormik({
     initialValues,
     validationSchema: EventSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
     onSubmit: (values) => {
       // Format the date to ISO string for API
       const formattedDate = new Date(values.date).toISOString();
@@ -137,6 +139,13 @@ export function EventForm({
     }
   }, [useCustomLocation]);
 
+  // Handle field change with immediate validation
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name } = e.target;
+    formik.handleChange(e);
+    formik.setFieldTouched(name, true, false);
+  };
+
   return (
     <>
       {error && (
@@ -156,7 +165,7 @@ export function EventForm({
             id="name"
             name="name"
             type="text"
-            onChange={formik.handleChange}
+            onChange={handleFieldChange}
             onBlur={formik.handleBlur}
             value={formik.values.name}
             className={
@@ -176,7 +185,7 @@ export function EventForm({
             id="date"
             name="date"
             type="datetime-local"
-            onChange={formik.handleChange}
+            onChange={handleFieldChange}
             onBlur={formik.handleBlur}
             value={formik.values.date}
             className={
@@ -208,7 +217,7 @@ export function EventForm({
               id="location"
               name="location"
               type="text"
-              onChange={formik.handleChange}
+              onChange={handleFieldChange}
               onBlur={formik.handleBlur}
               value={formik.values.location}
               className={
@@ -231,7 +240,9 @@ export function EventForm({
                 value={formik.values.buildingId}
                 onValueChange={(value) => {
                   formik.setFieldValue("buildingId", value);
+                  formik.setFieldTouched("buildingId", true, false);
                   formik.setFieldValue("roomId", undefined);
+                  formik.validateField("buildingId");
                 }}
               >
                 <SelectTrigger
@@ -272,7 +283,11 @@ export function EventForm({
                 </Label>
                 <Select
                   value={formik.values.roomId}
-                  onValueChange={(value) => formik.setFieldValue("roomId", value)}
+                  onValueChange={(value) => {
+                    formik.setFieldValue("roomId", value);
+                    formik.setFieldTouched("roomId", true, false);
+                    formik.validateField("roomId");
+                  }}
                 >
                   <SelectTrigger
                     id="roomId"
@@ -315,7 +330,7 @@ export function EventForm({
           <Textarea
             id="description"
             name="description"
-            onChange={formik.handleChange}
+            onChange={handleFieldChange}
             onBlur={formik.handleBlur}
             value={formik.values.description}
             className={
@@ -340,7 +355,7 @@ export function EventForm({
             id="numberOfAttendees"
             name="numberOfAttendees"
             type="number"
-            onChange={formik.handleChange}
+            onChange={handleFieldChange}
             onBlur={formik.handleBlur}
             value={formik.values.numberOfAttendees ?? ""}
             className={
@@ -361,9 +376,11 @@ export function EventForm({
             id="isPublic"
             name="isPublic"
             checked={formik.values.isPublic}
-            onCheckedChange={(checked) =>
-              formik.setFieldValue("isPublic", checked)
-            }
+            onCheckedChange={(checked) => {
+              formik.setFieldValue("isPublic", checked);
+              formik.setFieldTouched("isPublic", true, false);
+              formik.validateField("isPublic");
+            }}
           />
           <Label htmlFor="isPublic" className="text-sm">
             Make this event public
