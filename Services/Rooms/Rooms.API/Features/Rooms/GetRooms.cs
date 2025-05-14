@@ -72,6 +72,9 @@ namespace Rooms.API.Features.Rooms
                 IQueryable<Room> baseQuery = _db.Rooms
                     .Include(r => r.Block)
                         .ThenInclude(b => b.Floor)
+                    .Include(r => r.Floor)
+                        .ThenInclude(f => f.Building)
+                    .Include(r => r.Building)
                     .AsNoTracking();
 
                 if (request.BlockId is not null)
@@ -95,6 +98,7 @@ namespace Rooms.API.Features.Rooms
                 {
                     baseQuery = baseQuery.Where(r =>
                         r.BuildingId == request.BuildingId ||
+                        (r.Floor != null && r.Floor.BuildingId == request.BuildingId) ||
                         (r.Block != null && r.Block.Floor != null && r.Block.Floor.BuildingId == request.BuildingId));
                 }
 

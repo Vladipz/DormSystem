@@ -1,15 +1,15 @@
 import {
-  CreatePlaceRequest,
-  CreatePlaceResponse,
-  GetAvailablePlacesParams,
-  GetPlacesParams,
-  MoveInRequest,
-  MoveOutRequest,
-  PlaceDetailsResponse,
-  PlaceOccupationResponse,
-  PlacePagedResponse,
-  UpdatePlaceRequest,
-  UpdatedPlaceResponse
+    CreatePlaceRequest,
+    CreatePlaceResponse,
+    GetAvailablePlacesParams,
+    GetPlacesParams,
+    MoveInRequest,
+    MoveOutRequest,
+    PlaceDetailsResponse,
+    PlaceOccupationResponse,
+    PlacePagedResponse,
+    UpdatePlaceRequest,
+    UpdatedPlaceResponse
 } from "@/lib/types/place";
 import { axiosClient } from "@/lib/utils/axios-client";
 

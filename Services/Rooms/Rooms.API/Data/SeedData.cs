@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 using Microsoft.EntityFrameworkCore;
 
 using Rooms.API.Entities;
@@ -130,6 +132,7 @@ namespace Rooms.API.Data
             }
 
             var rooms = await dbContext.Rooms
+                .Where(r => r.RoomType == RoomType.Regular) // Only create places for regular rooms
                 .Select(r => new { r.Id, r.Capacity })
                 .ToListAsync(cancellationToken);
 
@@ -163,8 +166,13 @@ namespace Rooms.API.Data
                 .Select(b => b.Id)
                 .ToListAsync(cancellationToken);
 
+            var floors = await dbContext.Floors
+                .Select(f => f.Id)
+                .ToListAsync(cancellationToken);
+
             var rooms = new List<Room>();
 
+            // Rooms inside blocks
             foreach (var blockId in blockIds)
             {
                 for (int i = 1; i <= 3; i++) // 3 rooms per block
@@ -177,9 +185,32 @@ namespace Rooms.API.Data
                         Capacity = 2,
                         Status = RoomStatus.Available,
                         RoomType = RoomType.Regular,
-                        Amenities = ["WiFi", "Desk"],
+                        Amenities = new Collection<string> { "WiFi", "Desk" },
                     });
                 }
+            }
+
+            // Specialized rooms on each floor (not in any block) - only one per floor
+            string[] specialRoomTypes = { "Study Room", "Laundry Room", "Common Room" };
+            int floorCount = 0;
+            foreach (var floorId in floors)
+            {
+                // Pick a different specialized room type for each floor in rotation
+                string roomType = specialRoomTypes[floorCount % specialRoomTypes.Length];
+                floorCount++;
+                
+                rooms.Add(new Room
+                {
+                    Id = Guid.NewGuid(),
+                    BlockId = null,
+                    FloorId = floorId,
+                    Label = roomType,
+                    Capacity = roomType == "Study Room" ? 10 : 15,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = roomType,
+                    Amenities = new Collection<string> { "WiFi", roomType == "Laundry Room" ? "Washing Machines" : "Comfortable Seating" },
+                });
             }
 
             dbContext.Rooms.AddRange(rooms);

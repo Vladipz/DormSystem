@@ -4,10 +4,15 @@ export interface PlaceResponse {
   id: string;
   roomId: string;
   index: number;
-  isOccupied: boolean;
-  movedInAt?: string;
-  roomLabel: string;
   occupiedByUserId?: string;
+  occupiedByUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  movedInAt?: string;
+  movedOutAt?: string;
 }
 
 export interface PlaceDetailsResponse extends PlaceResponse {
