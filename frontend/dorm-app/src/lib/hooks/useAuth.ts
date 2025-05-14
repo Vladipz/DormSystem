@@ -13,9 +13,9 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  // Check authentication status on mount
+  // Check authentication status on mount 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
         const authStatus = authService.checkAuthStatus();
         setUser(authStatus);
@@ -25,11 +25,6 @@ export function useAuth() {
     };
 
     checkAuth();
-
-    // Optional: Set up a timer to periodically check token validity
-    const intervalId = setInterval(checkAuth, 60000); // Check every minute
-
-    return () => clearInterval(intervalId);
   }, []);
 
   /**
@@ -44,7 +39,8 @@ export function useAuth() {
   /**
    * Refresh authentication status
    */
-  const refreshAuth = useCallback(() => {
+  const refreshAuth = useCallback(async () => {
+    // Only attempt to refresh token when explicitly called
     const authStatus = authService.checkAuthStatus();
     setUser(authStatus);
     return authStatus;
@@ -56,8 +52,8 @@ export function useAuth() {
    * @returns True if authenticated, false otherwise
    */
   const requireAuth = useCallback(
-    (returnTo?: string) => {
-      const currentAuth = refreshAuth();
+    async (returnTo?: string) => {
+      const currentAuth = await refreshAuth();
 
       if (!currentAuth?.isAuthenticated) {
         navigate({

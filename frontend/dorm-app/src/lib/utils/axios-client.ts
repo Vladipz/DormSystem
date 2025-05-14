@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { authService } from "../services/authService";
 
 // Define base API URL from environment variable
 const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5000";
@@ -13,6 +14,22 @@ export const axiosClient: AxiosInstance = axios.create({
   timeout: 10000, // 10 seconds
 });
 
+// Extend the AxiosRequestConfig type to include _retry property
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
+
+// Flag to prevent multiple refresh token requests
+let isRefreshing = false;
+// Store pending requests that should be retried after token refresh
+let pendingRequests: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+  config: InternalAxiosRequestConfig;
+}> = [];
+
 // Request interceptor
 axiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -21,7 +38,6 @@ axiosClient.interceptors.request.use(
 
     // If token exists, add it to the headers
     if (token) {
-      console.log("Adding token to headers:", token);
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -38,15 +54,53 @@ axiosClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config;
-
-    // Handle 401 Unauthorized errors
-    if (error.response?.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.clear();
-      // window.location.href = "/login";
-      console.log("401 Unauthorized error");
+    const originalRequest = error.config as InternalAxiosRequestConfig | undefined;
+    
+    if (!originalRequest) {
       return Promise.reject(error);
+    }
+
+    // Handle 401 Unauthorized - Try to refresh token
+    if (
+      error.response?.status === 401 &&
+      localStorage.getItem("refreshToken") &&
+      !originalRequest._retry
+    ) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        
+        try {
+          // Try to refresh the token
+          const refreshed = await authService.refreshToken();
+          console.log("refreshed", refreshed);
+          
+          if (refreshed) {
+            // Process all pending requests
+            pendingRequests.forEach(request => {
+              request.resolve(axiosClient(request.config));
+            });
+            
+            // Retry the original request with new token
+            originalRequest._retry = true;
+            originalRequest.headers.Authorization = `Bearer ${localStorage.getItem("accessToken")}`;
+            return axiosClient(originalRequest);
+          } else {
+            // Refresh failed, reject all pending requests
+            pendingRequests.forEach(request => {
+              request.reject(new Error("Token refresh failed"));
+            });
+            window.location.href = "/login";
+          }
+        } finally {
+          pendingRequests = [];
+          isRefreshing = false;
+        }
+      } else {
+        // Another request is already refreshing the token, queue this request
+        return new Promise((resolve, reject) => {
+          pendingRequests.push({ resolve, reject, config: originalRequest });
+        });
+      }
     }
 
     // Handle 403 Forbidden errors
