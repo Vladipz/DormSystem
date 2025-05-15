@@ -21,8 +21,6 @@ declare module 'axios' {
   }
 }
 
-// Flag to prevent multiple refresh token requests
-let isRefreshing = false;
 // Store pending requests that should be retried after token refresh
 let pendingRequests: Array<{
   resolve: (value: unknown) => void;
@@ -66,40 +64,37 @@ axiosClient.interceptors.response.use(
       localStorage.getItem("refreshToken") &&
       !originalRequest._retry
     ) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        
-        try {
-          // Try to refresh the token
-          const refreshed = await authService.refreshToken();
-          console.log("refreshed", refreshed);
+      originalRequest._retry = true; // Mark this request as retried
+
+      try {
+        // Use authService's refreshToken method which handles concurrent refresh requests
+        const refreshed = await authService.refreshToken();
           
-          if (refreshed) {
-            // Process all pending requests
-            pendingRequests.forEach(request => {
-              request.resolve(axiosClient(request.config));
-            });
-            
-            // Retry the original request with new token
-            originalRequest._retry = true;
-            originalRequest.headers.Authorization = `Bearer ${localStorage.getItem("accessToken")}`;
-            return axiosClient(originalRequest);
-          } else {
-            // Refresh failed, reject all pending requests
-            pendingRequests.forEach(request => {
-              request.reject(new Error("Token refresh failed"));
-            });
-            window.location.href = "/login";
-          }
-        } finally {
+        if (refreshed) {
+          // Process all pending requests
+          pendingRequests.forEach(request => {
+            request.resolve(axiosClient(request.config));
+          });
           pendingRequests = [];
-          isRefreshing = false;
+            
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${localStorage.getItem("accessToken")}`;
+          return axiosClient(originalRequest);
+        } else {
+          // Refresh failed, reject all pending requests
+          pendingRequests.forEach(request => {
+            request.reject(new Error("Token refresh failed"));
+          });
+          pendingRequests = [];
+            
+          // Redirect to login
+          window.location.href = "/login";
+          return Promise.reject(error);
         }
-      } else {
-        // Another request is already refreshing the token, queue this request
-        return new Promise((resolve, reject) => {
-          pendingRequests.push({ resolve, reject, config: originalRequest });
-        });
+      } catch (refreshError) {
+        pendingRequests = [];
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
       }
     }
 

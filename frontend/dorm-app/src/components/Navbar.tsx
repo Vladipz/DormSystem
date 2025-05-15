@@ -1,51 +1,43 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/hooks/useAuth"; // Імпортуємо useAuth
 import { usePageTitle } from "@/lib/hooks/usePageTitle";
-import { authService } from "@/lib/services/authService";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 export function Navbar() {
   const { pageTitle } = usePageTitle();
-  const queryClient = useQueryClient();
+  const { user, isAuthenticated, isLoading, logout } = useAuth(); // Використовуємо useAuth
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: authData } = useQuery({
-    queryKey: ["authStatus"],
-    queryFn: authService.checkAuthStatus.bind(authService),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const isLoggedIn = !!authData?.isAuthenticated;
-
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      authService.logout();
-      return { success: true };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authStatus"] });
-    },
-  });
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      setError("Failed to logout. Please try again.");
+      // Auto-clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   return (
-    <header className="w-full border-b bg-background z-50">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+    <header className="bg-background z-50 w-full border-b">
+      <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <h2 className="text-2xl font-bold">{pageTitle}</h2>
         <div className="flex gap-4">
-          {isLoggedIn ? (
+          {error && (
+            <span className="self-center text-sm text-red-500">{error}</span>
+          )}
+
+          {isLoading ? (
+            <span>Loading...</span> // Показуємо лоадер під час перевірки
+          ) : isAuthenticated && user ? (
             <>
-              <span className="flex items-center mr-2">
-                Role: {authData?.role || "User"} {authData?.firstName || "User"}{" "}
-                {authData?.lastName || "User"}
+              <span className="mr-2 flex items-center">
+                Role: {user.role || "User"} {user.firstName || "User"}{" "}
+                {user.lastName || "User"}
               </span>
-              <Button
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                {logoutMutation.isPending ? "Loading..." : "Logout"}
+              <Button onClick={handleLogout} disabled={isLoading}>
+                {isLoading ? "Loading..." : "Logout"}
               </Button>
             </>
           ) : (

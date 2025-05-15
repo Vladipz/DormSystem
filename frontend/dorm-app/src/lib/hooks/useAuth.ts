@@ -7,9 +7,7 @@ import { AuthUser } from "../types/auth";
  * Custom hook for handling authentication state and operations
  */
 export function useAuth() {
-  const [user, setUser] = useState<AuthUser | null>(() =>
-    authService.checkAuthStatus()
-  );
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
@@ -17,7 +15,9 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const authStatus = authService.checkAuthStatus();
+        // Перевіряємо статус аутентифікації
+        // authService вже автоматично перевіряє і рефрешить токен якщо потрібно
+        const authStatus = await authService.checkAuthStatus();
         setUser(authStatus);
       } finally {
         setIsLoading(false);
@@ -40,8 +40,8 @@ export function useAuth() {
    * Refresh authentication status
    */
   const refreshAuth = useCallback(async () => {
-    // Only attempt to refresh token when explicitly called
-    const authStatus = authService.checkAuthStatus();
+    // Автоматична перевірка і оновлення токена якщо потрібно
+    const authStatus = await authService.checkAuthStatus();
     setUser(authStatus);
     return authStatus;
   }, []);

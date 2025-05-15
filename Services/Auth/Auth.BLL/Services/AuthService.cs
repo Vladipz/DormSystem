@@ -35,26 +35,50 @@ namespace Auth.BLL.Services
 
         public async Task<ErrorOr<string>> CreateRefreshTokenAsync(Guid userId)
         {
-            var oldRefreshToken = _dbContext.RefreshTokens.Where(rt => rt.UserId == userId).FirstOrDefault();
-
-            if (oldRefreshToken != null)
+            const int maxRetries = 3;
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                _dbContext.RefreshTokens.Remove(oldRefreshToken);
+                try
+                {
+                    // Delete any existing refresh tokens for this user
+                    // Using ExecuteDeleteAsync is more efficient and reduces concurrency issues
+                    await _dbContext.RefreshTokens
+                        .Where(rt => rt.UserId == userId)
+                        .ExecuteDeleteAsync();
+
+                    var refreshToken = Guid.NewGuid().ToString();
+
+                    var refreshTokenEntity = new RefreshToken
+                    {
+                        UserId = userId,
+                        Token = refreshToken,
+                        Expires = DateTime.UtcNow.AddDays(_jwtSettings.Value.RefreshTokenExpirationDays),
+                    };
+
+                    _dbContext.RefreshTokens.Add(refreshTokenEntity);
+                    await _dbContext.SaveChangesAsync();
+
+                    return refreshToken;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // If this is the last attempt, throw the error
+                    if (attempt == maxRetries - 1)
+                    {
+                        return Error.Failure(description: "Could not create refresh token due to concurrency issues");
+                    }
+
+                    // Otherwise, wait a small amount of time and retry
+                    await Task.Delay(50 * (attempt + 1)); // Exponential backoff
+                }
+                catch (Exception ex)
+                {
+                    return Error.Failure(description: $"Failed to create refresh token: {ex.Message}");
+                }
             }
 
-            var refreshToken = Guid.NewGuid().ToString();
-
-            var refreshTokenEntity = new RefreshToken
-            {
-                UserId = userId,
-                Token = refreshToken,
-                Expires = DateTime.UtcNow.AddDays(_jwtSettings.Value.RefreshTokenExpirationDays),
-            };
-
-            _dbContext.RefreshTokens.Add(refreshTokenEntity);
-            await _dbContext.SaveChangesAsync();
-
-            return refreshToken;
+            // This should never be reached
+            return Error.Unexpected(description: "Unexpected error during refresh token creation");
         }
 
         public async Task<ErrorOr<string>> CreateTokenAsync(Guid userId)
@@ -128,30 +152,75 @@ namespace Auth.BLL.Services
 
         public async Task<ErrorOr<TokenModel>> RefreshTokenAsync(string refreshToken)
         {
-            var refreshTokenEntity = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            // First, retrieve the refresh token in a separate transaction with tracking disabled to avoid
+            // concurrency issues when the same refresh token is requested multiple times
+            var refreshTokenEntity = await _dbContext.RefreshTokens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
             if (refreshTokenEntity == null)
             {
                 return Error.NotFound(description: "Invalid refresh token");
             }
 
-            var accessTokenResult = await CreateTokenAsync(refreshTokenEntity.UserId);
-            if (accessTokenResult.IsError)
+            // Store the user ID from the token entity
+            var userId = refreshTokenEntity.UserId;
+
+            // Begin concurrency handling with retry logic
+            const int maxRetries = 3;
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                return accessTokenResult.Errors;
+                try
+                {
+                    // Here we'll use a new context operation to delete the token
+                    // This prevents the same token from being used more than once
+                    var existingToken = await _dbContext.RefreshTokens
+                        .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+                    if (existingToken == null)
+                    {
+                        // Token was already used and deleted
+                        return Error.Conflict(description: "Refresh token has already been used");
+                    }
+
+                    // Remove the old token
+                    _dbContext.RefreshTokens.Remove(existingToken);
+                    await _dbContext.SaveChangesAsync();
+
+                    // Now generate the new tokens
+                    var accessTokenResult = await CreateTokenAsync(userId);
+                    if (accessTokenResult.IsError)
+                    {
+                        return accessTokenResult.Errors;
+                    }
+
+                    var newRefreshTokenResult = await CreateRefreshTokenAsync(userId);
+                    if (newRefreshTokenResult.IsError)
+                    {
+                        return newRefreshTokenResult.Errors;
+                    }
+
+                    return new Models.TokenModel
+                    {
+                        AccessToken = accessTokenResult.Value,
+                        RefreshToken = newRefreshTokenResult.Value,
+                    };
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // If this is the last attempt, throw the error
+                    if (attempt == maxRetries - 1)
+                    {
+                        return Error.Conflict(description: "Could not process refresh token due to concurrency issues");
+                    }
+
+                    // Otherwise, wait a small amount of time and retry
+                    await Task.Delay(50 * (attempt + 1)); // Exponential backoff
+                }
             }
 
-            var newRefreshTokenResult = await CreateRefreshTokenAsync(refreshTokenEntity.UserId);
-            if (newRefreshTokenResult.IsError)
-            {
-                return newRefreshTokenResult.Errors;
-            }
-
-            return new Models.TokenModel
-            {
-                AccessToken = accessTokenResult.Value,
-                RefreshToken = newRefreshTokenResult.Value,
-            };
+            // This should never be reached due to the return in the final attempt
+            return Error.Unexpected(description: "Unexpected error during token refresh");
         }
 
         public async Task<ErrorOr<Guid>> RegisterUserAsync(RegisterUserRequest request)
