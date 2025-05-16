@@ -1,12 +1,13 @@
 import { axiosClient } from "@/lib/utils/axios-client";
 import { useQuery } from "@tanstack/react-query";
 
-interface UserDetails {
+export interface UserDetails {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   roles: string[];
+  avatarUrl: string;
 }
 
 const API_URL = `${import.meta.env.VITE_USERS_API_URL ?? "http://localhost:5137/api/users"}`;

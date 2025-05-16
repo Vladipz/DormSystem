@@ -17,9 +17,11 @@ import { Route as MainLayoutIndexImport } from './routes/_mainLayout/index'
 import { Route as AuthLayoutRegisterImport } from './routes/_authLayout/register'
 import { Route as AuthLayoutLoginImport } from './routes/_authLayout/login'
 import { Route as MainLayoutRoomDashboardIndexImport } from './routes/_mainLayout/room-dashboard/index'
+import { Route as MainLayoutProfileIndexImport } from './routes/_mainLayout/profile/index'
 import { Route as MainLayoutEventsIndexImport } from './routes/_mainLayout/events/index'
 import { Route as MainLayoutEventsCreateImport } from './routes/_mainLayout/events/create'
 import { Route as MainLayoutRoomsRoomIdIndexImport } from './routes/_mainLayout/rooms/$roomId.index'
+import { Route as MainLayoutProfileProfileIdIndexImport } from './routes/_mainLayout/profile/$profileId.index'
 import { Route as MainLayoutEventsEventIdIndexImport } from './routes/_mainLayout/events/$eventId.index'
 import { Route as MainLayoutRoomsRoomIdEditImport } from './routes/_mainLayout/rooms/$roomId.edit'
 import { Route as MainLayoutEventsEventIdInviteImport } from './routes/_mainLayout/events/$eventId.invite'
@@ -62,6 +64,12 @@ const MainLayoutRoomDashboardIndexRoute =
     getParentRoute: () => MainLayoutRoute,
   } as any)
 
+const MainLayoutProfileIndexRoute = MainLayoutProfileIndexImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => MainLayoutRoute,
+} as any)
+
 const MainLayoutEventsIndexRoute = MainLayoutEventsIndexImport.update({
   id: '/events/',
   path: '/events/',
@@ -81,6 +89,13 @@ const MainLayoutRoomsRoomIdIndexRoute = MainLayoutRoomsRoomIdIndexImport.update(
     getParentRoute: () => MainLayoutRoute,
   } as any,
 )
+
+const MainLayoutProfileProfileIdIndexRoute =
+  MainLayoutProfileProfileIdIndexImport.update({
+    id: '/profile/$profileId/',
+    path: '/profile/$profileId/',
+    getParentRoute: () => MainLayoutRoute,
+  } as any)
 
 const MainLayoutEventsEventIdIndexRoute =
   MainLayoutEventsEventIdIndexImport.update({
@@ -162,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainLayoutEventsIndexImport
       parentRoute: typeof MainLayoutImport
     }
+    '/_mainLayout/profile/': {
+      id: '/_mainLayout/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof MainLayoutProfileIndexImport
+      parentRoute: typeof MainLayoutImport
+    }
     '/_mainLayout/room-dashboard/': {
       id: '/_mainLayout/room-dashboard/'
       path: '/room-dashboard'
@@ -197,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainLayoutEventsEventIdIndexImport
       parentRoute: typeof MainLayoutImport
     }
+    '/_mainLayout/profile/$profileId/': {
+      id: '/_mainLayout/profile/$profileId/'
+      path: '/profile/$profileId'
+      fullPath: '/profile/$profileId'
+      preLoaderRoute: typeof MainLayoutProfileProfileIdIndexImport
+      parentRoute: typeof MainLayoutImport
+    }
     '/_mainLayout/rooms/$roomId/': {
       id: '/_mainLayout/rooms/$roomId/'
       path: '/rooms/$roomId'
@@ -227,11 +256,13 @@ interface MainLayoutRouteChildren {
   MainLayoutIndexRoute: typeof MainLayoutIndexRoute
   MainLayoutEventsCreateRoute: typeof MainLayoutEventsCreateRoute
   MainLayoutEventsIndexRoute: typeof MainLayoutEventsIndexRoute
+  MainLayoutProfileIndexRoute: typeof MainLayoutProfileIndexRoute
   MainLayoutRoomDashboardIndexRoute: typeof MainLayoutRoomDashboardIndexRoute
   MainLayoutEventsEventIdEditRoute: typeof MainLayoutEventsEventIdEditRoute
   MainLayoutEventsEventIdInviteRoute: typeof MainLayoutEventsEventIdInviteRoute
   MainLayoutRoomsRoomIdEditRoute: typeof MainLayoutRoomsRoomIdEditRoute
   MainLayoutEventsEventIdIndexRoute: typeof MainLayoutEventsEventIdIndexRoute
+  MainLayoutProfileProfileIdIndexRoute: typeof MainLayoutProfileProfileIdIndexRoute
   MainLayoutRoomsRoomIdIndexRoute: typeof MainLayoutRoomsRoomIdIndexRoute
 }
 
@@ -239,11 +270,13 @@ const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MainLayoutIndexRoute: MainLayoutIndexRoute,
   MainLayoutEventsCreateRoute: MainLayoutEventsCreateRoute,
   MainLayoutEventsIndexRoute: MainLayoutEventsIndexRoute,
+  MainLayoutProfileIndexRoute: MainLayoutProfileIndexRoute,
   MainLayoutRoomDashboardIndexRoute: MainLayoutRoomDashboardIndexRoute,
   MainLayoutEventsEventIdEditRoute: MainLayoutEventsEventIdEditRoute,
   MainLayoutEventsEventIdInviteRoute: MainLayoutEventsEventIdInviteRoute,
   MainLayoutRoomsRoomIdEditRoute: MainLayoutRoomsRoomIdEditRoute,
   MainLayoutEventsEventIdIndexRoute: MainLayoutEventsEventIdIndexRoute,
+  MainLayoutProfileProfileIdIndexRoute: MainLayoutProfileProfileIdIndexRoute,
   MainLayoutRoomsRoomIdIndexRoute: MainLayoutRoomsRoomIdIndexRoute,
 }
 
@@ -258,11 +291,13 @@ export interface FileRoutesByFullPath {
   '/': typeof MainLayoutIndexRoute
   '/events/create': typeof MainLayoutEventsCreateRoute
   '/events': typeof MainLayoutEventsIndexRoute
+  '/profile': typeof MainLayoutProfileIndexRoute
   '/room-dashboard': typeof MainLayoutRoomDashboardIndexRoute
   '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
   '/events/$eventId/invite': typeof MainLayoutEventsEventIdInviteRoute
   '/rooms/$roomId/edit': typeof MainLayoutRoomsRoomIdEditRoute
   '/events/$eventId': typeof MainLayoutEventsEventIdIndexRoute
+  '/profile/$profileId': typeof MainLayoutProfileProfileIdIndexRoute
   '/rooms/$roomId': typeof MainLayoutRoomsRoomIdIndexRoute
 }
 
@@ -273,11 +308,13 @@ export interface FileRoutesByTo {
   '/': typeof MainLayoutIndexRoute
   '/events/create': typeof MainLayoutEventsCreateRoute
   '/events': typeof MainLayoutEventsIndexRoute
+  '/profile': typeof MainLayoutProfileIndexRoute
   '/room-dashboard': typeof MainLayoutRoomDashboardIndexRoute
   '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
   '/events/$eventId/invite': typeof MainLayoutEventsEventIdInviteRoute
   '/rooms/$roomId/edit': typeof MainLayoutRoomsRoomIdEditRoute
   '/events/$eventId': typeof MainLayoutEventsEventIdIndexRoute
+  '/profile/$profileId': typeof MainLayoutProfileProfileIdIndexRoute
   '/rooms/$roomId': typeof MainLayoutRoomsRoomIdIndexRoute
 }
 
@@ -290,11 +327,13 @@ export interface FileRoutesById {
   '/_mainLayout/': typeof MainLayoutIndexRoute
   '/_mainLayout/events/create': typeof MainLayoutEventsCreateRoute
   '/_mainLayout/events/': typeof MainLayoutEventsIndexRoute
+  '/_mainLayout/profile/': typeof MainLayoutProfileIndexRoute
   '/_mainLayout/room-dashboard/': typeof MainLayoutRoomDashboardIndexRoute
   '/_mainLayout/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
   '/_mainLayout/events/$eventId/invite': typeof MainLayoutEventsEventIdInviteRoute
   '/_mainLayout/rooms/$roomId/edit': typeof MainLayoutRoomsRoomIdEditRoute
   '/_mainLayout/events/$eventId/': typeof MainLayoutEventsEventIdIndexRoute
+  '/_mainLayout/profile/$profileId/': typeof MainLayoutProfileProfileIdIndexRoute
   '/_mainLayout/rooms/$roomId/': typeof MainLayoutRoomsRoomIdIndexRoute
 }
 
@@ -307,11 +346,13 @@ export interface FileRouteTypes {
     | '/'
     | '/events/create'
     | '/events'
+    | '/profile'
     | '/room-dashboard'
     | '/events/$eventId/edit'
     | '/events/$eventId/invite'
     | '/rooms/$roomId/edit'
     | '/events/$eventId'
+    | '/profile/$profileId'
     | '/rooms/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -321,11 +362,13 @@ export interface FileRouteTypes {
     | '/'
     | '/events/create'
     | '/events'
+    | '/profile'
     | '/room-dashboard'
     | '/events/$eventId/edit'
     | '/events/$eventId/invite'
     | '/rooms/$roomId/edit'
     | '/events/$eventId'
+    | '/profile/$profileId'
     | '/rooms/$roomId'
   id:
     | '__root__'
@@ -336,11 +379,13 @@ export interface FileRouteTypes {
     | '/_mainLayout/'
     | '/_mainLayout/events/create'
     | '/_mainLayout/events/'
+    | '/_mainLayout/profile/'
     | '/_mainLayout/room-dashboard/'
     | '/_mainLayout/events/$eventId/edit'
     | '/_mainLayout/events/$eventId/invite'
     | '/_mainLayout/rooms/$roomId/edit'
     | '/_mainLayout/events/$eventId/'
+    | '/_mainLayout/profile/$profileId/'
     | '/_mainLayout/rooms/$roomId/'
   fileRoutesById: FileRoutesById
 }
@@ -382,11 +427,13 @@ export const routeTree = rootRoute
         "/_mainLayout/",
         "/_mainLayout/events/create",
         "/_mainLayout/events/",
+        "/_mainLayout/profile/",
         "/_mainLayout/room-dashboard/",
         "/_mainLayout/events/$eventId/edit",
         "/_mainLayout/events/$eventId/invite",
         "/_mainLayout/rooms/$roomId/edit",
         "/_mainLayout/events/$eventId/",
+        "/_mainLayout/profile/$profileId/",
         "/_mainLayout/rooms/$roomId/"
       ]
     },
@@ -410,6 +457,10 @@ export const routeTree = rootRoute
       "filePath": "_mainLayout/events/index.tsx",
       "parent": "/_mainLayout"
     },
+    "/_mainLayout/profile/": {
+      "filePath": "_mainLayout/profile/index.tsx",
+      "parent": "/_mainLayout"
+    },
     "/_mainLayout/room-dashboard/": {
       "filePath": "_mainLayout/room-dashboard/index.tsx",
       "parent": "/_mainLayout"
@@ -428,6 +479,10 @@ export const routeTree = rootRoute
     },
     "/_mainLayout/events/$eventId/": {
       "filePath": "_mainLayout/events/$eventId.index.tsx",
+      "parent": "/_mainLayout"
+    },
+    "/_mainLayout/profile/$profileId/": {
+      "filePath": "_mainLayout/profile/$profileId.index.tsx",
       "parent": "/_mainLayout"
     },
     "/_mainLayout/rooms/$roomId/": {
