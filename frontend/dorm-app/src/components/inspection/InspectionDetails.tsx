@@ -59,6 +59,7 @@ export function InspectionDetails({
     useState<RoomInspectionStatus>("not_confirmed");
 
   // Get unique floors from rooms
+  //TODO: change to get floors from API
   const floors = useMemo(() => {
     const floorSet = new Set(inspection.rooms.map((room) => room.floor));
     return Array.from(floorSet).sort(

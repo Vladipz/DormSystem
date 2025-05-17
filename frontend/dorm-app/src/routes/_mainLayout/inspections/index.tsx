@@ -17,9 +17,6 @@ export const Route = createFileRoute("/_mainLayout/inspections/")({
   component: InspectionsPage,
 });
 
-// Re-export types for backward compatibility (can be removed later when all files are updated)
-export type { Inspection, InspectionStatus, RoomInspection, RoomInspectionStatus } from "@/lib/types/inspection";
-
 export function InspectionsPage() {
   const navigate = useNavigate();
 
