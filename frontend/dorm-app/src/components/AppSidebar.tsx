@@ -17,6 +17,7 @@ const navigationItems = [
   { path: "/requests", icon: ShoppingCart, label: "Purchase Requests" },
   { path: "/marketplace", icon: ShoppingCart, label: "Marketplace" },
   { path: "/profile", icon: Users, label: "Profile" },
+  { path: "/inspections", icon: Calendar, label: "Inspections" },
 ];
 
 //NOTE: plan

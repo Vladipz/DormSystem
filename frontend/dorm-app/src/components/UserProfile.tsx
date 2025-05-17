@@ -2,11 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    AchievementsTab,
-    ActivityTab,
-    ProfileTab,
-    SettingsTab,
-    UserInfoCard,
+  AchievementsTab,
+  ActivityTab,
+  ProfileTab,
+  SettingsTab,
+  UserInfoCard,
 } from "@/components/user-profile";
 import { useState } from "react";
 
