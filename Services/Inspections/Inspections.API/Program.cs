@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MediatR;
+using RoomService.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,9 +67,6 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-// Config Carter
-builder.Services.AddCarter();
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -102,6 +101,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCarter();
+builder.Services.AddRoomServiceClient(builder.Configuration);
 
 var app = builder.Build();
 
@@ -129,8 +130,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGroup("/api")
-    .WithOpenApi()
-    .MapCarter();
+app.MapCarter();
 
 app.Run();

@@ -1,10 +1,10 @@
-export type InspectionStatus = "scheduled" | "active" | "completed";
+export type InspectionStatus = "Scheduled" | "Active" | "Completed";
 
 export type RoomInspectionStatus =
-  | "pending"
-  | "confirmed"
-  | "not_confirmed"
-  | "no_access";
+  | "Pending"
+  | "Confirmed"
+  | "NotConfirmed"
+  | "NoAccess";
 
 export interface RoomInspection {
   id: string;
@@ -23,3 +23,17 @@ export interface Inspection {
   status: InspectionStatus;
   rooms: RoomInspection[];
 } 
+
+export interface ShortInspection {
+  id: string;
+  name: string;
+  type: string;
+  startDate: Date;
+  status: InspectionStatus;
+  roomsCount: number;
+  pendingRoomsCount: number;
+  confirmedRoomsCount: number;
+  notConfirmedRoomsCount: number;
+  noAccessRoomsCount: number;
+}
+

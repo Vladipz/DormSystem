@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Inspection } from "@/lib/types/inspection";
+import type { ShortInspection } from "@/lib/types/inspection";
 import { format, isPast, isToday } from "date-fns";
 import {
   CalendarClock,
@@ -10,39 +10,31 @@ import {
 } from "lucide-react";
 
 interface InspectionCardProps {
-  inspection: Inspection;
+  inspection: ShortInspection;
   onClick: () => void;
 }
 
 export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
-  const totalRooms = inspection.rooms.length;
-  const pendingRooms = inspection.rooms.filter(
-    (r) => r.status === "pending",
-  ).length;
-  const confirmedRooms = inspection.rooms.filter(
-    (r) => r.status === "confirmed",
-  ).length;
-  const notConfirmedRooms = inspection.rooms.filter(
-    (r) => r.status === "not_confirmed",
-  ).length;
-  const noAccessRooms = inspection.rooms.filter(
-    (r) => r.status === "no_access",
-  ).length;
+  const totalRooms = inspection.roomsCount;
+  const pendingRooms = inspection.pendingRoomsCount;
+  const confirmedRooms = inspection.confirmedRoomsCount;
+  const notConfirmedRooms = inspection.notConfirmedRoomsCount;
+  const noAccessRooms = inspection.noAccessRoomsCount;
 
   const getStatusIcon = () => {
     switch (inspection.status) {
-      case "scheduled":
+      case "Scheduled":
         return <CalendarClock className="h-5 w-5 text-blue-500" />;
-      case "active":
+      case "Active":
         return <ClipboardCheck className="h-5 w-5 text-green-500" />;
-      case "completed":
+      case "Completed":
         return <FileText className="h-5 w-5 text-gray-500" />;
     }
   };
 
   const getStatusBadge = () => {
     switch (inspection.status) {
-      case "scheduled":
+      case "Scheduled":
         return (
           <Badge
             variant="outline"
@@ -51,7 +43,7 @@ export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
             Scheduled
           </Badge>
         );
-      case "active":
+      case "Active":
         return (
           <Badge
             variant="outline"
@@ -60,7 +52,7 @@ export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
             Active
           </Badge>
         );
-      case "completed":
+      case "Completed":
         return (
           <Badge
             variant="outline"
@@ -85,7 +77,7 @@ export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
   };
 
   const getCompletionStatus = () => {
-    if (inspection.status === "completed") {
+    if (inspection.status === "Completed") {
       return (
         <div className="flex items-center text-gray-600">
           <CheckCircle2 className="mr-1 h-4 w-4" />

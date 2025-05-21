@@ -4,13 +4,21 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from "@/components/ui";
-import type { Inspection } from "@/lib/types/inspection";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  Plus
-} from "lucide-react";
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useListInspections } from "@/lib/hooks/useInspections";
+import { InspectionStatus } from "@/lib/types/inspection";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/inspections/")({
@@ -19,229 +27,73 @@ export const Route = createFileRoute("/_mainLayout/inspections/")({
 
 export function InspectionsPage() {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<"all" | InspectionStatus>("all");
+  const pageSize = 10; // Show 10 inspections per page
 
-  const [inspections] = useState<Inspection[]>([
-    {
-      id: "1",
-      name: "Monthly Safety Inspection",
-      type: "Safety",
-      startDate: new Date(2025, 4, 10, 9, 0),
-      status: "scheduled",
-      rooms: [
-        {
-          id: "r1",
-          roomNumber: "101",
-          floor: "1",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r2",
-          roomNumber: "102",
-          floor: "1",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r3",
-          roomNumber: "103",
-          floor: "1",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r4",
-          roomNumber: "201",
-          floor: "2",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r5",
-          roomNumber: "202",
-          floor: "2",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r6",
-          roomNumber: "203",
-          floor: "2",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r7",
-          roomNumber: "301",
-          floor: "3",
-          building: "A",
-          status: "pending",
-        },
-        {
-          id: "r8",
-          roomNumber: "302",
-          floor: "3",
-          building: "A",
-          status: "pending",
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Quarterly Maintenance Check",
-      type: "Maintenance",
-      startDate: new Date(2025, 4, 15, 10, 30),
-      status: "scheduled",
-      rooms: [
-        {
-          id: "r9",
-          roomNumber: "101",
-          floor: "1",
-          building: "B",
-          status: "pending",
-        },
-        {
-          id: "r10",
-          roomNumber: "102",
-          floor: "1",
-          building: "B",
-          status: "pending",
-        },
-        {
-          id: "r11",
-          roomNumber: "201",
-          floor: "2",
-          building: "B",
-          status: "pending",
-        },
-        {
-          id: "r12",
-          roomNumber: "202",
-          floor: "2",
-          building: "B",
-          status: "pending",
-        },
-        {
-          id: "r13",
-          roomNumber: "301",
-          floor: "3",
-          building: "B",
-          status: "pending",
-        },
-        {
-          id: "r14",
-          roomNumber: "302",
-          floor: "3",
-          building: "B",
-          status: "pending",
-        },
-      ],
-    },
-    {
-      id: "3",
-      name: "Annual Fire Safety Inspection",
-      type: "Fire Safety",
-      startDate: new Date(2025, 3, 20, 14, 0),
-      status: "active",
-      rooms: [
-        {
-          id: "r15",
-          roomNumber: "101",
-          floor: "1",
-          building: "C",
-          status: "confirmed",
-        },
-        {
-          id: "r16",
-          roomNumber: "102",
-          floor: "1",
-          building: "C",
-          status: "not_confirmed",
-          comment: "Smoke detector needs battery replacement",
-        },
-        {
-          id: "r17",
-          roomNumber: "103",
-          floor: "1",
-          building: "C",
-          status: "pending",
-        },
-        {
-          id: "r18",
-          roomNumber: "201",
-          floor: "2",
-          building: "C",
-          status: "no_access",
-          comment: "No answer after 3 attempts",
-        },
-        {
-          id: "r19",
-          roomNumber: "202",
-          floor: "2",
-          building: "C",
-          status: "pending",
-        },
-        {
-          id: "r20",
-          roomNumber: "301",
-          floor: "3",
-          building: "C",
-          status: "pending",
-        },
-      ],
-    },
-    {
-      id: "4",
-      name: "End of Semester Inspection",
-      type: "General",
-      startDate: new Date(2025, 3, 5, 9, 0),
-      status: "completed",
-      rooms: [
-        {
-          id: "r21",
-          roomNumber: "401",
-          floor: "4",
-          building: "A",
-          status: "confirmed",
-        },
-        {
-          id: "r22",
-          roomNumber: "402",
-          floor: "4",
-          building: "A",
-          status: "confirmed",
-        },
-        {
-          id: "r23",
-          roomNumber: "403",
-          floor: "4",
-          building: "A",
-          status: "not_confirmed",
-          comment: "Damage to wall needs repair",
-        },
-        {
-          id: "r24",
-          roomNumber: "404",
-          floor: "4",
-          building: "A",
-          status: "no_access",
-          comment: "Resident on vacation",
-        },
-      ],
-    },
-  ]);
+  const { data, isLoading } = useListInspections({
+    status: activeTab === "all" ? undefined : activeTab,
+    pageNumber: currentPage,
+    pageSize,
+  });
+
+  const inspections = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
+  // Reset to first page when changing filters
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as "all" | InspectionStatus);
+    setCurrentPage(1);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  const paginationItems = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 || // Always show first page
+      i === totalPages || // Always show last page
+      (i >= currentPage - 1 && i <= currentPage + 1) // Show current page and neighbors
+    ) {
+      paginationItems.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setCurrentPage(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+    } else if (
+      (i === 2 && currentPage > 3) ||
+      (i === totalPages - 1 && currentPage < totalPages - 2)
+    ) {
+      paginationItems.push(
+        <PaginationItem key={i}>
+          <PaginationEllipsis />
+        </PaginationItem>,
+      );
+    }
+  }
 
   // Return the list of inspections
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dorm Inspections</h1>
-        <Button onClick={() => navigate({ to: '/inspections/create' })}>
+        <Button onClick={() => navigate({ to: "/inspections/create" })}>
           <Plus className="mr-2 h-4 w-4" /> Create Inspection
         </Button>
       </div>
 
-      <Tabs defaultValue="all">
+      <Tabs
+        defaultValue="all"
+        value={activeTab}
+        onValueChange={handleTabChange}
+      >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
@@ -249,7 +101,7 @@ export function InspectionsPage() {
           <TabsTrigger value="completed">Completed</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-4 space-y-4">
+        <TabsContent value={activeTab} className="mt-4 space-y-4">
           {inspections.map((inspection) => (
             <InspectionCard
               key={inspection.id}
@@ -258,45 +110,39 @@ export function InspectionsPage() {
             />
           ))}
         </TabsContent>
-
-        <TabsContent value="scheduled" className="mt-4 space-y-4">
-          {inspections
-            .filter((i) => i.status === "scheduled")
-            .map((inspection) => (
-              <InspectionCard
-                key={inspection.id}
-                inspection={inspection}
-                onClick={() => navigate({ to: `/inspections/${inspection.id}` })}
-              />
-            ))}
-        </TabsContent>
-
-        <TabsContent value="active" className="mt-4 space-y-4">
-          {inspections
-            .filter((i) => i.status === "active")
-            .map((inspection) => (
-              <InspectionCard
-                key={inspection.id}
-                inspection={inspection}
-                onClick={() => navigate({ to: `/inspections/${inspection.id}` })}
-              />
-            ))}
-        </TabsContent>
-
-        <TabsContent value="completed" className="mt-4 space-y-4">
-          {inspections
-            .filter((i) => i.status === "completed")
-            .map((inspection) => (
-              <InspectionCard
-                key={inspection.id}
-                inspection={inspection}
-                onClick={() => navigate({ to: `/inspections/${inspection.id}` })}
-              />
-            ))}
-        </TabsContent>
       </Tabs>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.max(1, prev - 1));
+                  }}
+                  aria-disabled={currentPage === 1}
+                />
+              </PaginationItem>
+
+              {paginationItems}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                  }}
+                  aria-disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
-
-

@@ -1,5 +1,5 @@
-import { CreateInspectionForm } from "@/components/inspection/CreateInspectionForm";
-import type { Inspection } from "@/lib/types/inspection";
+import { CreateInspectionData, CreateInspectionForm } from "@/components/inspection/CreateInspectionForm";
+import { useCreateInspection } from "@/lib/hooks/useInspections";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
@@ -9,17 +9,30 @@ export const Route = createFileRoute("/_mainLayout/inspections/create")({
 
 function CreateInspectionRoute() {
   const navigate = useNavigate();
+  const createInspectionMutation = useCreateInspection();
 
-  const handleCreateInspection = (
-    newInspection: Omit<Inspection, "id" | "rooms">,
-  ) => {
-    // Here you would typically make an API call to save the inspection
-    // For now, we're just showing a toast and navigating back
-    toast.success(`${newInspection.name} has been scheduled.`, {
-      description: `${newInspection.name} has been scheduled.`,
-    });
+  const handleCreateInspection = async (newInspection: CreateInspectionData) => {
+    try {
+      await createInspectionMutation.mutateAsync({
+        name: newInspection.name,
+        type: newInspection.type,
+        startDate: newInspection.startDate,
+        mode: newInspection.mode,
+        dormitoryId: newInspection.dormitoryId,
+        includeSpecialRooms: newInspection.includeSpecialRooms,
+        rooms: newInspection.rooms || []
+      });
 
-    navigate({ to: "/inspections" });
+      toast.success(`${newInspection.name} has been scheduled.`, {
+        description: `Inspection has been created successfully.`,
+      });
+
+      navigate({ to: "/inspections" });
+    } catch (error) {
+      toast.error("Failed to create inspection", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    }
   };
 
   return (

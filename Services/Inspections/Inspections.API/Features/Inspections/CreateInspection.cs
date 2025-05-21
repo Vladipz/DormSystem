@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Carter;
 using Carter.OpenApi;
 
@@ -14,6 +16,8 @@ using Mapster;
 
 using MediatR;
 
+using Shared.RoomServiceClient;
+
 using static Inspections.API.Features.Inspections.CreateInspection;
 
 namespace Inspections.API.Features.Inspections
@@ -25,9 +29,15 @@ namespace Inspections.API.Features.Inspections
         {
             public string Name { get; set; } = string.Empty;
 
+            public DateTime StartDate { get; set; }
+
             public string Type { get; set; } = string.Empty;
 
-            public DateTime StartDate { get; set; }
+            public string Mode { get; set; } = "manual";
+
+            public Guid? DormitoryId { get; set; }
+
+            public bool IncludeSpecialRooms { get; set; }
 
             public List<RoomInfo> Rooms { get; set; } = new();
         }
@@ -51,15 +61,23 @@ namespace Inspections.API.Features.Inspections
                 RuleFor(x => x.Name).NotEmpty().MaximumLength(128);
                 RuleFor(x => x.Type).NotEmpty().MaximumLength(64);
                 RuleFor(x => x.StartDate)
-                    .GreaterThan(DateTime.UtcNow.AddMinutes(-1)) // допускає тільки майбутню або "зараз"
+                    .GreaterThan(DateTime.UtcNow.AddMinutes(-1))
                     .WithMessage("Start date must be in the future.");
 
-                RuleFor(x => x.Rooms)
-                    .NotNull()
-                    .Must(rooms => rooms.Count > 0)
-                    .WithMessage("At least one room must be specified.");
+                RuleFor(x => x.Mode)
+                    .Must(m => m == "manual" || m == "automatic")
+                    .WithMessage("Mode must be either 'manual' or 'automatic'.");
 
-                RuleForEach(x => x.Rooms).SetValidator(new RoomInfoValidator());
+                RuleFor(x => x)
+                    .Must(x =>
+                        (x.Mode == "manual" && x.Rooms.Count > 0) ||
+                        (x.Mode == "automatic" && x.DormitoryId.HasValue))
+                    .WithMessage("Either provide rooms manually or specify a dormitory.");
+
+                When(x => x.Mode == "manual", () =>
+                {
+                    RuleForEach(x => x.Rooms).SetValidator(new RoomInfoValidator());
+                });
             }
         }
 
@@ -80,12 +98,14 @@ namespace Inspections.API.Features.Inspections
             private readonly ApplicationDbContext _db;
             private readonly IValidator<Command> _validator;
             private readonly ILogger<Handler> _logger;
+            private readonly IRoomService _roomService;
 
-            public Handler(ApplicationDbContext db, IValidator<Command> validator, ILogger<Handler> logger)
+            public Handler(ApplicationDbContext db, IValidator<Command> validator, ILogger<Handler> logger, IRoomService roomService)
             {
                 _db = db;
                 _validator = validator;
                 _logger = logger;
+                _roomService = roomService;
             }
 
             public async Task<ErrorOr<Guid>> Handle(Command request, CancellationToken ct)
@@ -98,7 +118,38 @@ namespace Inspections.API.Features.Inspections
                     return validation.ToValidationError<Guid>();
                 }
 
-                // Створення Inspection та RoomInspection
+                List<RoomInfo> selectedRooms;
+
+                if (request.Mode == "manual")
+                {
+                    selectedRooms = request.Rooms;
+                }
+                else
+                {
+                    var roomsResult = await _roomService.GetRoomsForInspectionAsync(request.DormitoryId!.Value, request.IncludeSpecialRooms, ct);
+
+                    if (roomsResult.IsError)
+                    {
+                        _logger.LogError("Error getting rooms: {Error}", roomsResult.FirstError.Description);
+                        return roomsResult.FirstError;
+                    }
+
+                    var rooms = roomsResult.Value;
+
+                    if (!request.IncludeSpecialRooms)
+                    {
+                        rooms = rooms.Where(r => !r.IsSpecial).ToList();
+                    }
+
+                    selectedRooms = rooms.Select(r => new RoomInfo
+                    {
+                        RoomId = r.Id,
+                        RoomNumber = r.RoomNumber,
+                        Floor = r.Floor.ToString(CultureInfo.InvariantCulture),
+                        Building = r.Building,
+                    }).ToList();
+                }
+
                 var inspection = new Inspection
                 {
                     Id = Guid.NewGuid(),
@@ -106,7 +157,7 @@ namespace Inspections.API.Features.Inspections
                     Type = request.Type,
                     StartDate = request.StartDate,
                     Status = InspectionStatus.Scheduled,
-                    Rooms = request.Rooms.Select(r => new RoomInspection
+                    Rooms = selectedRooms.Select(r => new RoomInspection
                     {
                         Id = Guid.NewGuid(),
                         RoomId = r.RoomId,
@@ -114,11 +165,10 @@ namespace Inspections.API.Features.Inspections
                         Floor = r.Floor,
                         Building = r.Building,
                         Status = RoomInspectionStatus.Pending,
-                        InspectionId = Guid.Empty, // тимчасово, заповниться після додавання в EF
+                        InspectionId = Guid.Empty,
                     }).ToList(),
                 };
 
-                // EF автоматично підставить InspectionId
                 _db.Inspections.Add(inspection);
                 await _db.SaveChangesAsync(ct);
 
@@ -152,8 +202,7 @@ namespace Inspections.API.Features.Inspections
             .WithTags("Inspections")
             .WithName("CreateInspection")
             .Accepts<CreateInspectionRequest>("application/json")
-            .IncludeInOpenApi()
-            .RequireAuthorization();
+            .IncludeInOpenApi();
         }
     }
 }

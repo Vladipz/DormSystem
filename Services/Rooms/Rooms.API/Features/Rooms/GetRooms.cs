@@ -36,22 +36,29 @@ namespace Rooms.API.Features.Rooms
 
             public RoomType? RoomType { get; set; }
 
-            public int Page { get; set; } = 1;
+            public int? Page { get; set; }
 
-            public int PageSize { get; set; } = 20;
+            public int? PageSize { get; set; }
         }
 
         internal sealed class Validator : AbstractValidator<Query>
         {
             public Validator()
             {
-                RuleFor(q => q.Page).GreaterThan(0);
-                RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
+                RuleFor(q => q.Page)
+                      .Must(p => p is null || p > 0)
+                      .WithMessage("Page must be > 0");
+
+                RuleFor(q => q.PageSize)
+                    .Must(s => s is null || (s >= 1 && s <= 100))
+                    .WithMessage("PageSize must be 1-100");
             }
         }
 
         internal sealed class Handler : IRequestHandler<Query, ErrorOr<PagedResponse<RoomsResponse>>>
         {
+            private const int MaxUnpaged = 500;
+
             private readonly ApplicationDbContext _db;
             private readonly IValidator<Query> _validator;
 
@@ -70,13 +77,12 @@ namespace Rooms.API.Features.Rooms
                 }
 
                 IQueryable<Room> baseQuery = _db.Rooms
-                    .Include(r => r.Block)
-                        .ThenInclude(b => b.Floor)
-                    .Include(r => r.Floor)
-                        .ThenInclude(f => f.Building)
+                    .Include(r => r.Block).ThenInclude(b => b.Floor)
+                    .Include(r => r.Floor).ThenInclude(f => f.Building)
                     .Include(r => r.Building)
                     .AsNoTracking();
 
+                // --- Filters ---
                 if (request.BlockId is not null)
                 {
                     baseQuery = baseQuery.Where(r => r.BlockId == request.BlockId);
@@ -85,11 +91,11 @@ namespace Rooms.API.Features.Rooms
                 if (request.FloorId is not null)
                 {
                     baseQuery = baseQuery.Where(r =>
-                        (r.FloorId == request.FloorId) ||
+                        r.FloorId == request.FloorId ||
                         (r.Block != null && r.Block.Floor != null && r.Block.Floor.Id == request.FloorId));
                 }
 
-                if (request.OnlyBlockless is not null && request.OnlyBlockless == true)
+                if (request.OnlyBlockless is true)
                 {
                     baseQuery = baseQuery.Where(r => r.BlockId == null);
                 }
@@ -112,19 +118,40 @@ namespace Rooms.API.Features.Rooms
                     baseQuery = baseQuery.Where(r => r.RoomType == request.RoomType);
                 }
 
-                var items = baseQuery
+                var projectedQuery = baseQuery
                     .ProjectToType<RoomsResponse>()
                     .OrderBy(r => r.Label);
 
+                // --- No pagination: return full list (with max limit) ---
+                if (request.Page is null || request.PageSize is null)
+                {
+                    var list = await projectedQuery
+                        .Take(MaxUnpaged)
+                        .ToListAsync(cancellationToken);
+
+                    return new PagedResponse<RoomsResponse>
+                    {
+                        Items = list,
+                        PageNumber = 1,
+                        PageSize = list.Count,
+                        TotalCount = list.Count,
+                        TotalPages = 1,
+                        HasPreviousPage = false,
+                        HasNextPage = false,
+                    };
+                }
+
+                // --- With pagination ---
                 var pagedList = await PagedList<RoomsResponse>.CreateAsync(
-                    items,
-                    request.Page,
-                    request.PageSize,
+                    projectedQuery,
+                    request.Page.Value,
+                    request.PageSize.Value,
                     cancellationToken);
 
                 return PagedResponse<RoomsResponse>.FromPagedList(pagedList);
             }
         }
+
     }
 
     public sealed class GetRoomsEndpoint : ICarterModule

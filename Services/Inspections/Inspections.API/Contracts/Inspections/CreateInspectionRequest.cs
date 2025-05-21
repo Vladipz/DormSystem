@@ -8,6 +8,12 @@ namespace Inspections.API.Contracts.Inspections
 
         public DateTime StartDate { get; set; }
 
+        public string Mode { get; set; } = "manual";
+
+        public Guid? DormitoryId { get; set; }
+
+        public bool IncludeSpecialRooms { get; set; }
+
         public List<RoomDto> Rooms { get; set; } = new();
     }
 

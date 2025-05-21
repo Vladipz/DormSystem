@@ -1,16 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { PlaceService } from "@/lib/services/placeService";
 import type {
-  PlaceResponse,
-  PlaceDetailsResponse,
-  CreatePlaceRequest,
-  UpdatePlaceRequest,
-  MoveInRequest,
-  MoveOutRequest,
-  GetPlacesParams,
-  GetAvailablePlacesParams,
+    CreatePlaceRequest,
+    GetAvailablePlacesParams,
+    GetPlacesParams,
+    MoveInRequest,
+    MoveOutRequest,
+    UpdatePlaceRequest
 } from "@/lib/types/place";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 // Query keys for React Query
 const PLACES_KEY = "places";

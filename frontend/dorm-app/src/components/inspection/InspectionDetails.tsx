@@ -56,7 +56,7 @@ export function InspectionDetails({
   const [currentRoom, setCurrentRoom] = useState<RoomInspection | null>(null);
   const [comment, setComment] = useState("");
   const [statusToSet, setStatusToSet] =
-    useState<RoomInspectionStatus>("not_confirmed");
+    useState<RoomInspectionStatus>("NotConfirmed");
 
   // Get unique floors from rooms
   //TODO: change to get floors from API
@@ -104,16 +104,16 @@ export function InspectionDetails({
 
   const allRoomsInspected = inspection.rooms.every(
     (room) =>
-      room.status === "confirmed" ||
-      room.status === "not_confirmed" ||
-      room.status === "no_access",
+      room.status === "Confirmed" ||
+      room.status === "NotConfirmed" ||
+      room.status === "NoAccess",
   );
 
   const handleStatusUpdate = (
     room: RoomInspection,
     status: RoomInspectionStatus,
   ) => {
-    if (status === "confirmed" || status === "pending") {
+    if (status === "Confirmed" || status === "Pending") {
       onUpdateRoomStatus(room.id, status);
     } else {
       // For statuses that need a comment, open the dialog
@@ -150,21 +150,21 @@ export function InspectionDetails({
           </p>
         </div>
         <div className="flex space-x-2">
-          {inspection.status === "scheduled" && (
+          {inspection.status === "Scheduled" && (
             <Button onClick={onStartInspection}>
               <ClipboardCheck className="mr-2 h-4 w-4" />
               Start Inspection
             </Button>
           )}
 
-          {inspection.status === "active" && allRoomsInspected && (
+          {inspection.status === "Active" && allRoomsInspected && (
             <Button onClick={onCompleteInspection}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Complete Inspection
             </Button>
           )}
 
-          {inspection.status === "completed" && (
+          {inspection.status === "Completed" && (
             <Button onClick={onGenerateReport}>
               <FileText className="mr-2 h-4 w-4" />
               Generate Report
@@ -192,7 +192,7 @@ export function InspectionDetails({
                 <span className="text-muted-foreground">Confirmed:</span>
                 <span className="text-green-600">
                   {
-                    inspection.rooms.filter((r) => r.status === "confirmed")
+                    inspection.rooms.filter((r) => r.status === "Confirmed")
                       .length
                   }
                 </span>
@@ -201,7 +201,7 @@ export function InspectionDetails({
                 <span className="text-muted-foreground">Not Confirmed:</span>
                 <span className="text-red-600">
                   {
-                    inspection.rooms.filter((r) => r.status === "not_confirmed")
+                    inspection.rooms.filter((r) => r.status === "NotConfirmed")
                       .length
                   }
                 </span>
@@ -210,7 +210,7 @@ export function InspectionDetails({
                 <span className="text-muted-foreground">No Access:</span>
                 <span className="text-amber-600">
                   {
-                    inspection.rooms.filter((r) => r.status === "no_access")
+                    inspection.rooms.filter((r) => r.status === "NoAccess")
                       .length
                   }
                 </span>
@@ -219,7 +219,7 @@ export function InspectionDetails({
                 <span className="text-muted-foreground">Pending:</span>
                 <span className="text-blue-600">
                   {
-                    inspection.rooms.filter((r) => r.status === "pending")
+                    inspection.rooms.filter((r) => r.status === "Pending")
                       .length
                   }
                 </span>
@@ -281,13 +281,13 @@ export function InspectionDetails({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {statusToSet === "not_confirmed" ? "Not Confirmed" : "No Access"}{" "}
+              {statusToSet === "NotConfirmed" ? "Not Confirmed" : "No Access"}{" "}
               - Add Comment
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-muted-foreground text-sm">
-              {statusToSet === "not_confirmed"
+              {statusToSet === "NotConfirmed"
                 ? "Please provide a reason why this room is not confirmed."
                 : "Please provide details about why there was no access to this room."}
             </p>
@@ -315,7 +315,7 @@ export function InspectionDetails({
 
 interface RoomInspectionCardProps {
   room: RoomInspection;
-  inspectionStatus: "scheduled" | "active" | "completed";
+  inspectionStatus: "Scheduled" | "Active" | "Completed";
   onUpdateStatus: (status: RoomInspectionStatus) => void;
 }
 
@@ -324,7 +324,7 @@ function RoomInspectionCard({
   inspectionStatus,
   onUpdateStatus,
 }: RoomInspectionCardProps) {
-  const isDisabled = inspectionStatus !== "active";
+  const isDisabled = inspectionStatus !== "Active";
 
   return (
     <Card>
@@ -337,13 +337,13 @@ function RoomInspectionCard({
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            {room.status === "pending" && (
+            {room.status === "Pending" && (
               <div className="flex flex-col space-y-2">
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-green-600"
-                  onClick={() => onUpdateStatus("confirmed")}
+                  onClick={() => onUpdateStatus("Confirmed")}
                   disabled={isDisabled}
                 >
                   <CheckCircle2 className="mr-1 h-4 w-4" />
@@ -353,7 +353,7 @@ function RoomInspectionCard({
                   variant="outline"
                   size="sm"
                   className="text-red-600"
-                  onClick={() => onUpdateStatus("not_confirmed")}
+                  onClick={() => onUpdateStatus("NotConfirmed")}
                   disabled={isDisabled}
                 >
                   <XCircle className="mr-1 h-4 w-4" />
@@ -363,7 +363,7 @@ function RoomInspectionCard({
                   variant="outline"
                   size="sm"
                   className="text-amber-600"
-                  onClick={() => onUpdateStatus("no_access")}
+                  onClick={() => onUpdateStatus("NoAccess")}
                   disabled={isDisabled}
                 >
                   <DoorClosed className="mr-1 h-4 w-4" />
@@ -372,7 +372,7 @@ function RoomInspectionCard({
               </div>
             )}
 
-            {room.status === "confirmed" && (
+            {room.status === "Confirmed" && (
               <Badge
                 variant="outline"
                 className="border-green-200 bg-green-50 text-green-700"
@@ -382,7 +382,7 @@ function RoomInspectionCard({
               </Badge>
             )}
 
-            {room.status === "not_confirmed" && (
+            {room.status === "NotConfirmed" && (
               <Badge
                 variant="outline"
                 className="border-red-200 bg-red-50 text-red-700"
@@ -392,7 +392,7 @@ function RoomInspectionCard({
               </Badge>
             )}
 
-            {room.status === "no_access" && (
+            {room.status === "NoAccess" && (
               <Badge
                 variant="outline"
                 className="border-amber-200 bg-amber-50 text-amber-700"
@@ -404,19 +404,19 @@ function RoomInspectionCard({
           </div>
         </div>
 
-        {(room.status === "not_confirmed" || room.status === "no_access") &&
+        {(room.status === "NotConfirmed" || room.status === "NoAccess") &&
           room.comment && (
             <div
-              className={`mt-2 rounded-md p-2 text-sm ${room.status === "not_confirmed" ? "bg-red-50" : "bg-amber-50"}`}
+              className={`mt-2 rounded-md p-2 text-sm ${room.status === "NotConfirmed" ? "bg-red-50" : "bg-amber-50"}`}
             >
               <p
-                className={`font-medium ${room.status === "not_confirmed" ? "text-red-700" : "text-amber-700"}`}
+                className={`font-medium ${room.status === "NotConfirmed" ? "text-red-700" : "text-amber-700"}`}
               >
                 Comment:
               </p>
               <p
                 className={
-                  room.status === "not_confirmed"
+                  room.status === "NotConfirmed"
                     ? "text-red-600"
                     : "text-amber-600"
                 }
@@ -430,9 +430,9 @@ function RoomInspectionCard({
   );
 }
 
-function getStatusBadge(status: "scheduled" | "active" | "completed") {
+function getStatusBadge(status: "Scheduled" | "Active" | "Completed") {
   switch (status) {
-    case "scheduled":
+    case "Scheduled":
       return (
         <Badge
           variant="outline"
@@ -441,7 +441,7 @@ function getStatusBadge(status: "scheduled" | "active" | "completed") {
           Scheduled
         </Badge>
       );
-    case "active":
+    case "Active":
       return (
         <Badge
           variant="outline"
@@ -450,7 +450,7 @@ function getStatusBadge(status: "scheduled" | "active" | "completed") {
           Active
         </Badge>
       );
-    case "completed":
+    case "Completed":
       return (
         <Badge
           variant="outline"
