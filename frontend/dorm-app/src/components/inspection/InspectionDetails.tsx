@@ -4,29 +4,37 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ReportStyle } from "@/lib/services/inspectionService";
 import type { Inspection, RoomInspection, RoomInspectionStatus } from "@/lib/types/inspection";
 import { format } from "date-fns";
 import {
-  AlertCircle,
-  ArrowLeft,
-  CheckCircle2,
-  ClipboardCheck,
-  DoorClosed,
-  FileText,
-  XCircle,
+    AlertCircle,
+    ArrowLeft,
+    CheckCircle2,
+    ChevronDown,
+    ClipboardCheck,
+    DoorClosed,
+    FileText,
+    XCircle,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -39,8 +47,9 @@ interface InspectionDetailsProps {
     comment?: string,
   ) => void;
   onCompleteInspection: () => void;
-  onGenerateReport: () => void;
+  onGenerateReport: (style?: ReportStyle) => void;
   onStartInspection: () => void;
+  isGeneratingReport?: boolean;
 }
 
 export function InspectionDetails({
@@ -50,12 +59,12 @@ export function InspectionDetails({
   onCompleteInspection,
   onGenerateReport,
   onStartInspection,
+  isGeneratingReport,
 }: InspectionDetailsProps) {
   const [selectedFloor, setSelectedFloor] = useState<string>("all");
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [currentRoom, setCurrentRoom] = useState<RoomInspection | null>(null);
-  const [comment, setComment] = useState("");
-  const [statusToSet, setStatusToSet] =
+  const [comment, setComment] = useState("");  const [statusToSet, setStatusToSet] =
     useState<RoomInspectionStatus>("NotConfirmed");
 
   // Get unique floors from rooms
@@ -123,7 +132,6 @@ export function InspectionDetails({
       setCommentDialogOpen(true);
     }
   };
-
   const handleCommentSubmit = () => {
     if (currentRoom) {
       onUpdateRoomStatus(currentRoom.id, statusToSet, comment);
@@ -164,11 +172,27 @@ export function InspectionDetails({
             </Button>
           )}
 
-          {inspection.status === "Completed" && (
-            <Button onClick={onGenerateReport}>
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
+        {inspection.status === "Completed" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={isGeneratingReport}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate Report
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => onGenerateReport("fancy")}
+                >
+                  Fancy Report
+                </DropdownMenuItem>                <DropdownMenuItem
+                  onClick={() => onGenerateReport("simple")}
+                >
+                  Simple Report
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

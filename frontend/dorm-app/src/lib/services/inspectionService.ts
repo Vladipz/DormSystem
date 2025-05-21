@@ -1,8 +1,8 @@
 import type {
-    Inspection,
-    InspectionStatus,
-    RoomInspectionStatus,
-    ShortInspection,
+  Inspection,
+  InspectionStatus,
+  RoomInspectionStatus,
+  ShortInspection,
 } from "@/lib/types/inspection";
 import type { PagedResponse } from "@/lib/types/pagination";
 import { api } from "../utils/axios-client";
@@ -29,6 +29,8 @@ export interface UpdateRoomStatusDto {
   status: RoomInspectionStatus;
   comment?: string;
 }
+
+export type ReportStyle = "simple" | "fancy";
 
 export const inspectionService = {
   async getById(id: string): Promise<Inspection> {
@@ -67,5 +69,9 @@ export const inspectionService = {
 
   async complete(id: string): Promise<void> {
     return api.post<void>(`/inspections/${id}/complete`);
+  },
+
+  async generateReport(id: string, style: ReportStyle): Promise<Blob> {
+    return api.getBlob(`/inspections/${id}/report`, { style });
   },
 };

@@ -111,7 +111,7 @@ namespace Inspections.API.Features.Inspections
                     InspectionId = inspectionId,
                     RoomInspectionId = roomInspectionId,
                     Status = request.Status,
-                    Comment = request.Comment
+                    Comment = request.Comment,
                 };
 
                 var result = await sender.Send(command);

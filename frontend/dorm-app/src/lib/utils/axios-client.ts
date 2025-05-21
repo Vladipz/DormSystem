@@ -168,6 +168,18 @@ export const api = {
     }
   },
 
+  getBlob: async (url: string, params?: Record<string, unknown>) => {
+    try {
+      const response = await axiosClient.get(url, { 
+        params,
+        responseType: 'blob' 
+      });
+      return response.data as Blob;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
   post: async <T>(url: string, data?: unknown) => {
     try {
       const response = await axiosClient.post<T>(url, data);

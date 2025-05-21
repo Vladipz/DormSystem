@@ -45,17 +45,23 @@ namespace Inspections.API.Features.Inspections
             {
                 var validation = await _validator.ValidateAsync(request, ct);
                 if (!validation.IsValid)
+                {
                     return validation.ToValidationError<Unit>();
+                }
 
                 var inspection = await _db.Inspections
                     .Include(i => i.Rooms)
                     .FirstOrDefaultAsync(i => i.Id == request.InspectionId, ct);
 
                 if (inspection is null)
+                {
                     return Error.NotFound("Inspection.NotFound", "Inspection not found");
+                }
 
                 if (inspection.Status != InspectionStatus.Active)
+                {
                     return Error.Conflict("Inspection.InvalidState", "Inspection must be active to complete");
+                }
 
                 var allChecked = inspection.Rooms.All(r =>
                     r.Status is RoomInspectionStatus.Confirmed
@@ -63,7 +69,9 @@ namespace Inspections.API.Features.Inspections
                              or RoomInspectionStatus.NoAccess);
 
                 if (!allChecked)
+                {
                     return Error.Conflict("Inspection.RoomsIncomplete", "All rooms must be inspected before completing");
+                }
 
                 inspection.Status = InspectionStatus.Completed;
 

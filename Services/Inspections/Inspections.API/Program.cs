@@ -6,13 +6,14 @@ using FluentValidation;
 
 using Inspections.API.Data;
 using Inspections.API.Features.Inspections;
+using Inspections.API.Services;
 
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MediatR;
+
 using RoomService.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,6 +61,7 @@ builder.Services.AddMediatR(cfg =>
 
 // Register Validators
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
 // Configure JSON options
 builder.Services.Configure<JsonOptions>(options =>
@@ -118,12 +120,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Ensure database is created and migrations are applied
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+await SeedData.InitializeAsync(dbContext);
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();

@@ -1,10 +1,12 @@
 import { InspectionDetails } from "@/components/inspection/InspectionDetails";
 import {
   useCompleteInspection,
+  useGenerateReport,
   useInspection,
   useStartInspection,
   useUpdateRoomStatus,
 } from "@/lib/hooks/useInspections";
+import { ReportStyle } from "@/lib/services/inspectionService";
 import type { RoomInspectionStatus } from "@/lib/types/inspection";
 import {
   createFileRoute,
@@ -27,11 +29,11 @@ function InspectionDetailRoute() {
 
   // Fetch inspection data
   const { data: inspection, isLoading } = useInspection(inspectionId);
-  console.log(inspection);
   // Mutations
   const { mutate: updateRoomStatus } = useUpdateRoomStatus(inspectionId);
   const { mutate: startInspection } = useStartInspection();
   const { mutate: completeInspection } = useCompleteInspection();
+  const { mutate: generateReport, isPending: isGeneratingReport } = useGenerateReport();
 
   const handleUpdateRoomStatus = (
     roomId: string,
@@ -73,12 +75,38 @@ function InspectionDetailRoute() {
     });
   };
 
-  const handleGenerateReport = () => {
-    //TODO: generate report
-    // In a real application, this would generate a PDF
-    toast.success("Report Generated", {
-      description: `Report has been generated and is ready for download.`,
-    });
+  const handleGenerateReport = (style: ReportStyle = "simple") => {
+    generateReport(
+      { id: inspectionId, style },
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = URL.createObjectURL(blob);
+          
+          // Create a link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `inspection-${inspectionId}-${style}.pdf`;
+          
+          // Append to the document, click it, and remove it
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Release the blob URL
+          URL.revokeObjectURL(url);
+          
+          toast.success("Report Generated", {
+            description: `${style.charAt(0).toUpperCase() + style.slice(1)} report has been generated and downloaded.`,
+          });
+        },
+        onError: (error) => {
+          toast.error("Failed to generate report", {
+            description: error.message,
+          });
+        },
+      }
+    );
   };
 
   const handleStartInspection = () => {
@@ -108,6 +136,7 @@ function InspectionDetailRoute() {
       onCompleteInspection={handleCompleteInspection}
       onGenerateReport={handleGenerateReport}
       onStartInspection={handleStartInspection}
+      isGeneratingReport={isGeneratingReport}
     />
   );
 }

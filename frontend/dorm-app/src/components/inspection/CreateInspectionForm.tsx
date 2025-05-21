@@ -72,6 +72,7 @@ export function CreateInspectionForm({
           floor: "1", // This would ideally come from the room data
           building: "Main Building", // This would ideally come from the room data
         } as RoomInfoDto;
+        //TODO: change to real data
       })
       .filter(Boolean) as RoomInfoDto[];
   }, [rooms, selectedRoomIds]);

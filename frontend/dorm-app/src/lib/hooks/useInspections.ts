@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     CreateInspectionDto,
     inspectionService,
+    ReportStyle,
     UpdateRoomStatusDto,
 } from "../services/inspectionService";
 import { InspectionStatus } from "../types/inspection";
@@ -86,5 +87,13 @@ export function useUpdateRoomStatus(inspectionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.detail(inspectionId) });
     },
+  });
+}
+
+// 📄 Generate Report
+export function useGenerateReport() {
+  return useMutation({
+    mutationFn: (params: { id: string; style: ReportStyle }) => 
+      inspectionService.generateReport(params.id, params.style),
   });
 }
