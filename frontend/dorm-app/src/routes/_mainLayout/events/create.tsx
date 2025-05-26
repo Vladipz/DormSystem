@@ -7,8 +7,9 @@ import { CreateEventRequest } from "@/lib/types/event";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_mainLayout/events/create")({
-  beforeLoad: () => {
-    const user = authService.checkAuthStatus();
+  beforeLoad: async () => {
+    const user = await authService.checkAuthStatus();
+    console.log("User auth status:", user);
     if (!user || !user.isAuthenticated) {
       return { loginRequired: true };
     }

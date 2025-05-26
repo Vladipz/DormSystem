@@ -21,14 +21,12 @@ function RouteComponent() {
   const { data: user, isLoading: userLoading, error } = useUser(userId);
   const navigate = useNavigate();
 
-  // Перенаправлення, якщо користувач не авторизований
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate({ to: "/login", search: { returnTo: "/profile" } });
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  // Обробка помилки завантаження даних користувача
   if (error) {
     console.log(error);
     authService.logout();
@@ -39,5 +37,5 @@ function RouteComponent() {
   if (authLoading || userLoading || !user) return <div>Завантаження…</div>;
 
   const userProfileProps = mapUserDetailsToUserProfileProps(user);
-  return <UserProfile user={userProfileProps.user} />;
+  return <UserProfile user={userProfileProps.user} userId={userId} />;
 }

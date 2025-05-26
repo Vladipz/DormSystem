@@ -21,9 +21,10 @@ export interface UserProfileProps {
     points: number;
     avatar: string;
   };
+  userId: string;
 }
 
-export function UserProfile({ user }: UserProfileProps) {
+export function UserProfile({ user, userId }: UserProfileProps) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState("+380 12 345 6789");
@@ -72,28 +73,8 @@ export function UserProfile({ user }: UserProfileProps) {
     },
   ];
 
-  // Mock notification settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    events: true,
-    bookings: true,
-    laundry: true,
-    marketplace: false,
-    requests: true,
-    telegram: true,
-    email: false,
-  });
-
-  // Handle notification setting change with type safety
-  const handleNotificationChange = (key: keyof typeof notificationSettings) => {
-    setNotificationSettings({
-      ...notificationSettings,
-      [key]: !notificationSettings[key],
-    });
-  };
-
   return (
     <div className="space-y-6">
-      {/* User Info Card */}
       <UserInfoCard user={user} bio={bio} />
 
       <Tabs defaultValue="profile">
@@ -127,10 +108,7 @@ export function UserProfile({ user }: UserProfileProps) {
         </TabsContent>
 
         <TabsContent value="settings">
-          <SettingsTab
-            notificationSettings={notificationSettings}
-            onNotificationChange={handleNotificationChange}
-          />
+          <SettingsTab userId={userId} />
         </TabsContent>
       </Tabs>
     </div>

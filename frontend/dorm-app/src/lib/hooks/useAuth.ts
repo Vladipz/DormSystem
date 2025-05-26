@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { authService } from "../services/authService";
-import { AuthUser } from "../types/auth";
+import { AuthUser, LinkCodeResponse } from "../types/auth";
 
 /**
  * Custom hook for handling authentication state and operations
@@ -68,6 +68,13 @@ export function useAuth() {
     [navigate, refreshAuth]
   );
 
+  /**
+   * Generate a link code for Telegram account linking
+   */
+  const generateLinkCode = useCallback(async (): Promise<LinkCodeResponse> => {
+    return await authService.generateLinkCode();
+  }, []);
+
   return {
     user,
     isLoading,
@@ -77,5 +84,6 @@ export function useAuth() {
     logout,
     refreshAuth,
     requireAuth,
+    generateLinkCode,
   };
 }

@@ -21,6 +21,8 @@
     <ProjectReference Include="..\..\..\Infrastructure-services\ApiGateways\ApiGateway.YARP\ApiGateway.YARP.csproj" />
     <ProjectReference Include="..\..\Rooms\Rooms.API\Rooms.API.csproj" />
     <ProjectReference Include="..\..\Inspections\Inspections.API\Inspections.API.csproj" />
+    <ProjectReference Include="..\..\NotificationCore\NotificationCore.API\NotificationCore.API.csproj" />
+    <ProjectReference Include="..\..\TelegramAgent\TelegramAgent.API\TelegramAgent.API.csproj" />
   </ItemGroup>
 
 </Project>

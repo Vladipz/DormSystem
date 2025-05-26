@@ -1,44 +1,227 @@
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Calendar, ShoppingCart } from "lucide-react";
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from "@/lib/hooks/useNotification";
+import {
+  NotificationChannel,
+  NotificationChannelSetting,
+  NotificationType,
+  NotificationTypeSetting,
+} from "@/lib/types/notification";
+import {
+  Bell,
+  Calendar,
+  Mail,
+  MessageCircle,
+  ShieldCheck,
+  ShoppingCart,
+  WashingMachine,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface NotificationSettingsProps {
-  settings: {
-    events: boolean;
-    bookings: boolean;
-    laundry: boolean;
-    marketplace: boolean;
-    requests: boolean;
-    telegram: boolean;
-    email: boolean;
-  };
-  onSettingChange: (key: keyof NotificationSettings) => void;
+  userId: string;
 }
 
-// Define type for notification settings
-type NotificationSettings = {
-  events: boolean;
-  bookings: boolean;
-  laundry: boolean;
-  marketplace: boolean;
-  requests: boolean;
-  telegram: boolean;
-  email: boolean;
+// Helper function to get icon for notification type
+const getNotificationTypeIcon = (type: NotificationType) => {
+  switch (type) {
+    case NotificationType.Events:
+      return <Calendar className="h-4 w-4" />;
+    case NotificationType.RoomBookings:
+      return <Calendar className="h-4 w-4" />;
+    case NotificationType.LaundryReminders:
+      return <WashingMachine className="h-4 w-4" />;
+    case NotificationType.MarketplaceUpdates:
+      return <ShoppingCart className="h-4 w-4" />;
+    case NotificationType.PurchaseRequests:
+      return <ShoppingCart className="h-4 w-4" />;
+    case NotificationType.InspectionResults:
+      return <ShieldCheck className="h-4 w-4" />;
+    default:
+      return <Bell className="h-4 w-4" />;
+  }
 };
 
-export function NotificationSettings({
-  settings,
-  onSettingChange,
-}: NotificationSettingsProps) {
+// Helper function to get display name for notification type
+const getNotificationTypeLabel = (type: NotificationType): string => {
+  switch (type) {
+    case NotificationType.Events:
+      return "Events";
+    case NotificationType.RoomBookings:
+      return "Room Bookings";
+    case NotificationType.LaundryReminders:
+      return "Laundry Reminders";
+    case NotificationType.MarketplaceUpdates:
+      return "Marketplace Updates";
+    case NotificationType.PurchaseRequests:
+      return "Purchase Requests";
+    case NotificationType.InspectionResults:
+      return "Inspection Results";
+    default:
+      return type;
+  }
+};
+
+// Helper function to get icon for notification channel
+const getNotificationChannelIcon = (channel: NotificationChannel) => {
+  switch (channel) {
+    case NotificationChannel.Email:
+      return <Mail className="h-4 w-4" />;
+    case NotificationChannel.Telegram:
+      return <MessageCircle className="h-4 w-4" />;
+    case NotificationChannel.WebPush:
+      return <Bell className="h-4 w-4" />;
+    default:
+      return <Bell className="h-4 w-4" />;
+  }
+};
+
+export function NotificationSettings({ userId }: NotificationSettingsProps) {
+  const {
+    data: preferences,
+    isLoading,
+    error,
+  } = useNotificationPreferences(userId);
+
+  const updateMutation = useUpdateNotificationPreferences(userId);
+
+  // Local state for tracking changes
+  const [localTypeSettings, setLocalTypeSettings] = useState<
+    NotificationTypeSetting[]
+  >([]);
+  const [localChannelSettings, setLocalChannelSettings] = useState<
+    NotificationChannelSetting[]
+  >([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  // Initialize local state when preferences are loaded
+  useEffect(() => {
+    if (preferences) {
+      setLocalTypeSettings([...preferences.settings]);
+      setLocalChannelSettings([...preferences.channels]);
+      setHasChanges(false);
+    }
+  }, [preferences]);
+
+  // Handle mutation status with toast notifications
+  useEffect(() => {
+    if (updateMutation.isSuccess) {
+      toast.success("Notification preferences saved successfully!");
+    } else if (updateMutation.isError) {
+      toast.error("Failed to save notification preferences. Please try again.");
+    }
+  }, [updateMutation.isSuccess, updateMutation.isError]);
+
+  // Convert local data to maps for easier lookup
+  const typeSettingsMap = useMemo(() => {
+    return new Map(
+      localTypeSettings.map((setting) => [setting.type, setting.enabled]),
+    );
+  }, [localTypeSettings]);
+
+  const channelSettingsMap = useMemo(() => {
+    return new Map(
+      localChannelSettings.map((channel) => [channel.channel, channel]),
+    );
+  }, [localChannelSettings]);
+
+  const handleTypeToggle = (type: NotificationType) => {
+    setLocalTypeSettings((prevSettings) => {
+      const updatedSettings = prevSettings.map((setting) =>
+        setting.type === type
+          ? { ...setting, enabled: !setting.enabled }
+          : setting,
+      );
+      setHasChanges(true);
+      return updatedSettings;
+    });
+  };
+
+  const handleChannelToggle = (channel: NotificationChannel) => {
+    setLocalChannelSettings((prevChannels) => {
+      const updatedChannels = prevChannels.map((ch) =>
+        ch.channel === channel ? { ...ch, enabled: !ch.enabled } : ch,
+      );
+      setHasChanges(true);
+      return updatedChannels;
+    });
+  };
+  const handleSave = () => {
+    toast.loading("Saving notification preferences...");
+    updateMutation.mutate(
+      {
+        types: localTypeSettings,
+        channels: localChannelSettings,
+      },
+      {
+        onSuccess: () => {
+          setHasChanges(false);
+          toast.dismiss(); // Dismiss the loading toast
+        },
+        onError: () => {
+          toast.dismiss(); // Dismiss the loading toast
+        },
+      },
+    );
+  };
+
+  const handleReset = () => {
+    if (preferences) {
+      setLocalTypeSettings([...preferences.settings]);
+      setLocalChannelSettings([...preferences.channels]);
+      setHasChanges(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="pt-6">
+          <div className="text-center">Loading notification settings...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+  if (error) {
+    toast.error("Failed to load notification settings. Please try again.");
+    return (
+      <Card className="mb-4">
+        <CardContent className="pt-6">
+          <div className="text-center text-destructive">
+            Failed to load notification settings. Please try again.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const allNotificationTypes: NotificationType[] = [
+    NotificationType.Events,
+    NotificationType.RoomBookings,
+    NotificationType.LaundryReminders,
+    NotificationType.MarketplaceUpdates,
+    NotificationType.PurchaseRequests,
+    NotificationType.InspectionResults,
+  ];
+
+  const allNotificationChannels: NotificationChannel[] = [
+    NotificationChannel.Email,
+    NotificationChannel.Telegram,
+    NotificationChannel.WebPush,
+  ];
+
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -46,107 +229,91 @@ export function NotificationSettings({
         <CardDescription>Manage your notification preferences</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Notification Types */}
           <div>
             <h3 className="mb-3 text-sm font-medium">Notification Types</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="events-notifications"
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Events
-                </Label>
-                <Switch
-                  id="events-notifications"
-                  checked={settings.events}
-                  onCheckedChange={() => onSettingChange("events")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="bookings-notifications"
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Room Bookings
-                </Label>
-                <Switch
-                  id="bookings-notifications"
-                  checked={settings.bookings}
-                  onCheckedChange={() => onSettingChange("bookings")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="laundry-notifications"
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Laundry Reminders
-                </Label>
-                <Switch
-                  id="laundry-notifications"
-                  checked={settings.laundry}
-                  onCheckedChange={() => onSettingChange("laundry")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="marketplace-notifications"
-                  className="flex items-center gap-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Marketplace Updates
-                </Label>
-                <Switch
-                  id="marketplace-notifications"
-                  checked={settings.marketplace}
-                  onCheckedChange={() => onSettingChange("marketplace")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="requests-notifications"
-                  className="flex items-center gap-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Purchase Requests
-                </Label>
-                <Switch
-                  id="requests-notifications"
-                  checked={settings.requests}
-                  onCheckedChange={() => onSettingChange("requests")}
-                />
-              </div>
+            <div className="space-y-3">
+              {allNotificationTypes.map((type) => (
+                <div key={type} className="flex items-center justify-between">
+                  <Label
+                    htmlFor={`${type}-notifications`}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    {getNotificationTypeIcon(type)}
+                    {getNotificationTypeLabel(type)}
+                  </Label>
+                  <Switch
+                    id={`${type}-notifications`}
+                    checked={typeSettingsMap.get(type) ?? false}
+                    onCheckedChange={() => handleTypeToggle(type)}
+                    disabled={updateMutation.isPending}
+                  />
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Notification Channels */}
           <div>
             <h3 className="mb-3 text-sm font-medium">Notification Channels</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="telegram-notifications">Telegram</Label>
-                <Switch
-                  id="telegram-notifications"
-                  checked={settings.telegram}
-                  onCheckedChange={() => onSettingChange("telegram")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="email-notifications">Email</Label>
-                <Switch
-                  id="email-notifications"
-                  checked={settings.email}
-                  onCheckedChange={() => onSettingChange("email")}
-                />
+            <div className="space-y-3">
+              {allNotificationChannels.map((channel) => {
+                const channelSetting = channelSettingsMap.get(channel);
+                return (
+                  <div
+                    key={channel}
+                    className="flex items-center justify-between"
+                  >
+                    <Label
+                      htmlFor={`${channel}-notifications`}
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      {getNotificationChannelIcon(channel)}
+                      {channel}
+                      {channel === NotificationChannel.Telegram &&
+                        channelSetting?.externalId && (
+                          <span className="text-muted-foreground text-xs">
+                            (Connected)
+                          </span>
+                        )}
+                    </Label>
+                    <Switch
+                      id={`${channel}-notifications`}
+                      checked={channelSetting?.enabled ?? false}
+                      onCheckedChange={() => handleChannelToggle(channel)}
+                      disabled={updateMutation.isPending}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>          {/* Changes indicator */}
+          {hasChanges && !updateMutation.isPending && (
+            <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
+              <div className="text-sm text-blue-700">
+                You have unsaved changes. Click "Save Changes" to apply them.
               </div>
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button className="ml-auto">Save Preferences</Button>
+      <CardFooter className="flex justify-end gap-2">
+        {hasChanges && (
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            disabled={updateMutation.isPending}
+          >
+            Reset Changes
+          </Button>
+        )}
+        <Button
+          onClick={handleSave}
+          disabled={updateMutation.isPending || !hasChanges}
+        >
+          {updateMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
       </CardFooter>
     </Card>
   );

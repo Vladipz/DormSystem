@@ -16,6 +16,8 @@ using Microsoft.OpenApi.Models;
 
 using RoomService.Client;
 
+using Shared.TokenService.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Authentication
@@ -106,6 +108,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCarter();
 builder.Services.AddRoomServiceClient(builder.Configuration);
 
+// Register TokenService
+builder.Services.AddScoped<ITokenService, TokenService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Rooms.API.Contracts.Room;
 using Rooms.API.Data;
 using Rooms.API.Mappings;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Rooms.API.Features.Rooms
 {
@@ -80,7 +81,7 @@ namespace Rooms.API.Features.Rooms
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/rooms/{id:guid}", async (Guid id, ISender sender) =>
+            app.MapGet("/rooms/{id:guid}", async (Guid id, [FromServices] ISender sender) =>
             {
                 var query = new GetRoomById.Query { RoomId = id };
                 var result = await sender.Send(query);

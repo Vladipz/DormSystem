@@ -12,3 +12,6 @@ http - 5004
 
 Aspire 
 http - 5005
+
+NotificationsCore
+http - 5006

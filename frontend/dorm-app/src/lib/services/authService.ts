@@ -1,6 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import { AuthUser, JwtPayload } from "../types/auth";
+import { AuthUser, JwtPayload, LinkCodeResponse } from "../types/auth";
+import { api } from "../utils/axios-client";
 
 // Define base API URL from environment variable
 const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5000";
@@ -30,6 +31,7 @@ class AuthService {
   async checkAuthStatus(): Promise<AuthUser | null> {
     // Отримуємо токен
     const token = localStorage.getItem("accessToken");
+    console.log("auth check")
     if (!token) return null;
     
     // Перевіряємо валідність
@@ -46,7 +48,6 @@ class AuthService {
     // Отримуємо дані з токена (який може бути оновленим)
     const decodedToken = this.getDecodedToken();
     if (!decodedToken) return null;
-
     return {
       id: decodedToken[
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
@@ -107,6 +108,10 @@ class AuthService {
   logout(): void {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+  }
+
+  async generateLinkCode(): Promise<LinkCodeResponse> {
+    return await api.post<LinkCodeResponse>("/link-codes");
   }
 }
 

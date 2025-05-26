@@ -1,4 +1,6 @@
 using Auth.DAL.Data;
+using Auth.DAL.Interfaces;
+using Auth.DAL.Repositories;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +21,9 @@ namespace Auth.DAL.Extentions
 
             services.AddDbContext<AuthDbContext>(options =>
                 options.UseNpgsql(connectionString));
+
+            // Register repositories
+            services.AddScoped<ILinkCodeRepository, LinkCodeRepository>();
 
             // Apply pending migrations at startup
             var serviceProvider = services.BuildServiceProvider();

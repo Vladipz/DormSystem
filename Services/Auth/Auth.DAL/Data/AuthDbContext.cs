@@ -11,6 +11,8 @@ namespace Auth.DAL.Data
 
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
+        public DbSet<LinkCode> LinkCodes { get; set; } = null!;
+
         public AuthDbContext(DbContextOptions<AuthDbContext> options)
           : base(options)
         {
