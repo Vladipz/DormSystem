@@ -106,11 +106,44 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
     NotificationChannelSetting[]
   >([]);
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Track original values to detect changes
+  const [originalTypeSettings, setOriginalTypeSettings] = useState<
+    NotificationTypeSetting[]
+  >([]);
+  const [originalChannelSettings, setOriginalChannelSettings] = useState<
+    NotificationChannelSetting[]
+  >([]);
   // Initialize local state when preferences are loaded
   useEffect(() => {
     if (preferences) {
-      setLocalTypeSettings([...preferences.settings]);
-      setLocalChannelSettings([...preferences.channels]);
+      // Create default type settings if not present
+      const defaultTypeSettings: NotificationTypeSetting[] = [
+        NotificationType.Events,
+        NotificationType.RoomBookings,
+        NotificationType.LaundryReminders,
+        NotificationType.MarketplaceUpdates,
+        NotificationType.PurchaseRequests,
+        NotificationType.InspectionResults,
+      ].map((type) => {
+        const existingSetting = preferences.settings.find(s => s.type === type);
+        return existingSetting || { type, enabled: false };
+      });
+
+      // Create default channel settings if not present
+      const defaultChannelSettings: NotificationChannelSetting[] = [
+        NotificationChannel.Email,
+        NotificationChannel.Telegram,
+        NotificationChannel.WebPush,
+      ].map((channel) => {
+        const existingChannel = preferences.channels.find(c => c.channel === channel);
+        return existingChannel || { channel, enabled: false, externalId: null };
+      });
+
+      setLocalTypeSettings(defaultTypeSettings);
+      setLocalChannelSettings(defaultChannelSettings);
+      setOriginalTypeSettings(defaultTypeSettings);
+      setOriginalChannelSettings(defaultChannelSettings);
       setHasChanges(false);
     }
   }, [preferences]);
@@ -160,13 +193,34 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
   };
   const handleSave = () => {
     toast.loading("Saving notification preferences...");
+    
+    // Find only the changed type settings
+    const changedTypeSettings = localTypeSettings.filter((localSetting) => {
+      const originalSetting = originalTypeSettings.find(orig => orig.type === localSetting.type);
+      return !originalSetting || originalSetting.enabled !== localSetting.enabled;
+    });
+
+    // Find only the changed channel settings
+    const changedChannelSettings = localChannelSettings.filter((localChannel) => {
+      const originalChannel = originalChannelSettings.find(orig => orig.channel === localChannel.channel);
+      return !originalChannel || 
+             originalChannel.enabled !== localChannel.enabled ||
+             originalChannel.externalId !== localChannel.externalId;
+    });
+
+    // Create payload with only changed data, but ensure arrays are always present (even if empty)
+    const payload = {
+      types: changedTypeSettings,
+      channels: changedChannelSettings,
+    };
+
     updateMutation.mutate(
-      {
-        types: localTypeSettings,
-        channels: localChannelSettings,
-      },
+      payload,
       {
         onSuccess: () => {
+          // Update original values to reflect the new state
+          setOriginalTypeSettings([...localTypeSettings]);
+          setOriginalChannelSettings([...localChannelSettings]);
           setHasChanges(false);
           toast.dismiss(); // Dismiss the loading toast
         },
@@ -179,8 +233,33 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
 
   const handleReset = () => {
     if (preferences) {
-      setLocalTypeSettings([...preferences.settings]);
-      setLocalChannelSettings([...preferences.channels]);
+      // Create default type settings if not present (same logic as useEffect)
+      const defaultTypeSettings: NotificationTypeSetting[] = [
+        NotificationType.Events,
+        NotificationType.RoomBookings,
+        NotificationType.LaundryReminders,
+        NotificationType.MarketplaceUpdates,
+        NotificationType.PurchaseRequests,
+        NotificationType.InspectionResults,
+      ].map((type) => {
+        const existingSetting = preferences.settings.find(s => s.type === type);
+        return existingSetting || { type, enabled: false };
+      });
+
+      // Create default channel settings if not present (same logic as useEffect)
+      const defaultChannelSettings: NotificationChannelSetting[] = [
+        NotificationChannel.Email,
+        NotificationChannel.Telegram,
+        NotificationChannel.WebPush,
+      ].map((channel) => {
+        const existingChannel = preferences.channels.find(c => c.channel === channel);
+        return existingChannel || { channel, enabled: false, externalId: null };
+      });
+
+      setLocalTypeSettings(defaultTypeSettings);
+      setLocalChannelSettings(defaultChannelSettings);
+      setOriginalTypeSettings(defaultTypeSettings);
+      setOriginalChannelSettings(defaultChannelSettings);
       setHasChanges(false);
     }
   };
@@ -238,16 +317,23 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                 <div key={type} className="flex items-center justify-between">
                   <Label
                     htmlFor={`${type}-notifications`}
-                    className="flex cursor-pointer items-center gap-2"
+                    className={`flex items-center gap-2 ${
+                      type === NotificationType.Events ? "cursor-pointer" : "cursor-not-allowed"
+                    }`}
                   >
                     {getNotificationTypeIcon(type)}
                     {getNotificationTypeLabel(type)}
+                    {type !== NotificationType.Events && (
+                      <span className="text-muted-foreground text-xs">
+                        (Soon...)
+                      </span>
+                    )}
                   </Label>
                   <Switch
                     id={`${type}-notifications`}
                     checked={typeSettingsMap.get(type) ?? false}
                     onCheckedChange={() => handleTypeToggle(type)}
-                    disabled={updateMutation.isPending}
+                    disabled={updateMutation.isPending || type !== NotificationType.Events}
                   />
                 </div>
               ))}
@@ -267,7 +353,9 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                   >
                     <Label
                       htmlFor={`${channel}-notifications`}
-                      className="flex cursor-pointer items-center gap-2"
+                      className={`flex items-center gap-2 ${
+                        channel === NotificationChannel.Telegram ? "cursor-pointer" : "cursor-not-allowed"
+                      }`}
                     >
                       {getNotificationChannelIcon(channel)}
                       {channel}
@@ -277,12 +365,17 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                             (Connected)
                           </span>
                         )}
+                      {channel !== NotificationChannel.Telegram && (
+                        <span className="text-muted-foreground text-xs">
+                          (Soon...)
+                        </span>
+                      )}
                     </Label>
                     <Switch
                       id={`${channel}-notifications`}
                       checked={channelSetting?.enabled ?? false}
                       onCheckedChange={() => handleChannelToggle(channel)}
-                      disabled={updateMutation.isPending}
+                      disabled={updateMutation.isPending || channel !== NotificationChannel.Telegram}
                     />
                   </div>
                 );
