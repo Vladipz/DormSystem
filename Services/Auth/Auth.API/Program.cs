@@ -63,6 +63,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILinkCodeService, LinkCodeService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<DbSeederService>();
 
 builder.Services.AddDalServices(builder.Configuration);

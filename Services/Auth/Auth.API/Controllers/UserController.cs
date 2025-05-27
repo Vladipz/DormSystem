@@ -1,8 +1,11 @@
+using Auth.BLL.Interfaces;
 using Auth.DAL.Entities;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+
+using Shared.PagedList;
 
 namespace Auth.API.Controllers
 {
@@ -13,13 +16,16 @@ namespace Auth.API.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IUserService _userService;
 
         public UserController(
             UserManager<User> userManager,
-            RoleManager<Role> roleManager)
+            RoleManager<Role> roleManager,
+            IUserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _userService = userService;
         }
 
         /// <summary>
@@ -80,6 +86,31 @@ namespace Auth.API.Controllers
             }
 
             return BadRequest(new { Errors = result.Errors });
+        }
+
+        /// <summary>
+        /// Gets a paginated list of users.
+        /// </summary>
+        /// <param name="pageNumber">Page number (starting from 1).</param>
+        /// <param name="pageSize">Number of items per page (1-100).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated list of users with their roles.</returns>
+        /// <response code="200">Returns a paginated list of users with their information and roles.</response>
+        /// <response code="400">Invalid pagination parameters or other error.</response>
+        [HttpGet]
+        public async Task<IActionResult> GetUsers(
+            int pageNumber = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            var result = await _userService.GetUsersAsync(pageNumber, pageSize, cancellationToken);
+
+            return result.Match<IActionResult>(
+                success => Ok(success),
+                errors => BadRequest(new { Errors = errors.Select(e => e.Description) }));
         }
 
         /// <summary>
