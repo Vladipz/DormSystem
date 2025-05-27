@@ -1,14 +1,13 @@
 import { PlaceService } from "@/lib/services/placeService";
 import type {
-    CreatePlaceRequest,
-    GetAvailablePlacesParams,
-    GetPlacesParams,
-    MoveInRequest,
-    MoveOutRequest,
-    UpdatePlaceRequest
+  CreatePlaceRequest,
+  GetAvailablePlacesParams,
+  GetPlacesParams,
+  MoveInRequest,
+  MoveOutRequest,
+  UpdatePlaceRequest
 } from "@/lib/types/place";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 // Query keys for React Query
 const PLACES_KEY = "places";
@@ -55,16 +54,12 @@ export const useCreatePlace = () => {
   return useMutation({
     mutationFn: (data: CreatePlaceRequest) => PlaceService.createPlace(data),
     onSuccess: () => {
-      toast.success("Place created successfully.");
       queryClient.invalidateQueries({
         queryKey: [PLACES_KEY],
       });
       queryClient.invalidateQueries({
         queryKey: [AVAILABLE_PLACES_KEY],
       });
-    },
-    onError: () => {
-      toast.error("Failed to create place.");
     },
   });
 };
@@ -79,16 +74,12 @@ export const useUpdatePlace = () => {
     mutationFn: ({ id, ...data }: UpdatePlaceRequest & { id: string }) =>
       PlaceService.updatePlace(id, data),
     onSuccess: (_, variables) => {
-      toast.success("Place updated successfully.");
       queryClient.invalidateQueries({
         queryKey: [PLACES_KEY],
       });
       queryClient.invalidateQueries({
         queryKey: [PLACE_KEY, variables.id],
       });
-    },
-    onError: () => {
-      toast.error("Failed to update place.");
     },
   });
 };
@@ -103,7 +94,6 @@ export const useMoveIn = () => {
     mutationFn: ({ id, ...data }: MoveInRequest & { id: string }) =>
       PlaceService.moveIn(id, data),
     onSuccess: (_, variables) => {
-      toast.success("User moved in successfully.");
       queryClient.invalidateQueries({
         queryKey: [PLACES_KEY],
       });
@@ -113,9 +103,6 @@ export const useMoveIn = () => {
       queryClient.invalidateQueries({
         queryKey: [AVAILABLE_PLACES_KEY],
       });
-    },
-    onError: () => {
-      toast.error("Failed to move user in.");
     },
   });
 };
@@ -127,10 +114,9 @@ export const useMoveOut = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...data }: MoveOutRequest & { id: string }) =>
+    mutationFn: ({ id, ...data }: { id: string } & MoveOutRequest) =>
       PlaceService.moveOut(id, data),
     onSuccess: (_, variables) => {
-      toast.success("User moved out successfully.");
       queryClient.invalidateQueries({
         queryKey: [PLACES_KEY],
       });
@@ -140,9 +126,6 @@ export const useMoveOut = () => {
       queryClient.invalidateQueries({
         queryKey: [AVAILABLE_PLACES_KEY],
       });
-    },
-    onError: () => {
-      toast.error("Failed to move user out.");
     },
   });
 };
@@ -156,7 +139,6 @@ export const useDeletePlace = () => {
   return useMutation({
     mutationFn: (id: string) => PlaceService.deletePlace(id),
     onSuccess: (_, id) => {
-      toast.success("Place deleted successfully.");
       queryClient.invalidateQueries({
         queryKey: [PLACES_KEY],
       });
@@ -166,9 +148,6 @@ export const useDeletePlace = () => {
       queryClient.removeQueries({
         queryKey: [PLACE_KEY, id],
       });
-    },
-    onError: () => {
-      toast.error("Failed to delete place.");
     },
   });
 };

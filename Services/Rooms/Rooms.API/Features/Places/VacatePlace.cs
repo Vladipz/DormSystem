@@ -79,6 +79,7 @@ namespace Rooms.API.Features.Places
                 }
 
                 place.MovedOutAt = request.MovedOutAt;
+                place.OccupiedByUserId = null; // Clear the user ID when vacating
                 await _dbContext.SaveChangesAsync(ct);
 
                 return new UpdatePlaceResponse { Id = place.Id };

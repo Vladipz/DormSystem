@@ -1,15 +1,15 @@
 import {
-    CreatePlaceRequest,
-    CreatePlaceResponse,
-    GetAvailablePlacesParams,
-    GetPlacesParams,
-    MoveInRequest,
-    MoveOutRequest,
-    PlaceDetailsResponse,
-    PlaceOccupationResponse,
-    PlacePagedResponse,
-    UpdatePlaceRequest,
-    UpdatedPlaceResponse
+  CreatePlaceRequest,
+  CreatePlaceResponse,
+  GetAvailablePlacesParams,
+  GetPlacesParams,
+  MoveInRequest,
+  MoveOutRequest,
+  PlaceDetailsResponse,
+  PlaceOccupationResponse,
+  PlacePagedResponse,
+  UpdatePlaceRequest,
+  UpdatedPlaceResponse
 } from "@/lib/types/place";
 import { axiosClient } from "@/lib/utils/axios-client";
 
@@ -52,8 +52,8 @@ export class PlaceService {
    * Move a user into a place
    */
   static async moveIn(id: string, request: MoveInRequest): Promise<PlaceOccupationResponse> {
-    const { data } = await axiosClient.post<PlaceOccupationResponse>(
-      `${API_URL}/${id}/movein`,
+    const { data } = await axiosClient.put<PlaceOccupationResponse>(
+      `${API_URL}/${id}/occupy`,
       request
     );
     return data;
@@ -62,10 +62,10 @@ export class PlaceService {
   /**
    * Move a user out of a place
    */
-  static async moveOut(id: string, request: MoveOutRequest): Promise<PlaceOccupationResponse> {
-    const { data } = await axiosClient.post<PlaceOccupationResponse>(
-      `${API_URL}/${id}/moveout`,
-      request
+  static async moveOut(id: string, request?: MoveOutRequest): Promise<PlaceOccupationResponse> {
+    const { data } = await axiosClient.put<PlaceOccupationResponse>(
+      `${API_URL}/${id}/vacate`,
+      request || {}
     );
     return data;
   }

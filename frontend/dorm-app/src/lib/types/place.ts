@@ -53,7 +53,7 @@ export interface MoveInRequest {
 }
 
 export interface MoveOutRequest {
-  userId: string;
+  movedOutAt?: string;
 }
 
 export interface PlaceOccupationResponse {
