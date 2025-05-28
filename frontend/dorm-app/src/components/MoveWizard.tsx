@@ -13,15 +13,15 @@ import { UserDetails, useUsers } from '@/lib/hooks/useUser';
 import { PlaceResponse } from '@/lib/types/place';
 import { getPlaceholderAvatar } from '@/lib/utils';
 import {
-    AlertCircle,
-    Bed,
-    Building,
-    CheckCircle,
-    Loader2,
-    LogIn,
-    LogOut,
-    User,
-    Users
+  AlertCircle,
+  Bed,
+  Building,
+  CheckCircle,
+  Loader2,
+  LogIn,
+  LogOut,
+  User,
+  Users
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -227,13 +227,15 @@ export function MoveWizard() {
                       value={moveInState.selectedBuildingId || ''} 
                       onValueChange={handleBuildingSelect}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a building" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose a building" className="truncate" />
                       </SelectTrigger>
                       <SelectContent>
                         {buildings?.map((building) => (
                           <SelectItem key={building.id} value={building.id}>
-                            {building.name}
+                            <div className="truncate max-w-[300px]">
+                              {building.name}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -255,13 +257,15 @@ export function MoveWizard() {
                       onValueChange={handleRoomSelect}
                       disabled={!moveInState.selectedBuildingId}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a room" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose a room" className="truncate" />
                       </SelectTrigger>
                       <SelectContent>
                         {rooms?.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
-                            Room {room.label} ({room.capacity} places)
+                            <div className="truncate max-w-[300px]">
+                              Room {room.label} ({room.capacity} places)
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -327,13 +331,13 @@ export function MoveWizard() {
                       onValueChange={handleUserSelectForMoveIn}
                       disabled={!moveInState.selectedPlaceId}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choose a student" className="truncate" />
                       </SelectTrigger>
                       <SelectContent>
                         {users?.items.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
-                            <div className="truncate">
+                            <div className="truncate max-w-[300px]">
                               {user.firstName} {user.lastName} ({user.email})
                             </div>
                           </SelectItem>

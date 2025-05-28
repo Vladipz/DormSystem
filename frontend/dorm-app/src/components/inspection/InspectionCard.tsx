@@ -7,14 +7,20 @@ import {
   CheckCircle2,
   ClipboardCheck,
   FileText,
+  Lock,
 } from "lucide-react";
 
 interface InspectionCardProps {
   inspection: ShortInspection;
   onClick: () => void;
+  isClickable?: boolean;
 }
 
-export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
+export function InspectionCard({
+  inspection,
+  onClick,
+  isClickable = true,
+}: InspectionCardProps) {
   const totalRooms = inspection.roomsCount;
   const pendingRooms = inspection.pendingRoomsCount;
   const confirmedRooms = inspection.confirmedRoomsCount;
@@ -101,8 +107,12 @@ export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
 
   return (
     <Card
-      className="cursor-pointer transition-shadow hover:shadow-md"
-      onClick={onClick}
+      className={`transition-shadow ${
+        isClickable
+          ? "cursor-pointer hover:shadow-md"
+          : "cursor-default opacity-75"
+      }`}
+      onClick={isClickable ? onClick : undefined}
     >
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
@@ -110,10 +120,26 @@ export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
             <div className="flex items-center">
               {getStatusIcon()}
               <h3 className="ml-2 font-semibold">{inspection.name}</h3>
+              {!isClickable && <Lock className="ml-2 h-4 w-4 text-gray-400" />}
             </div>
             <p className="text-sm text-gray-500">{inspection.type}</p>
+            {!isClickable && (
+              <p className="text-xs text-gray-400">
+                Details restricted to administrators
+              </p>
+            )}
           </div>
-          {getStatusBadge()}
+          <div className="flex flex-col items-end gap-2">
+            {getStatusBadge()}
+            {!isClickable && (
+              <Badge
+                variant="outline"
+                className="border-gray-200 bg-gray-50 text-gray-500"
+              >
+                View Only
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex justify-between border-t pt-4">

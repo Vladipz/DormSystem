@@ -31,6 +31,108 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+// ===================================================================
+// NOTIFICATION IMPLEMENTATION STATUS CONFIGURATION
+// ===================================================================
+// This section tracks which notification types and channels are implemented
+// and ready for production use. Update these lists as features are completed.
+
+/**
+ * Notification Types Implementation Status
+ * - IMPLEMENTED: Fully functional and ready for use
+ * - SOON: Planned for implementation but not yet available
+ */
+const NOTIFICATION_TYPES_CONFIG = {
+  IMPLEMENTED: [
+    NotificationType.Events,
+    NotificationType.InspectionResults
+  ] as NotificationType[],
+  
+  SOON: [
+    NotificationType.RoomBookings,
+    NotificationType.LaundryReminders,
+    NotificationType.MarketplaceUpdates,
+    NotificationType.PurchaseRequests,
+  ] as NotificationType[],
+} as const;
+
+/**
+ * Notification Channels Implementation Status
+ * - IMPLEMENTED: Fully functional and ready for use
+ * - SOON: Planned for implementation but not yet available
+ */
+const NOTIFICATION_CHANNELS_CONFIG = {
+  IMPLEMENTED: [
+    NotificationChannel.Telegram,
+  ] as NotificationChannel[],
+  
+  SOON: [
+    NotificationChannel.Email,
+    NotificationChannel.WebPush,
+  ] as NotificationChannel[],
+} as const;
+
+/**
+ * Helper function to check if a notification type is implemented
+ */
+const isNotificationTypeImplemented = (type: NotificationType): boolean => {
+  return NOTIFICATION_TYPES_CONFIG.IMPLEMENTED.includes(type);
+};
+
+/**
+ * Helper function to check if a notification channel is implemented
+ */
+const isNotificationChannelImplemented = (channel: NotificationChannel): boolean => {
+  return NOTIFICATION_CHANNELS_CONFIG.IMPLEMENTED.includes(channel);
+};
+
+/**
+ * Get all notification types (implemented + soon)
+ */
+const getAllNotificationTypes = (): NotificationType[] => {
+  return [...NOTIFICATION_TYPES_CONFIG.IMPLEMENTED, ...NOTIFICATION_TYPES_CONFIG.SOON];
+};
+
+/**
+ * Get all notification channels (implemented + soon)
+ */
+const getAllNotificationChannels = (): NotificationChannel[] => {
+  return [...NOTIFICATION_CHANNELS_CONFIG.IMPLEMENTED, ...NOTIFICATION_CHANNELS_CONFIG.SOON];
+};
+
+// ===================================================================
+// END CONFIGURATION SECTION
+// ===================================================================
+
+/*
+ * IMPLEMENTATION STATUS SUMMARY
+ * =============================
+ * 
+ * ✅ IMPLEMENTED FEATURES:
+ * Notification Types:
+ *   - Events: Fully functional event notifications
+ * 
+ * Notification Channels:
+ *   - Telegram: Bot integration with user authentication
+ * 
+ * 🔄 COMING SOON (Priority order):
+ * Notification Types:
+ *   1. RoomBookings - Room reservation confirmations and reminders
+ *   2. LaundryReminders - Washing machine availability and completion alerts
+ *   3. InspectionResults - Dormitory inspection results and follow-ups
+ *   4. MarketplaceUpdates - New items and price changes in marketplace
+ *   5. PurchaseRequests - Purchase request status updates
+ * 
+ * Notification Channels:
+ *   1. Email - SMTP integration for email notifications
+ *   2. WebPush - Browser push notifications (service worker required)
+ * 
+ * TODO FOR DEVELOPERS:
+ * - Move items from SOON to IMPLEMENTED as features are completed
+ * - Update the configuration arrays above when new features are added
+ * - Consider adding priority levels or estimated implementation dates
+ */
+
 interface NotificationSettingsProps {
   userId: string;
 }
@@ -118,24 +220,13 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
   useEffect(() => {
     if (preferences) {
       // Create default type settings if not present
-      const defaultTypeSettings: NotificationTypeSetting[] = [
-        NotificationType.Events,
-        NotificationType.RoomBookings,
-        NotificationType.LaundryReminders,
-        NotificationType.MarketplaceUpdates,
-        NotificationType.PurchaseRequests,
-        NotificationType.InspectionResults,
-      ].map((type) => {
+      const defaultTypeSettings: NotificationTypeSetting[] = getAllNotificationTypes().map((type) => {
         const existingSetting = preferences.settings.find(s => s.type === type);
         return existingSetting || { type, enabled: false };
       });
 
       // Create default channel settings if not present
-      const defaultChannelSettings: NotificationChannelSetting[] = [
-        NotificationChannel.Email,
-        NotificationChannel.Telegram,
-        NotificationChannel.WebPush,
-      ].map((channel) => {
+      const defaultChannelSettings: NotificationChannelSetting[] = getAllNotificationChannels().map((channel) => {
         const existingChannel = preferences.channels.find(c => c.channel === channel);
         return existingChannel || { channel, enabled: false, externalId: null };
       });
@@ -234,24 +325,13 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
   const handleReset = () => {
     if (preferences) {
       // Create default type settings if not present (same logic as useEffect)
-      const defaultTypeSettings: NotificationTypeSetting[] = [
-        NotificationType.Events,
-        NotificationType.RoomBookings,
-        NotificationType.LaundryReminders,
-        NotificationType.MarketplaceUpdates,
-        NotificationType.PurchaseRequests,
-        NotificationType.InspectionResults,
-      ].map((type) => {
+      const defaultTypeSettings: NotificationTypeSetting[] = getAllNotificationTypes().map((type) => {
         const existingSetting = preferences.settings.find(s => s.type === type);
         return existingSetting || { type, enabled: false };
       });
 
       // Create default channel settings if not present (same logic as useEffect)
-      const defaultChannelSettings: NotificationChannelSetting[] = [
-        NotificationChannel.Email,
-        NotificationChannel.Telegram,
-        NotificationChannel.WebPush,
-      ].map((channel) => {
+      const defaultChannelSettings: NotificationChannelSetting[] = getAllNotificationChannels().map((channel) => {
         const existingChannel = preferences.channels.find(c => c.channel === channel);
         return existingChannel || { channel, enabled: false, externalId: null };
       });
@@ -286,21 +366,6 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
     );
   }
 
-  const allNotificationTypes: NotificationType[] = [
-    NotificationType.Events,
-    NotificationType.RoomBookings,
-    NotificationType.LaundryReminders,
-    NotificationType.MarketplaceUpdates,
-    NotificationType.PurchaseRequests,
-    NotificationType.InspectionResults,
-  ];
-
-  const allNotificationChannels: NotificationChannel[] = [
-    NotificationChannel.Email,
-    NotificationChannel.Telegram,
-    NotificationChannel.WebPush,
-  ];
-
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -313,17 +378,17 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
           <div>
             <h3 className="mb-3 text-sm font-medium">Notification Types</h3>
             <div className="space-y-3">
-              {allNotificationTypes.map((type) => (
+              {getAllNotificationTypes().map((type) => (
                 <div key={type} className="flex items-center justify-between">
                   <Label
                     htmlFor={`${type}-notifications`}
                     className={`flex items-center gap-2 ${
-                      type === NotificationType.Events ? "cursor-pointer" : "cursor-not-allowed"
+                      isNotificationTypeImplemented(type) ? "cursor-pointer" : "cursor-not-allowed"
                     }`}
                   >
                     {getNotificationTypeIcon(type)}
                     {getNotificationTypeLabel(type)}
-                    {type !== NotificationType.Events && (
+                    {!isNotificationTypeImplemented(type) && (
                       <span className="text-muted-foreground text-xs">
                         (Soon...)
                       </span>
@@ -333,7 +398,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     id={`${type}-notifications`}
                     checked={typeSettingsMap.get(type) ?? false}
                     onCheckedChange={() => handleTypeToggle(type)}
-                    disabled={updateMutation.isPending || type !== NotificationType.Events}
+                    disabled={updateMutation.isPending || !isNotificationTypeImplemented(type)}
                   />
                 </div>
               ))}
@@ -344,7 +409,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
           <div>
             <h3 className="mb-3 text-sm font-medium">Notification Channels</h3>
             <div className="space-y-3">
-              {allNotificationChannels.map((channel) => {
+              {getAllNotificationChannels().map((channel) => {
                 const channelSetting = channelSettingsMap.get(channel);
                 return (
                   <div
@@ -354,7 +419,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                     <Label
                       htmlFor={`${channel}-notifications`}
                       className={`flex items-center gap-2 ${
-                        channel === NotificationChannel.Telegram ? "cursor-pointer" : "cursor-not-allowed"
+                        isNotificationChannelImplemented(channel) ? "cursor-pointer" : "cursor-not-allowed"
                       }`}
                     >
                       {getNotificationChannelIcon(channel)}
@@ -365,7 +430,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                             (Connected)
                           </span>
                         )}
-                      {channel !== NotificationChannel.Telegram && (
+                      {!isNotificationChannelImplemented(channel) && (
                         <span className="text-muted-foreground text-xs">
                           (Soon...)
                         </span>
@@ -375,7 +440,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                       id={`${channel}-notifications`}
                       checked={channelSetting?.enabled ?? false}
                       onCheckedChange={() => handleChannelToggle(channel)}
-                      disabled={updateMutation.isPending || channel !== NotificationChannel.Telegram}
+                      disabled={updateMutation.isPending || !isNotificationChannelImplemented(channel)}
                     />
                   </div>
                 );

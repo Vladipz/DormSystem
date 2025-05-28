@@ -17,6 +17,8 @@ using Microsoft.OpenApi.Models;
 using NotificationCore.API.Data;
 using NotificationCore.API.Events.Events;
 
+using RoomService.Client;
+
 using Shared.TokenService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -127,6 +129,9 @@ builder.Services.AddSwaggerGen(c =>
 // Configure MediatR
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+// Configure Room Service Client
+builder.Services.AddRoomServiceClient(builder.Configuration);
 
 builder.Services.AddCarter();
 builder.Services.AddScoped<ITokenService, TokenService>();

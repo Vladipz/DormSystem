@@ -11,4 +11,6 @@ public interface IRoomService
     Task<ErrorOr<List<RoomDto>>> GetRoomsInfoByDormitoryIdAsync(Guid dormitoryId, CancellationToken ct = default);
     
     Task<ErrorOr<List<RoomDto>>> GetRoomsForInspectionAsync(Guid dormitoryId, bool includeSpecial = true, CancellationToken ct = default);
+    
+    Task<ErrorOr<List<PlaceDto>>> GetOccupiedPlacesByRoomIdAsync(Guid roomId, CancellationToken ct = default);
 }

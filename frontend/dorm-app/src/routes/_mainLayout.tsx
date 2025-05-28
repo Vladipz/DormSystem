@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Navbar } from "@/components/Navbar";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 export const Route = createFileRoute("/_mainLayout")({
@@ -14,18 +15,21 @@ function RouteComponent() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <AppSidebar />
-      <div className="flex-1 flex flex-col h-screen">
+      <div className="flex h-screen flex-1 flex-col">
         <header className="min-h-[60px]">
           <Navbar />
         </header>
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto px-4 py-4">
+          {/* Add bottom padding on mobile to account for fixed bottom navigation + safe area */}
+          <div className="container mx-auto px-4 py-4 pb-24 md:pb-4">
             <Outlet />
           </div>
         </main>
       </div>
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav />
     </div>
   );
 }

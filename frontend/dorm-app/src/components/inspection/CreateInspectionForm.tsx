@@ -16,7 +16,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBuildings } from "@/lib/hooks/useBuildings";
-import { useRooms } from "@/lib/hooks/useRooms";
+import { useFloors } from "@/lib/hooks/useFloors";
+import { useRoomsOnFloor } from "@/lib/hooks/useRooms";
 import { RoomInfoDto } from "@/lib/services/inspectionService";
 import type { Inspection } from "@/lib/types/inspection";
 import { ArrowLeft } from "lucide-react";
@@ -50,32 +51,57 @@ export function CreateInspectionForm({
     new Set(),
   );
 
+  // Manual mode filters
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
+  const [selectedFloor, setSelectedFloor] = useState<string>("");
+
   // Fetch dormitories
   const { data: dormitories } = useBuildings();
 
-  // Fetch rooms if in manual mode
-  const { data: rooms, isLoading: isRoomsLoading } = useRooms(
-    undefined,
-    mode === "manual",
+  // Fetch floors for selected building
+  const { data: floors } = useFloors(
+    selectedBuildingId,
+    mode === "manual" && !!selectedBuildingId,
   );
 
+  // Fetch rooms with server-side filtering by building and floor
+  const { data: rooms, isLoading: isRoomsLoading } = useRoomsOnFloor(
+    selectedFloor || "", // floorId - pass empty string if no floor selected
+  );
+  //console the params and the rooms
+  console.log("selectedBuildingId", selectedBuildingId);
+  console.log("selectedFloor", selectedFloor);
+  console.log("rooms", rooms);
+
+  // Since we're using server-side filtering, we can use rooms directly
+  const filteredRooms = rooms || [];
+
   const selectedRooms = useMemo(() => {
-    if (!rooms) return [];
+    if (!filteredRooms) return [];
     return Array.from(selectedRoomIds)
       .map((roomId) => {
-        const room = rooms.find((r) => r.id === roomId);
+        const room = filteredRooms.find((r) => r.id === roomId);
         if (!room) return null;
+        
+        // Get building name from dormitories data
+        const selectedBuilding = selectedBuildingId ? 
+          dormitories?.find(building => building.id === selectedBuildingId) : null;
+        const buildingName = selectedBuilding?.name || "Multiple Buildings";
+        
+        // Get floor number from floors data
+        const selectedFloorData = selectedFloor ? 
+          floors?.find(floor => floor.id === selectedFloor) : null;
+        const floorNumber = selectedFloorData?.number?.toString() || "Multiple Floors";
+        
         return {
           roomId: room.id,
           roomNumber: room.label,
-          // We'll have to work with what we have in the current data model
-          floor: "1", // This would ideally come from the room data
-          building: "Main Building", // This would ideally come from the room data
+          floor: floorNumber,
+          building: buildingName,
         } as RoomInfoDto;
-        //TODO: change to real data
       })
       .filter(Boolean) as RoomInfoDto[];
-  }, [rooms, selectedRoomIds]);
+  }, [filteredRooms, selectedRoomIds, dormitories, selectedBuildingId, floors, selectedFloor]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +137,20 @@ export function CreateInspectionForm({
       newSelectedRooms.delete(roomId);
     }
     setSelectedRoomIds(newSelectedRooms);
+  };
+
+  const handleBuildingChange = (buildingId: string) => {
+    const newBuildingId = buildingId === "allBuildings" ? "" : buildingId;
+    setSelectedBuildingId(newBuildingId);
+    // Reset floor selection when building changes
+    setSelectedFloor("");
+    // Reset selected rooms when building changes
+    setSelectedRoomIds(new Set());
+  };
+
+  const handleFloorChange = (floorId: string) => {
+    const newFloorId = floorId === "allFloors" ? "" : floorId;
+    setSelectedFloor(newFloorId);
   };
 
   return (
@@ -230,12 +270,68 @@ export function CreateInspectionForm({
                 </TabsContent>
 
                 <TabsContent value="manual" className="mt-4 space-y-4">
+                  {/* Building Filter */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="building-filter">
+                        Filter by Building
+                      </Label>
+                      <Select
+                        value={selectedBuildingId}
+                        onValueChange={handleBuildingChange}
+                      >
+                        <SelectTrigger id="building-filter" className="w-full">
+                          <SelectValue
+                            placeholder="All buildings"
+                            className="truncate"
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="allBuildings">
+                            All buildings
+                          </SelectItem>
+                          {dormitories?.map((building) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              <div className="max-w-[300px] truncate">
+                                {building.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="floor-filter">Filter by Floor</Label>
+                      <Select
+                        value={selectedFloor}
+                        onValueChange={handleFloorChange}
+                        disabled={!selectedBuildingId}
+                      >
+                        <SelectTrigger id="floor-filter" className="w-full">
+                          <SelectValue
+                            placeholder="All floors"
+                            className="truncate"
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="allFloors">All floors</SelectItem>
+                          {floors?.map((floor) => (
+                            <SelectItem key={floor.id} value={floor.id}>
+                              Floor {floor.number}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
                   <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
                     {isRoomsLoading ? (
                       <div className="p-4 text-center">Loading rooms...</div>
-                    ) : rooms?.length ? (
+                    ) : filteredRooms?.length ? (
                       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                        {rooms.map((room) => (
+                        {filteredRooms.map((room) => (
                           <div
                             key={room.id}
                             className="flex items-center space-x-2 rounded border p-2 hover:bg-gray-50"

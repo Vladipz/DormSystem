@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.RoomServiceClient\Shared.RoomServiceClient.csproj" />
   </ItemGroup>
 
 </Project>

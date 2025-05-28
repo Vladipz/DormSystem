@@ -1,9 +1,19 @@
 import { CreateInspectionData, CreateInspectionForm } from "@/components/inspection/CreateInspectionForm";
 import { useCreateInspection } from "@/lib/hooks/useInspections";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { authService } from "@/lib/services/authService";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_mainLayout/inspections/create")({
+  beforeLoad: async () => {
+    const authStatus = await authService.checkAuthStatus();
+    if (!authStatus || !authStatus.isAuthenticated) {
+      throw redirect({ to: "/login", search: { returnTo: "/inspections" } });
+    }
+    if (authStatus.role !== "Admin") {
+      throw redirect({ to: "/inspections" });
+    }
+  },
   component: CreateInspectionRoute,
 });
 

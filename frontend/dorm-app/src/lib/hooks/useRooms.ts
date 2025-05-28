@@ -28,7 +28,14 @@ export function useRoomsBlockless(
     enabled: enabled,
   });
 }
-
+//userooms with all rooms on a floor
+export function useRoomsOnFloor(floorId: string) {
+  return useQuery({
+    queryKey: ["rooms", { floorId }],
+    queryFn: () => RoomService.getAllRooms(1, 100, undefined, undefined, floorId, false),
+    enabled: !!floorId,
+  });
+}
 export function useRoomById(id: string) {
   return useQuery({
     queryKey: ["room", id],

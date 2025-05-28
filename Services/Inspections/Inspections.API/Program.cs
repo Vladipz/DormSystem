@@ -8,6 +8,8 @@ using Inspections.API.Data;
 using Inspections.API.Features.Inspections;
 using Inspections.API.Services;
 
+using MassTransit;
+
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -49,6 +51,29 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
+    });
+});
+
+// Configure MassTransit
+builder.Services.AddMassTransit(config =>
+{
+    // Configure RabbitMQ as the message broker
+    config.SetKebabCaseEndpointNameFormatter();
+
+    config.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
+        var host = rabbitMqSettings["Host"] ?? "localhost";
+        var username = rabbitMqSettings["Username"] ?? "guest";
+        var password = rabbitMqSettings["Password"] ?? "guest";
+
+        cfg.Host(host, h =>
+        {
+            h.Username(username);
+            h.Password(password);
+        });
+
+        cfg.ConfigureEndpoints(context);
     });
 });
 

@@ -10,9 +10,14 @@ using Inspections.API.Data;
 using Inspections.API.Entities;
 using Inspections.API.Mappings;
 
+using MassTransit;
+
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+
+using Shared.Data;
+using Shared.RoomServiceClient;
 
 namespace Inspections.API.Features.Inspections
 {
@@ -52,16 +57,27 @@ namespace Inspections.API.Features.Inspections
         {
             private readonly ApplicationDbContext _db;
             private readonly IValidator<Command> _validator;
+            private readonly IRoomService _roomService;
+            private readonly IBus _bus;
+            private readonly ILogger<Handler> _logger;
 
-            public Handler(ApplicationDbContext db, IValidator<Command> validator)
+            public Handler(
+                ApplicationDbContext db,
+                IValidator<Command> validator,
+                IRoomService roomService,
+                IBus bus,
+                ILogger<Handler> logger)
             {
                 _db = db;
                 _validator = validator;
+                _roomService = roomService;
+                _bus = bus;
+                _logger = logger;
             }
 
-            public async Task<ErrorOr<Unit>> Handle(Command request, CancellationToken ct)
+            public async Task<ErrorOr<Unit>> Handle(Command request, CancellationToken cancellationToken)
             {
-                var validation = await _validator.ValidateAsync(request, ct);
+                var validation = await _validator.ValidateAsync(request, cancellationToken);
                 if (!validation.IsValid)
                 {
                     return validation.ToValidationError<Unit>();
@@ -69,7 +85,7 @@ namespace Inspections.API.Features.Inspections
 
                 var inspection = await _db.Inspections
                     .Include(i => i.Rooms)
-                    .FirstOrDefaultAsync(i => i.Id == request.InspectionId, ct);
+                    .FirstOrDefaultAsync(i => i.Id == request.InspectionId, cancellationToken);
 
                 if (inspection is null)
                 {
@@ -87,10 +103,52 @@ namespace Inspections.API.Features.Inspections
                     return Error.Validation("Status", "Invalid status value.");
                 }
 
+                var oldStatus = room.Status;
                 room.Status = newStatus;
                 room.Comment = request.Comment ?? string.Empty;
 
-                await _db.SaveChangesAsync(ct);
+                await _db.SaveChangesAsync(cancellationToken);
+
+                // Only publish event if status actually changed
+                if (oldStatus != newStatus)
+                {
+                    try
+                    {
+                        // Publish the room inspection status updated event
+                        await _bus.Publish(
+                            new RoomInspectionStatusUpdatedEvent
+                            {
+                                InspectionId = request.InspectionId,
+                                RoomInspectionId = request.RoomInspectionId,
+                                RoomId = room.RoomId,
+                                InspectionName = inspection.Name,
+                                InspectionType = inspection.Type,
+                                NewStatus = newStatus.ToString(),
+                                Comment = request.Comment,
+                                UpdatedAt = DateTime.UtcNow,
+                                RoomNumber = room.RoomNumber,
+                                Building = room.Building,
+                                Floor = room.Floor,
+                            }, cancellationToken);
+
+                        _logger.LogInformation(
+                            "Published RoomInspectionStatusUpdatedEvent for room inspection {RoomInspectionId}, room {RoomId}, status changed from {OldStatus} to {NewStatus}",
+                            request.RoomInspectionId,
+                            room.RoomId,
+                            oldStatus,
+                            newStatus);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Failed to publish RoomInspectionStatusUpdatedEvent for room inspection {RoomInspectionId}",
+                            request.RoomInspectionId);
+
+                        // Don't fail the whole operation if event publishing fails
+                    }
+                }
+
                 return Unit.Value;
             }
         }

@@ -111,4 +111,52 @@ public sealed class HttpRoomService : IRoomService
             return Error.Unexpected(description: ex.Message);
         }
     }
+
+    public async Task<ErrorOr<List<PlaceDto>>> GetOccupiedPlacesByRoomIdAsync(Guid roomId, CancellationToken ct = default)
+    {
+        try
+        {
+            var requestUri = new Uri($"{_settings.ApiUrl}/api/places?roomId={roomId}&isOccupied=true&pageSize=100");
+            var response = await _httpClient.GetAsync(requestUri, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to get occupied places from Room service: {StatusCode} {Response}",
+                    response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+
+                return Error.Failure("Room.GetOccupiedPlacesFailed", $"Failed to get occupied places. Status: {response.StatusCode}");
+            }
+
+            var placesResponse = await response.Content.ReadFromJsonAsync<PagedResponse<PlaceDto>>(cancellationToken: ct);
+            if (placesResponse?.Items is null)
+            {
+                return Error.Failure("Room.InvalidResponse", "Invalid response from Room service");
+            }
+
+            return placesResponse.Items;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error when getting occupied places for room {RoomId}", roomId);
+            return Error.Failure("Room.ConnectionError", ex.Message);
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error when getting occupied places for room {RoomId}", roomId);
+            return Error.Failure("Room.InvalidResponse", ex.Message);
+        }
+        catch (Exception ex) when (
+            ex is not OperationCanceledException &&
+            ex is not ObjectDisposedException)
+        {
+            _logger.LogError(ex, "Unexpected error when getting occupied places for room {RoomId}", roomId);
+            return Error.Unexpected(description: ex.Message);
+        }
+    }
+
+    // Generic paged response wrapper
+    private class PagedResponse<T>
+    {
+        public List<T> Items { get; set; } = new();
+    }
 }

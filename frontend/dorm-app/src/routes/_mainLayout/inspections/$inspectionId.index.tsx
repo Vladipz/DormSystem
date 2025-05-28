@@ -6,10 +6,12 @@ import {
   useStartInspection,
   useUpdateRoomStatus,
 } from "@/lib/hooks/useInspections";
+import { authService } from "@/lib/services/authService";
 import { ReportStyle } from "@/lib/services/inspectionService";
 import type { RoomInspectionStatus } from "@/lib/types/inspection";
 import {
   createFileRoute,
+  redirect,
   useNavigate,
   useParams,
 } from "@tanstack/react-router";
@@ -17,6 +19,15 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_mainLayout/inspections/$inspectionId/")(
   {
+    beforeLoad: async () => {
+      const authStatus = await authService.checkAuthStatus();
+      if (!authStatus || !authStatus.isAuthenticated) {
+        throw redirect({ to: "/login", search: { returnTo: "/inspections" } });
+      }
+      if (authStatus.role !== "Admin") {
+        throw redirect({ to: "/inspections" });
+      }
+    },
     component: InspectionDetailRoute,
   },
 );

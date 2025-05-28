@@ -16,17 +16,26 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useListInspections } from "@/lib/hooks/useInspections";
+import { authService } from "@/lib/services/authService";
 import { InspectionStatus } from "@/lib/types/inspection";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/inspections/")({
+  beforeLoad: async () => {
+    const authStatus = await authService.checkAuthStatus();
+    if (!authStatus || !authStatus.isAuthenticated) {
+      throw redirect({ to: "/login", search: { returnTo: "/inspections" } });
+    }
+    return { userRole: authStatus.role };
+  },
   component: InspectionsPage,
 });
 
 export function InspectionsPage() {
   const navigate = useNavigate();
+  const { userRole } = Route.useRouteContext();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<"all" | InspectionStatus>("all");
   const pageSize = 10; // Show 10 inspections per page
@@ -45,6 +54,9 @@ export function InspectionsPage() {
     setActiveTab(value as "all" | InspectionStatus);
     setCurrentPage(1);
   };
+
+  // Check if user is admin to show create button and allow details access
+  const isAdmin = userRole === "Admin";
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -79,14 +91,24 @@ export function InspectionsPage() {
     }
   }
 
+  // Handle inspection card click - only allow details for admin users
+  const handleInspectionClick = (inspectionId: string) => {
+    if (isAdmin) {
+      navigate({ to: `/inspections/${inspectionId}` });
+    }
+    // For non-admin users, do nothing (no navigation to details)
+  };
+
   // Return the list of inspections
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dorm Inspections</h1>
-        <Button onClick={() => navigate({ to: "/inspections/create" })}>
-          <Plus className="mr-2 h-4 w-4" /> Create Inspection
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => navigate({ to: "/inspections/create" })}>
+            <Plus className="mr-2 h-4 w-4" /> Create Inspection
+          </Button>
+        )}
       </div>
 
       <Tabs
@@ -106,7 +128,8 @@ export function InspectionsPage() {
             <InspectionCard
               key={inspection.id}
               inspection={inspection}
-              onClick={() => navigate({ to: `/inspections/${inspection.id}` })}
+              onClick={() => handleInspectionClick(inspection.id)}
+              isClickable={isAdmin}
             />
           ))}
         </TabsContent>
