@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using Shared.FileServiceClient.Extensions;
+using Shared.TokenService.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS service
@@ -60,6 +63,12 @@ builder.Services.AddSwaggerGen(c =>
         },
     });
 });
+
+// Add shared FileServiceClient
+builder.Services.AddFileServiceClient(builder.Configuration);
+
+// Add shared TokenService
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILinkCodeService, LinkCodeService>();

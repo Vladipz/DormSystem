@@ -21,3 +21,17 @@ export interface LinkCodeResponse {
   code: string;
   expiresAt: string;
 }
+
+export interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl?: string;
+  roles: string[];
+}
+
+export interface AvatarUploadResponse {
+  avatarUrl: string;
+  message: string;
+}

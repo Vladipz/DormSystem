@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\Inspections\Inspections.API\Inspections.API.csproj" />
     <ProjectReference Include="..\..\NotificationCore\NotificationCore.API\NotificationCore.API.csproj" />
     <ProjectReference Include="..\..\TelegramAgent\TelegramAgent.API\TelegramAgent.API.csproj" />
+    <ProjectReference Include="..\..\FileStorage\FileStorage.API\FileStorage.API.csproj" />
   </ItemGroup>
 
 </Project>

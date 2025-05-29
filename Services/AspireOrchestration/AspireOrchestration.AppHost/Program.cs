@@ -12,12 +12,15 @@ var notificationService = builder.AddProject<Projects.NotificationCore_API>("not
 
 var telegramService = builder.AddProject<Projects.TelegramAgent_API>("telegram-service");
 
+var fileStorageService = builder.AddProject<Projects.FileStorage_API>("file-storage-service");
+
 var apiGateway = builder.AddProject<Projects.ApiGateway_YARP>("api-gateway")
     .WithReference(authService)
     .WithReference(eventService)
     .WithReference(inspectionService)
     .WithReference(roomService)
     .WithReference(notificationService)
-    .WithReference(telegramService);
+    .WithReference(telegramService)
+    .WithReference(fileStorageService);
 
 builder.Build().Run();

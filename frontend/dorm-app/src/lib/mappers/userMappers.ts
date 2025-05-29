@@ -22,11 +22,7 @@ export function mapUserDetailsToUserProfileProps(
       points: details.points ?? 0,
 
       // URL аватарки або плейсхолдер
-      avatar: details.avatarUrl
-        ? details.avatarUrl
-        : details.id
-          ? `/api/avatar/${details.id}`
-          : "/placeholder.svg?height=40&width=40",
+      avatar: details.avatarUrl,
     },
   };
 }

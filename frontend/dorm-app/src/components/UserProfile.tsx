@@ -8,7 +8,9 @@ import {
   SettingsTab,
   UserInfoCard,
 } from "@/components/user-profile";
-import { useState } from "react";
+import { UserDetails } from "@/lib/hooks/useUser";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 export interface UserProfileProps {
   user: {
@@ -31,6 +33,43 @@ export function UserProfile({ user, userId }: UserProfileProps) {
   const [bio, setBio] = useState(
     "Computer Science student. I enjoy playing basketball and video games.",
   );
+  const queryClient = useQueryClient();
+
+  // Синхронізуємо локальний стан з props при їх зміні
+  useEffect(() => {
+    setName(user.name);
+    setEmail(user.email);
+  }, [user.name, user.email]);
+
+  const handleAvatarUpdate = async (newAvatarUrl: string) => {
+    console.log("Avatar update received:", newAvatarUrl);
+
+    // Спочатку оновлюємо кеш з правильною структурою
+    queryClient.setQueryData<UserDetails>(["user", userId], (oldData) => {
+      if (oldData) {
+        console.log("Updating cache with new avatar:", newAvatarUrl);
+        return {
+          ...oldData,
+          avatar: newAvatarUrl, // Використовуємо avatar, а не avatarUrl
+          avatarUrl: newAvatarUrl, // Якщо потрібно для сумісності
+        };
+      }
+      return oldData;
+    });
+
+    // Потім інвалідуємо для отримання свіжих даних з сервера
+    setTimeout(async () => {
+      try {
+        await queryClient.invalidateQueries({
+          queryKey: ["user", userId],
+          exact: true,
+        });
+        console.log("Query invalidated successfully");
+      } catch (error) {
+        console.error("Failed to invalidate query:", error);
+      }
+    }, 100); // Невелика затримка для уникнення race condition
+  };
 
   // Mock achievements
   const achievements = [
@@ -75,7 +114,11 @@ export function UserProfile({ user, userId }: UserProfileProps) {
 
   return (
     <div className="space-y-6">
-      <UserInfoCard user={user} bio={bio} />
+      <UserInfoCard
+        user={user}
+        bio={bio}
+        onAvatarUpdate={handleAvatarUpdate}
+      />
 
       <Tabs defaultValue="profile">
         <TabsList>

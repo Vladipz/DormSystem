@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Auth.DAL\Auth.DAL.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.FileServiceClient\Shared.FileServiceClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

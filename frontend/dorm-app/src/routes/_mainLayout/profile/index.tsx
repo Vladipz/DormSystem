@@ -35,7 +35,7 @@ function RouteComponent() {
   }
 
   if (authLoading || userLoading || !user) return <div>Завантаження…</div>;
-
+  console.log("user", user);
   const userProfileProps = mapUserDetailsToUserProfileProps(user);
   return <UserProfile user={userProfileProps.user} userId={userId} />;
 }

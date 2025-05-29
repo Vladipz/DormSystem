@@ -15,3 +15,6 @@ http - 5005
 
 NotificationsCore
 http - 5006
+
+FileStorage
+http - 5007

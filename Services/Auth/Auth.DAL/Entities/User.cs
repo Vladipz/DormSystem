@@ -19,6 +19,8 @@ namespace Auth.DAL.Entities
 
         public string LastName { get; set; } = string.Empty;
 
+        public string? AvatarId { get; set; }
+
         public ICollection<RefreshToken> RefreshTokens { get; init; } = [];
     }
 }
