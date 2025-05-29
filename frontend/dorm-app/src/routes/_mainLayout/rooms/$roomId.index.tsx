@@ -53,11 +53,6 @@ export const Route = createFileRoute("/_mainLayout/rooms/$roomId/")({
   component: RoomDetails,
 });
 
-// interface RoomDetailsProps {
-//   roomId: string;
-//   onBack?: () => void;
-// }
-
 export function RoomDetails() {
   const { roomId } = Route.useParams();
   const router = useRouter();

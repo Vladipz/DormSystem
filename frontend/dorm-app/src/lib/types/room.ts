@@ -33,6 +33,7 @@ export interface RoomDetailsResponse {
   roomType: RoomType;
   purpose?: string | null;
   amenities: string[];
+  photoUrls: string[];
 }
 
 export interface RoomsResponse {
@@ -42,6 +43,7 @@ export interface RoomsResponse {
   capacity: number;
   status: RoomStatus;
   roomType: RoomType;
+  photoUrls?: string[];
 }
 
 export interface UpdateRoomRequest {
@@ -53,8 +55,21 @@ export interface UpdateRoomRequest {
   roomType: RoomType;
   purpose?: string | null;
   amenities: string[];
+  photoIds: string[];
 }
 
 export interface UpdatedRoomResponse {
   id: string;
+}
+
+// Room photo management types
+export interface UploadRoomPhotoResponse {
+  photoId: string;
+  photoUrl: string;
+  message: string;
+}
+
+export interface DeletedRoomPhotoResponse {
+  photoId: string;
+  message: string;
 }

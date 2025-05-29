@@ -15,6 +15,7 @@ using Rooms.API.Contracts.Room;
 using Rooms.API.Data;
 using Rooms.API.Entities;
 using Rooms.API.Mappings;
+using Shared.FileServiceClient;
 
 namespace Rooms.API.Features.Rooms
 {
@@ -38,6 +39,8 @@ namespace Rooms.API.Features.Rooms
 
             public List<string> Amenities { get; set; } =
                 [];
+
+            public List<string> PhotoIds { get; set; } = [];
         }
 
         internal sealed class Validator : AbstractValidator<Command>
@@ -58,11 +61,13 @@ namespace Rooms.API.Features.Rooms
         {
             private readonly ApplicationDbContext _dbContext;
             private readonly IValidator<Command> _validator;
+            private readonly IFileServiceClient _fileServiceClient;
 
-            public Handler(ApplicationDbContext dbContext, IValidator<Command> validator)
+            public Handler(ApplicationDbContext dbContext, IValidator<Command> validator, IFileServiceClient fileServiceClient)
             {
                 _dbContext = dbContext;
                 _validator = validator;
+                _fileServiceClient = fileServiceClient;
             }
 
             public async Task<ErrorOr<UpdatedRoomResponse>> Handle(Command request, CancellationToken ct)
@@ -84,6 +89,9 @@ namespace Rooms.API.Features.Rooms
                         description: $"Room with ID {request.Id} was not found.");
                 }
 
+                // Store old photo IDs for cleanup
+                var oldPhotoIds = room.PhotoIds.ToList();
+
                 room.BlockId = request.BlockId;
                 room.Label = request.Label;
                 room.Capacity = request.Capacity;
@@ -96,7 +104,29 @@ namespace Rooms.API.Features.Rooms
                     room.Amenities.Add(amenity);
                 }
 
+                // Update photo IDs
+                room.PhotoIds.Clear();
+                foreach (var photoId in request.PhotoIds)
+                {
+                    room.PhotoIds.Add(photoId);
+                }
+
                 await _dbContext.SaveChangesAsync(ct);
+
+                // Clean up old photos that are no longer associated with the room
+                var photosToDelete = oldPhotoIds.Except(request.PhotoIds).ToList();
+                foreach (var photoId in photosToDelete)
+                {
+                    try
+                    {
+                        await _fileServiceClient.DeleteFileAsync(photoId);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but don't fail the update operation
+                        Console.WriteLine($"Warning: Failed to delete photo {photoId}: {ex.Message}");
+                    }
+                }
 
                 return new UpdatedRoomResponse { Id = room.Id };
             }

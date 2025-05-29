@@ -1,14 +1,15 @@
+import { RoomPhotoManager } from "@/components/room/RoomPhotoManager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useRoomById, useUpdateRoom } from "@/lib/hooks/useRooms";
@@ -77,6 +78,7 @@ export default function RoomEditPage() {
         roomType: values.roomType,
         purpose: values.purpose || null,
         amenities: values.amenities,
+        photoIds: room?.photoUrls?.map(url => url.split('/').pop() || '') || [],
       };
 
       updateRoomMutation.mutate(payload, {
@@ -158,7 +160,7 @@ export default function RoomEditPage() {
       <div className="mb-6 flex items-center">
         <Button
           variant="outline"
-          onClick={() => navigate({ to: `/_mainLayout/rooms/${roomId}` })}
+          onClick={() => navigate({ to: `/rooms/${roomId}` })}
           className="mr-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -342,6 +344,9 @@ export default function RoomEditPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Photo Management Section */}
+      {room && <RoomPhotoManager room={room} />}
     </div>
   );
 }

@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.FileServiceClient\Shared.FileServiceClient.csproj" />
   </ItemGroup>
 
 </Project>

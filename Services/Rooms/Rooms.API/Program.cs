@@ -27,6 +27,7 @@ using Rooms.API.Services;
 
 using Shared.TokenService.Services;
 using Shared.UserServiceClient;
+using Shared.FileServiceClient.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +63,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Add Antiforgery services
+builder.Services.AddAntiforgery();
 
 // Register Mapster
 var config = TypeAdapterConfig.GlobalSettings;
@@ -108,6 +112,9 @@ builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection
 
 builder.Services.AddUserServiceClient(authServiceUrl);
 
+// Register FileServiceClient for managing room photos
+builder.Services.AddFileServiceClient(builder.Configuration);
+
 // Register MaintenanceTicketEnricher
 builder.Services.AddScoped<MaintenanceTicketEnricher>();
 
@@ -124,6 +131,8 @@ builder.Services.AddTransient<IValidator<GetRooms.Query>, GetRooms.Validator>();
 builder.Services.AddTransient<IValidator<GetRoomById.Query>, GetRoomById.Validator>();
 builder.Services.AddTransient<IValidator<UpdateRoom.Command>, UpdateRoom.Validator>();
 builder.Services.AddTransient<IValidator<DeleteRoom.Command>, DeleteRoom.Validator>();
+builder.Services.AddTransient<IValidator<UploadRoomPhoto.Command>, UploadRoomPhoto.Validator>();
+builder.Services.AddTransient<IValidator<DeleteRoomPhoto.Command>, DeleteRoomPhoto.Validator>();
 
 // Block Validators
 builder.Services.AddTransient<IValidator<CreateBlock.Command>, CreateBlock.Validator>();
@@ -230,6 +239,7 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 app.MapGroup("/api")
    .WithOpenApi()
    .MapCarter();

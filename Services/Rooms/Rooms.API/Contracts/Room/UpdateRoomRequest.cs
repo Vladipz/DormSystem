@@ -1,4 +1,3 @@
-
 using Rooms.API.Entities;
 
 namespace Rooms.API.Contracts.Room
@@ -20,6 +19,10 @@ namespace Rooms.API.Contracts.Room
         public string? Purpose { get; set; }
 
         public List<string> Amenities { get; set; } = new();
-    }
 
+        /// <summary>
+        /// Gets or sets the IDs of photos to associate with the room.
+        /// </summary>
+        public List<string> PhotoIds { get; set; } = new();
+    }
 }

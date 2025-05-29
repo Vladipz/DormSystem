@@ -3,15 +3,17 @@
 import {
   CreateRoomRequest,
   CreateRoomResponse,
+  DeletedRoomPhotoResponse,
   DeletedRoomResponse,
   RoomDetailsResponse,
   RoomsResponse,
   UpdateRoomRequest,
-  UpdatedRoomResponse
+  UpdatedRoomResponse,
+  UploadRoomPhotoResponse
 } from "@/lib/types/room";
-import axios from "axios";
+import { api, axiosClient } from "@/lib/utils/axios-client";
 
-const API_URL = `${import.meta.env.VITE_ROOMS_API_URL ?? "http://localhost:5137/api/rooms"}`;
+const API_BASE = "/rooms";
 
 export class RoomService {
   // Отримати список кімнат
@@ -24,10 +26,15 @@ export class RoomService {
     onlyBlockless?: boolean
   ): Promise<RoomsResponse[]> {
     try {
-      const res = await axios.get<{ items: RoomsResponse[] }>(`${API_URL}`, {
-        params: { page, pageSize, blockId, buildingId, floorId, onlyBlockless }
+      const response = await api.get<{ items: RoomsResponse[] }>(API_BASE, {
+        page,
+        pageSize,
+        blockId,
+        buildingId,
+        floorId,
+        onlyBlockless
       });
-      return res.data.items;
+      return response.items;
     } catch (error) {
       console.error("Error fetching rooms:", error);
       throw error;
@@ -37,8 +44,7 @@ export class RoomService {
   // Отримати одну кімнату за ID
   public static async getRoomById(id: string): Promise<RoomDetailsResponse> {
     try {
-      const res = await axios.get<RoomDetailsResponse>(`${API_URL}/${id}`);
-      return res.data;
+      return await api.get<RoomDetailsResponse>(`${API_BASE}/${id}`);
     } catch (error) {
       console.error(`Error fetching room ${id}:`, error);
       throw error;
@@ -48,8 +54,7 @@ export class RoomService {
   // Створити нову кімнату
   public static async createRoom(data: CreateRoomRequest): Promise<CreateRoomResponse> {
     try {
-      const res = await axios.post<CreateRoomResponse>(`${API_URL}`, data);
-      return res.data;
+      return await api.post<CreateRoomResponse>(API_BASE, data);
     } catch (error) {
       console.error("Error creating room:", error);
       throw error;
@@ -59,8 +64,7 @@ export class RoomService {
   // Оновити кімнату
   public static async updateRoom(data: UpdateRoomRequest): Promise<UpdatedRoomResponse> {
     try {
-      const res = await axios.put<UpdatedRoomResponse>(`${API_URL}/${data.id}`, data);
-      return res.data;
+      return await api.put<UpdatedRoomResponse>(`${API_BASE}/${data.id}`, data);
     } catch (error) {
       console.error(`Error updating room ${data.id}:`, error);
       throw error;
@@ -70,10 +74,41 @@ export class RoomService {
   // Видалити кімнату
   public static async deleteRoom(id: string): Promise<DeletedRoomResponse> {
     try {
-      const res = await axios.delete<DeletedRoomResponse>(`${API_URL}/${id}`);
-      return res.data;
+      return await api.delete<DeletedRoomResponse>(`${API_BASE}/${id}`);
     } catch (error) {
       console.error(`Error deleting room ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // Upload room photo
+  public static async uploadRoomPhoto(roomId: string, photo: File): Promise<UploadRoomPhotoResponse> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', photo);
+
+      const response = await axiosClient.post<UploadRoomPhotoResponse>(
+        `${API_BASE}/${roomId}/photos`, 
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error uploading photo for room ${roomId}:`, error);
+      throw error;
+    }
+  }
+
+  // Delete room photo
+  public static async deleteRoomPhoto(roomId: string, photoId: string): Promise<DeletedRoomPhotoResponse> {
+    try {
+      return await api.delete<DeletedRoomPhotoResponse>(`${API_BASE}/${roomId}/photos/${photoId}`);
+    } catch (error) {
+      console.error(`Error deleting photo ${photoId} for room ${roomId}:`, error);
       throw error;
     }
   }

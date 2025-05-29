@@ -28,5 +28,10 @@ namespace Rooms.API.Contracts.Room
 
         public Collection<string> Amenities { get; init; } =
             [];
+
+        /// <summary>
+        /// Gets or sets the URLs of room photos from FileStorage service.
+        /// </summary>
+        public Collection<string> PhotoUrls { get; init; } = [];
     }
 }

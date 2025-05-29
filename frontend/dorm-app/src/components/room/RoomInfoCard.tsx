@@ -1,3 +1,4 @@
+import { RoomPhotoGallery } from "@/components/room/RoomPhotoGallery";
 import {
   Badge,
   Card,
@@ -14,25 +15,15 @@ interface RoomInfoCardProps {
   room: RoomDetailsResponse;
 }
 
-const roomPhotos = [
-  {
-    id: 1,
-    url: "/placeholder.svg?height=300&width=400",
-    caption: "Room overview",
-  },
-  {
-    id: 2,
-    url: "/placeholder.svg?height=300&width=400",
-    caption: "Window view",
-  },
-  { id: 3, url: "/placeholder.svg?height=300&width=400", caption: "Bathroom" },
-];
-
 export function RoomInfoCard({ room }: RoomInfoCardProps) {
   const { data: block, isLoading: isBlockLoading } = useBlockById(
     room.block?.id || "",
   );
 
+  const hasPhotos = room.photoUrls && room.photoUrls.length > 0;
+  const thumbnailPhotos = hasPhotos ? room.photoUrls.slice(1, 4) : [];
+  console.log("thumbnailPhotos", thumbnailPhotos);
+  console.log("room.photoUrls", room.photoUrls);
   return (
     <Card>
       <CardHeader>
@@ -42,26 +33,48 @@ export function RoomInfoCard({ room }: RoomInfoCardProps) {
         <div className="grid gap-6 md:grid-cols-2">
           <div>
             <div className="mb-4 aspect-video overflow-hidden rounded-md">
-              <img
-                src="/placeholder.svg?height=300&width=500"
-                alt={`Room ${room.label}`}
-                className="h-full w-full object-cover"
-              />
+              {hasPhotos ? (
+                <RoomPhotoGallery
+                  photos={room.photoUrls}
+                  roomLabel={room.label}
+                />
+              ) : (
+                <img
+                  src="/placeholder.svg?height=300&width=500"
+                  alt={`Room ${room.label}`}
+                  className="h-full w-full object-cover"
+                />
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {roomPhotos.map((photo) => (
-                <div
-                  key={photo.id}
-                  className="aspect-square overflow-hidden rounded-md"
-                >
-                  <img
-                    src={photo.url || "/placeholder.svg"}
-                    alt={photo.caption}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {hasPhotos && thumbnailPhotos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                {thumbnailPhotos.map((photo, index) => (
+                  <div
+                    key={index}
+                    className="aspect-square cursor-pointer overflow-hidden rounded-md"
+                  >
+                    <img
+                      src={photo} // Використовуємо саме фото з масиву, а не photos[0]
+                      alt={`Room ${room.label} - Thumbnail ${index + 2}`}
+                      className="h-full w-full object-cover transition-opacity hover:opacity-90"
+                      onClick={() => {
+                        // Відкриваємо галерею з відповідним індексом
+                        // Це потребує додаткової логіки
+                      }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder.svg?height=100&width=100";
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!hasPhotos && (
+              <div className="text-muted-foreground py-8 text-center">
+                <p>No photos available for this room</p>
+              </div>
+            )}
           </div>
           <div className="space-y-4">
             <div>

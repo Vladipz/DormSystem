@@ -9,12 +9,14 @@ using Mapster;
 
 using MediatR;
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using Rooms.API.Contracts.Room;
 using Rooms.API.Data;
 using Rooms.API.Mappings;
-using Microsoft.AspNetCore.Mvc;
+
+using Shared.FileServiceClient;
 
 namespace Rooms.API.Features.Rooms
 {
@@ -39,11 +41,13 @@ namespace Rooms.API.Features.Rooms
         {
             private readonly ApplicationDbContext _dbContext;
             private readonly IValidator<Query> _validator;
+            private readonly IFileServiceClient _fileServiceClient;
 
-            public Handler(ApplicationDbContext dbContext, IValidator<Query> validator)
+            public Handler(ApplicationDbContext dbContext, IValidator<Query> validator, IFileServiceClient fileServiceClient)
             {
                 _dbContext = dbContext;
                 _validator = validator;
+                _fileServiceClient = fileServiceClient;
             }
 
             public async Task<ErrorOr<RoomDetailsResponse>> Handle(Query request, CancellationToken ct)
@@ -72,7 +76,25 @@ namespace Rooms.API.Features.Rooms
                         description: $"Room with ID {request.RoomId} was not found.");
                 }
 
-                return room.Adapt<RoomDetailsResponse>();
+                var response = room.Adapt<RoomDetailsResponse>();
+
+                // Add photo URLs from FileStorage service
+                response.PhotoUrls.Clear();
+                foreach (var photoId in room.PhotoIds)
+                {
+                    try
+                    {
+                        var photoUrl = _fileServiceClient.GetFileUrl(photoId);
+                        response.PhotoUrls.Add(photoUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but continue with other photos
+                        Console.WriteLine($"Warning: Failed to get URL for photo {photoId}: {ex.Message}");
+                    }
+                }
+
+                return response;
             }
         }
     }

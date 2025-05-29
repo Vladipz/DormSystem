@@ -1,6 +1,12 @@
 import { RoomService } from "@/lib/services/roomService";
-import { CreateRoomRequest, UpdateRoomRequest } from "@/lib/types/room";
+import {
+  CreateRoomRequest,
+  DeletedRoomPhotoResponse,
+  UpdateRoomRequest,
+  UploadRoomPhotoResponse
+} from "@/lib/types/room";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function useRooms(
   buildingId?: string,
@@ -70,6 +76,44 @@ export function useDeleteRoom() {
     mutationFn: (id: string) => RoomService.deleteRoom(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+}
+
+// Hook для завантаження фото кімнати
+export function useUploadRoomPhoto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UploadRoomPhotoResponse, Error, { roomId: string; photo: File }>({
+    mutationFn: ({ roomId, photo }) => RoomService.uploadRoomPhoto(roomId, photo),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Room photo uploaded successfully");
+      // Invalidate room details to refresh photo URLs
+      queryClient.invalidateQueries({ queryKey: ["room", variables.roomId] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error) => {
+      console.error("Error uploading room photo:", error);
+      toast.error("Failed to upload room photo");
+    },
+  });
+}
+
+// Hook для видалення фото кімнати
+export function useDeleteRoomPhoto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<DeletedRoomPhotoResponse, Error, { roomId: string; photoId: string }>({
+    mutationFn: ({ roomId, photoId }) => RoomService.deleteRoomPhoto(roomId, photoId),
+    onSuccess: (data, variables) => {
+      toast.success(data.message || "Room photo deleted successfully");
+      // Invalidate room details to refresh photo URLs
+      queryClient.invalidateQueries({ queryKey: ["room", variables.roomId] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting room photo:", error);
+      toast.error("Failed to delete room photo");
     },
   });
 }

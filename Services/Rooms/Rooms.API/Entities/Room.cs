@@ -75,6 +75,12 @@ namespace Rooms.API.Entities
         public Collection<string> Amenities { get; init; } = new Collection<string>();
 
         /// <summary>
+        /// Gets or sets the IDs of photos stored in FileStorage service.
+        /// Multiple photos can be associated with a room.
+        /// </summary>
+        public Collection<string> PhotoIds { get; init; } = new Collection<string>();
+
+        /// <summary>
         /// Gets or sets navigation property for the block this room belongs to.
         /// Null for event rooms or specialized rooms not within blocks.
         /// </summary>
