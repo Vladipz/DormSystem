@@ -21,7 +21,7 @@ function RouteComponent() {
         <header className="min-h-[60px]">
           <Navbar />
         </header>
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto" style={{ scrollbarGutter: "stable" }}>
           {/* Add bottom padding on mobile to account for fixed bottom navigation + safe area */}
           <div className="container mx-auto px-4 py-4 pb-24 md:pb-4">
             <Outlet />
