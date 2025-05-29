@@ -1,6 +1,7 @@
 import {
   Avatar,
   AvatarFallback,
+  AvatarImage,
   Badge,
   Card,
   CardContent,
@@ -77,6 +78,7 @@ function PlaceOccupant({
   return (
     <div className="flex items-start gap-4" onClick={handleClick}>
       <Avatar className="h-10 w-10">
+        <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}'s avatar`} />
         <AvatarFallback>{placeholderAvatar}</AvatarFallback>
       </Avatar>
       <div>
