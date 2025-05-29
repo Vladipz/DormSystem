@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const PLACES_KEY = "places";
 const PLACE_KEY = "place";
 const AVAILABLE_PLACES_KEY = "availablePlaces";
+const USER_ADDRESS_KEY = "userAddress";
 
 /**
  * Hook to fetch a paginated list of places with optional filters
@@ -32,6 +33,17 @@ export const usePlace = (id: string) => {
     queryKey: [PLACE_KEY, id],
     queryFn: () => PlaceService.getPlaceById(id),
     enabled: !!id, // Only run query if ID is provided
+  });
+};
+
+/**
+ * Hook to fetch user address by user ID
+ */
+export const useUserAddress = (userId?: string) => {
+  return useQuery({
+    queryKey: [USER_ADDRESS_KEY, userId],
+    queryFn: () => PlaceService.getUserAddress(userId!),
+    enabled: !!userId, // Only run query if userId is provided
   });
 };
 

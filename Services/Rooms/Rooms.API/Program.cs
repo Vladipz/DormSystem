@@ -147,6 +147,7 @@ builder.Services.AddTransient<IValidator<UpdatePlace.Command>, UpdatePlace.Valid
 builder.Services.AddTransient<IValidator<DeletePlace.Command>, DeletePlace.Validator>();
 builder.Services.AddTransient<IValidator<VacatePlace.Command>, VacatePlace.Validator>();
 builder.Services.AddTransient<IValidator<OccupyPlace.Command>, OccupyPlace.Validator>();
+builder.Services.AddTransient<IValidator<GetUserAddress.Query>, GetUserAddress.Validator>();
 
 // Building Validators
 builder.Services.AddTransient<IValidator<CreateBuilding.Command>, CreateBuilding.Validator>();

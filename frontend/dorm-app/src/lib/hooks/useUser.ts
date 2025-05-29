@@ -8,6 +8,15 @@ export interface UserDetails {
   email: string;
   roles: string[];
   avatarUrl: string;
+  points?: number;
+  faculty?: string;
+  year?: number;
+  dormInfo?: {
+    room?: string;
+    floor?: string;
+    building?: string;
+    address?: string;
+  };
 }
 
 export interface PagedUsersResponse {

@@ -9,11 +9,12 @@ import {
   PlaceOccupationResponse,
   PlacePagedResponse,
   UpdatePlaceRequest,
-  UpdatedPlaceResponse
+  UpdatedPlaceResponse,
+  UserAddressResponse
 } from "@/lib/types/place";
 import { axiosClient } from "@/lib/utils/axios-client";
 
-const API_URL = `${import.meta.env.VITE_PLACES_API_URL ?? "http://localhost:5137/api/places"}`;
+const API_URL = "/places";
 
 export class PlaceService {
   /**
@@ -29,6 +30,14 @@ export class PlaceService {
    */
   static async getPlaceById(id: string): Promise<PlaceDetailsResponse> {
     const { data } = await axiosClient.get<PlaceDetailsResponse>(`${API_URL}/${id}`);
+    return data;
+  }
+
+  /**
+   * Get user address by user ID
+   */
+  static async getUserAddress(userId: string): Promise<UserAddressResponse> {
+    const { data } = await axiosClient.get<UserAddressResponse>(`${API_URL}/user/${userId}/address`);
     return data;
   }
 

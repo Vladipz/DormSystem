@@ -4,6 +4,7 @@ export interface PlaceResponse {
   id: string;
   roomId: string;
   index: number;
+  isOccupied?: boolean;
   occupiedByUserId?: string;
   occupiedByUser?: {
     id: string;
@@ -24,6 +25,19 @@ export interface PlaceDetailsResponse extends PlaceResponse {
     capacity: number;
     status: string;
   };
+}
+
+export interface UserAddressResponse {
+  placeId?: string;
+  roomId?: string;
+  roomLabel?: string;
+  floorId?: string;
+  floorLabel?: string;
+  buildingId?: string;
+  buildingName?: string;
+  buildingAddress?: string;
+  isOccupied: boolean;
+  movedInAt?: string;
 }
 
 export interface CreatePlaceRequest {

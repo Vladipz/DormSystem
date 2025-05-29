@@ -7,7 +7,7 @@ export function mapUserDetailsToUserProfileProps(
   console.log(details);
   return {
     user: {
-      // з’єднуємо firstName + lastName
+      // з'єднуємо firstName + lastName
       name: `${details.firstName} ${details.lastName}`,
       email: details.email,
       // беремо першу роль або дефолт
@@ -24,5 +24,6 @@ export function mapUserDetailsToUserProfileProps(
       // URL аватарки або плейсхолдер
       avatar: details.avatarUrl,
     },
+    userId: details.id,
   };
 }
