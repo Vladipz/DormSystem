@@ -65,7 +65,6 @@ export const useUpdateMaintenanceTicket = () => {
     }: UpdateMaintenanceTicketRequest & { id: string }) =>
       maintenanceTicketService.updateMaintenanceTicket(id, data),
     onSuccess: (_, variables) => {
-      toast.success("Ticket updated successfully.");
       queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKETS_KEY],
       });

@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -6,41 +7,84 @@ import {
   Calendar,
   ClipboardCheck,
   Home,
-  Settings,
+  Shield,
   ShoppingCart,
-  Users,
+  Users
 } from "lucide-react";
 
-export const navigationItems = [
+interface NavigationItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  adminOnly?: boolean;
+  comingSoon?: boolean;
+}
+
+// Implemented navigation items
+export const navigationItems: NavigationItem[] = [
   { path: "/", icon: Home, label: "Overview" },
   { path: "/events", icon: Calendar, label: "Events" },
   { path: "/room-dashboard", icon: Building, label: "Room Dashboard" },
-  { path: "/bookings", icon: Calendar, label: "Room Bookings" },
-  { path: "/requests", icon: ShoppingCart, label: "Purchase Requests" },
-  { path: "/marketplace", icon: ShoppingCart, label: "Marketplace" },
   { path: "/profile", icon: Users, label: "Profile" },
   { path: "/inspections", icon: ClipboardCheck, label: "Inspections" },
-  { path: "/settings", icon: Settings, label: "Settings" },
+  { path: "/admin", icon: Shield, label: "Admin Panel", adminOnly: true },
 ];
+
+// Coming soon navigation items
+export const comingSoonItems: NavigationItem[] = [
+  { path: "/bookings", icon: Calendar, label: "Room Bookings", comingSoon: true },
+  { path: "/requests", icon: ShoppingCart, label: "Purchase Requests", comingSoon: true },
+  { path: "/marketplace", icon: ShoppingCart, label: "Marketplace", comingSoon: true },
+];
+
+// Combined navigation items for use in components
+export const allNavigationItems: NavigationItem[] = [...navigationItems, ...comingSoonItems];
 
 interface NavigationItemsProps {
   onItemClick?: () => void;
   className?: string;
+  showComingSoon?: boolean; // Option to show/hide coming soon items
 }
 
 export function NavigationItems({
   onItemClick,
   className = "",
+  showComingSoon = true,
 }: NavigationItemsProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
 
   const isRouteActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const handleNavClick = (path: string, e: React.MouseEvent) => {
+  const handleNavClick = (path: string, e: React.MouseEvent, isComingSoon?: boolean) => {
+    // Prevent navigation for coming soon items
+    if (isComingSoon) {
+      e.preventDefault();
+      return;
+    }
+
+    // Special handling for admin route
+    if (path === "/admin") {
+      e.preventDefault();
+
+      if (!isAuthenticated) {
+        navigate({ to: "/login", search: { returnTo: "/admin" } });
+        return;
+      }
+
+      if (userRole !== "Admin") {
+        // Optionally show a toast or alert here
+        return;
+      }
+
+      navigate({ to: "/admin" });
+      onItemClick?.();
+      return;
+    }
+
     // Special handling for inspections route
     if (path === "/inspections") {
       e.preventDefault();
@@ -62,20 +106,41 @@ export function NavigationItems({
     onItemClick?.();
   };
 
+  // Get items to display
+  const itemsToShow = showComingSoon ? allNavigationItems : navigationItems;
+
+  // Filter navigation items based on user role
+  const filteredNavigationItems = itemsToShow.filter((item) => {
+    if (item.adminOnly && userRole !== "Admin") {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <nav className={`space-y-2 ${className}`}>
-      {navigationItems.map((item) => {
+      {filteredNavigationItems.map((item) => {
         const Icon = item.icon;
+        const isComingSoon = item.comingSoon;
+        
         return (
           <Button
             key={item.path}
             variant={isRouteActive(item.path) ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={(e) => handleNavClick(item.path, e)}
+            className={`w-full justify-start ${isComingSoon ? "cursor-not-allowed opacity-70" : ""}`}
+            onClick={(e) => handleNavClick(item.path, e, isComingSoon)}
+            disabled={isComingSoon}
           >
-            <div className="flex items-center">
-              <Icon className="mr-2 h-5 w-5" />
-              {item.label}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                <Icon className="mr-2 h-5 w-5" />
+                {item.label}
+              </div>
+              {isComingSoon && (
+                <Badge variant="secondary" className="text-xs ml-2">
+                  Soon
+                </Badge>
+              )}
             </div>
           </Button>
         );

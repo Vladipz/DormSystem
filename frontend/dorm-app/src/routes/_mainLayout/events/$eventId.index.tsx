@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -20,6 +22,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { useBuildings } from "@/lib/hooks/useBuildings";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { useRooms } from "@/lib/hooks/useRooms";
+import { useUser } from "@/lib/hooks/useUser";
 import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
 import { BuildingsResponse } from "@/lib/types/building";
@@ -34,14 +37,114 @@ export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
   async beforeLoad({ params }) {
     const { eventId } = params;
     const event = await EventService.getEventById(eventId);
-    const user = authService.checkAuthStatus();
-    const isOwner = user && event.ownerId === user.id;
-    const isAdmin = user && user.role === "Admin";
+    const authStatus = await authService.checkAuthStatus();
+    const isOwner = authStatus && event.ownerId === authStatus.id;
+    const isAdmin = authStatus && authStatus.role === "Admin";
     const canInvite = event.isPublic || isOwner || isAdmin;
     return { canInvite };
   },
   component: EventDetailsPage,
 });
+
+// Component to display user avatar with real data
+function UserAvatar({ 
+  userId, 
+  size = "h-8 w-8",
+  showTooltip = true,
+  fallbackIndex = 0 
+}: { 
+  userId: string;
+  size?: string;
+  showTooltip?: boolean;
+  fallbackIndex?: number;
+}) {
+  const { data: userDetails, isLoading } = useUser(userId);
+
+  if (isLoading) {
+    return <Skeleton className={`${size} rounded-full`} />;
+  }
+
+  const displayName = userDetails 
+    ? `${userDetails.firstName} ${userDetails.lastName}` 
+    : "Unknown User";
+    
+  const initials = userDetails
+    ? `${userDetails.firstName[0] || ""}${userDetails.lastName[0] || ""}`.toUpperCase()
+    : getPlaceholderAvatar(fallbackIndex, userId);
+
+  const avatar = (
+    <Avatar className={size}>
+      <AvatarImage 
+        src={userDetails?.avatarUrl} 
+        alt={displayName}
+      />
+      <AvatarFallback className="text-xs">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
+  );
+
+  if (!showTooltip) {
+    return avatar;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="cursor-default">
+          {avatar}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{displayName}</p>
+        {userDetails?.email && (
+          <p className="text-xs text-muted-foreground">{userDetails.email}</p>
+        )}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// Component to display organizer information
+function OrganizerInfo({ organizerId }: { organizerId: string }) {
+  const { data: organizer, isLoading } = useUser(organizerId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    );
+  }
+
+  if (!organizer) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-8 rounded-full bg-gray-300"></div>
+        <span className="text-muted-foreground">Unknown Organizer</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <UserAvatar 
+        userId={organizerId} 
+        size="h-8 w-8" 
+        showTooltip={true}
+      />
+      <div>
+        <div className="font-medium">
+          {organizer.firstName} {organizer.lastName}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {organizer.email}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function EventDetailsPage() {
   const { eventId } = Route.useParams();
@@ -341,7 +444,11 @@ function EventDetailsPage() {
       {/* Event Header Card */}
       <Card>
         <div className="relative">
-          <div className="h-64 w-full rounded-t-lg bg-gray-200"></div>
+          <img 
+            src="/movinight.png" 
+            alt="Event Cover" 
+            className="h-64 w-full rounded-t-lg object-cover"
+          />
           <div className="absolute right-4 bottom-4">
             <Button
               variant={isAttending ? "outline" : "default"}
@@ -423,30 +530,21 @@ function EventDetailsPage() {
 
             <div>
               <h3 className="mb-2 font-medium">Organized by</h3>
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gray-300"></div>
-                <span>Event Organizer</span>
+              <div className="mb-4">
+                <OrganizerInfo organizerId={event.ownerId} />
               </div>
 
               <h3 className="mb-2 font-medium">Participants</h3>
               <div className="flex flex-wrap gap-1">
                 {event.participants &&
                   event.participants.slice(0, 5).map((participant, index) => (
-                    <Tooltip key={participant.userId}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className="border-background flex h-8 w-8 cursor-default items-center justify-center rounded-full border-2 bg-gray-300"
-                          aria-label={`Participant: ${participant.firstName} ${participant.lastName}`}
-                        >
-                          {getPlaceholderAvatar(index, participant.userId)}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {participant.firstName} {participant.lastName}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <UserAvatar
+                      key={participant.userId}
+                      userId={participant.userId}
+                      size="h-8 w-8"
+                      showTooltip={true}
+                      fallbackIndex={index}
+                    />
                   ))}
                 {event.participants && event.participants.length > 5 && (
                   <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium">

@@ -72,8 +72,8 @@ builder.Services.AddSwaggerGen(c =>
 // Setup Database
 builder.Services.AddDbContext<EventsDbContext>(options =>
 {
-    // Add PostgreSQL support with default connection string
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // Add SQLite support with default connection string
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // Configure MassTransit
@@ -125,6 +125,29 @@ builder.Services.AddTransient<IValidator<JoinEvent.Command>, JoinEvent.Validator
 builder.Services.AddCarter();
 
 var app = builder.Build();
+
+// Apply database migrations and seed data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<EventsDbContext>();
+        
+        // Apply any pending migrations
+        await context.Database.MigrateAsync();
+        
+        // Log migration completion
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

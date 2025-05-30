@@ -10,6 +10,7 @@ interface TicketTabsProps {
   sortOrder: "asc" | "desc";
   toggleSort: (column: SortField) => void;
   viewRoom: (id: string) => void;
+  isAdmin?: boolean;
 }
 
 export function TicketTabs({
@@ -18,6 +19,7 @@ export function TicketTabs({
   sortOrder,
   toggleSort,
   viewRoom,
+  isAdmin = false,
 }: TicketTabsProps) {
   // Filter tickets by status for different tabs
   const openTickets = tickets.filter((t) => t.status === "Open");
@@ -40,6 +42,7 @@ export function TicketTabs({
           sortOrder={sortOrder}
           toggleSort={toggleSort}
           viewRoom={viewRoom}
+          isAdmin={isAdmin}
         />
       </TabsContent>
 
@@ -50,6 +53,7 @@ export function TicketTabs({
           sortOrder={sortOrder}
           toggleSort={toggleSort}
           viewRoom={viewRoom}
+          isAdmin={isAdmin}
         />
       </TabsContent>
 
@@ -60,6 +64,7 @@ export function TicketTabs({
           sortOrder={sortOrder}
           toggleSort={toggleSort}
           viewRoom={viewRoom}
+          isAdmin={isAdmin}
         />
       </TabsContent>
 
@@ -70,6 +75,7 @@ export function TicketTabs({
           sortOrder={sortOrder}
           toggleSort={toggleSort}
           viewRoom={viewRoom}
+          isAdmin={isAdmin}
         />
       </TabsContent>
     </Tabs>

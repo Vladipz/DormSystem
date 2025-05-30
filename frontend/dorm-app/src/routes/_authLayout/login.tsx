@@ -18,6 +18,9 @@ import * as Yup from "yup";
 
 export const Route = createFileRoute("/_authLayout/login")({
   component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: (search.returnTo as string) || "/",
+  }),
 });
 
 // Login validation schema with Yup
@@ -56,7 +59,7 @@ function RouteComponent() {
       // Redirect to returnTo path or home as fallback
       navigate({ to: returnTo });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error("Login error details:", error);
 
       // Display raw error message, especially useful for 404 errors
@@ -72,7 +75,16 @@ function RouteComponent() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">
       <Card className="w-[350px]">
-        <CardHeader>
+        <CardHeader className="text-center">
+          {/* Logo */}
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/WhiteLogo.svg" 
+              alt="Dorm System Logo" 
+              className="h-16 w-16"
+            />
+          </div>
+          
           <CardTitle>Login</CardTitle>
           <CardDescription>
             Enter your credentials to access your account
@@ -115,12 +127,7 @@ function RouteComponent() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Link
-                      to="/forgot-password"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
+                    {/* Removed forgot password link to fix routing error */}
                   </div>
                   <Field
                     as={Input}

@@ -13,6 +13,26 @@ namespace Rooms.API.Data
         private static readonly Guid ReporterUser2Id = new Guid("22222222-2222-2222-2222-222222222222");
         private static readonly Guid MaintenanceStaffId = new Guid("33333333-3333-3333-3333-333333333333");
 
+        // Predefined GUIDs for buildings
+        private static readonly Guid AlphaBuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        private static readonly Guid BetaBuildingId = new Guid("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+
+        // Predefined GUIDs for floors
+        private static readonly Guid AlphaFloor1Id = new Guid("f1111111-1111-1111-1111-111111111111");
+        private static readonly Guid AlphaFloor2Id = new Guid("f2222222-2222-2222-2222-222222222222");
+        private static readonly Guid AlphaFloor3Id = new Guid("f3333333-3333-3333-3333-333333333333");
+        private static readonly Guid BetaFloor1Id = new Guid("f4444444-4444-4444-4444-444444444444");
+        private static readonly Guid BetaFloor2Id = new Guid("f5555555-5555-5555-5555-555555555555");
+        private static readonly Guid BetaFloor3Id = new Guid("f6666666-6666-6666-6666-666666666666");
+
+        // Predefined GUIDs for specialized rooms (one per floor)
+        private static readonly Guid StudyRoomId = new Guid("cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa");
+        private static readonly Guid LaundryRoomId = new Guid("eeeeeeee-ffff-aaaa-bbbb-cccccccccccc");
+        private static readonly Guid CommonRoomId = new Guid("dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb");
+        private static readonly Guid StudyRoom2Id = new Guid("cccccccc-dddd-eeee-ffff-bbbbbbbbbbbb");
+        private static readonly Guid LaundryRoom2Id = new Guid("eeeeeeee-ffff-aaaa-bbbb-dddddddddddd");
+        private static readonly Guid CommonRoom2Id = new Guid("dddddddd-eeee-ffff-aaaa-cccccccccccc");
+
         public static async Task InitializeAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(dbContext);
@@ -34,25 +54,53 @@ namespace Rooms.API.Data
                 return;
             }
 
-            var buildingIds = await dbContext.Buildings
-                .Select(b => b.Id)
-                .ToListAsync(cancellationToken);
-
-            var floors = new List<Floor>();
-
-            foreach (var buildingId in buildingIds)
+            var floors = new List<Floor>
             {
-                for (int i = 1; i <= 3; i++) // 3 floors for each building
+                // Alpha Building floors
+                new Floor
                 {
-                    floors.Add(new Floor
-                    {
-                        Id = Guid.NewGuid(),
-                        BuildingId = buildingId,
-                        Number = i,
-                        BlocksCount = 2,
-                    });
-                }
-            }
+                    Id = AlphaFloor1Id,
+                    BuildingId = AlphaBuildingId,
+                    Number = 1,
+                    BlocksCount = 2,
+                },
+                new Floor
+                {
+                    Id = AlphaFloor2Id,
+                    BuildingId = AlphaBuildingId,
+                    Number = 2,
+                    BlocksCount = 2,
+                },
+                new Floor
+                {
+                    Id = AlphaFloor3Id,
+                    BuildingId = AlphaBuildingId,
+                    Number = 3,
+                    BlocksCount = 2,
+                },
+                // Beta Building floors
+                new Floor
+                {
+                    Id = BetaFloor1Id,
+                    BuildingId = BetaBuildingId,
+                    Number = 1,
+                    BlocksCount = 2,
+                },
+                new Floor
+                {
+                    Id = BetaFloor2Id,
+                    BuildingId = BetaBuildingId,
+                    Number = 2,
+                    BlocksCount = 2,
+                },
+                new Floor
+                {
+                    Id = BetaFloor3Id,
+                    BuildingId = BetaBuildingId,
+                    Number = 3,
+                    BlocksCount = 2,
+                },
+            };
 
             dbContext.Floors.AddRange(floors);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -65,13 +113,10 @@ namespace Rooms.API.Data
                 return;
             }
 
-            var floorIds = await dbContext.Floors
-                .Select(f => f.Id)
-                .ToListAsync(cancellationToken);
-
+            var floors = new[] { AlphaFloor1Id, AlphaFloor2Id, AlphaFloor3Id, BetaFloor1Id, BetaFloor2Id, BetaFloor3Id };
             var blocks = new List<Block>();
 
-            foreach (var floorId in floorIds)
+            foreach (var floorId in floors)
             {
                 for (int i = 1; i <= 2; i++) // 2 blocks per floor
                 {
@@ -100,17 +145,17 @@ namespace Rooms.API.Data
             {
                 new Building
                 {
-                    Id = Guid.NewGuid(),
+                    Id = AlphaBuildingId,
                     Name = "Alpha Building",
                     Address = "123 Alpha Street",
-                    FloorsCount = 5,
+                    FloorsCount = 3,
                     YearBuilt = 2010,
                     AdministratorContact = "admin@alpha.com",
                     IsActive = true,
                 },
                 new Building
                 {
-                    Id = Guid.NewGuid(),
+                    Id = BetaBuildingId,
                     Name = "Beta Building",
                     Address = "456 Beta Avenue",
                     FloorsCount = 3,
@@ -162,57 +207,125 @@ namespace Rooms.API.Data
                 return;
             }
 
-            var blockIds = await dbContext.Blocks
-                .Select(b => b.Id)
-                .ToListAsync(cancellationToken);
-
-            var floors = await dbContext.Floors
-                .Select(f => f.Id)
+            var blocks = await dbContext.Blocks
+                .Include(b => b.Floor)
                 .ToListAsync(cancellationToken);
 
             var rooms = new List<Room>();
 
-            // Rooms inside blocks
-            foreach (var blockId in blockIds)
+            // Group blocks by floor for proper room numbering
+            var blocksByFloor = blocks.GroupBy(b => new { b.Floor.BuildingId, b.Floor.Number });
+
+            foreach (var floorGroup in blocksByFloor)
             {
-                for (int i = 1; i <= 3; i++) // 3 rooms per block
+                var floorNumber = floorGroup.Key.Number;
+                var blocksOnFloor = floorGroup.ToList();
+
+                int roomCounter = 1;
+
+                // Rooms inside blocks with proper numbering (floor + room number)
+                foreach (var block in blocksOnFloor)
                 {
-                    rooms.Add(new Room
+                    for (int i = 1; i <= 3; i++) // 3 rooms per block
                     {
-                        Id = Guid.NewGuid(),
-                        BlockId = blockId,
-                        Label = $"Room {i}",
-                        Capacity = 2,
-                        Status = RoomStatus.Available,
-                        RoomType = RoomType.Regular,
-                        Amenities = new Collection<string> { "WiFi", "Desk" },
-                    });
+                        var roomNumber = (floorNumber * 100) + roomCounter;
+
+                        rooms.Add(new Room
+                        {
+                            Id = Guid.NewGuid(),
+                            BlockId = block.Id,
+                            Label = roomNumber.ToString(),
+                            Capacity = 2,
+                            Status = RoomStatus.Available,
+                            RoomType = RoomType.Regular,
+                            Amenities = new Collection<string> { "WiFi", "Desk" },
+                        });
+
+                        roomCounter++;
+                    }
                 }
             }
 
-            // Specialized rooms on each floor (not in any block) - only one per floor
-            string[] specialRoomTypes = { "Study Room", "Laundry Room", "Common Room" };
-            int floorCount = 0;
-            foreach (var floorId in floors)
+            // Specialized rooms with predefined IDs
+            var specializedRooms = new List<Room>
             {
-                // Pick a different specialized room type for each floor in rotation
-                string roomType = specialRoomTypes[floorCount % specialRoomTypes.Length];
-                floorCount++;
-                
-                rooms.Add(new Room
+                // Alpha Building specialized rooms
+                new Room
                 {
-                    Id = Guid.NewGuid(),
+                    Id = StudyRoomId,
                     BlockId = null,
-                    FloorId = floorId,
-                    Label = roomType,
-                    Capacity = roomType == "Study Room" ? 10 : 15,
+                    FloorId = AlphaFloor1Id,
+                    Label = "Study Room",
+                    Capacity = 10,
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
-                    Purpose = roomType,
-                    Amenities = new Collection<string> { "WiFi", roomType == "Laundry Room" ? "Washing Machines" : "Comfortable Seating" },
-                });
-            }
+                    Purpose = "Study Room",
+                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
+                },
+                new Room
+                {
+                    Id = LaundryRoomId,
+                    BlockId = null,
+                    FloorId = AlphaFloor2Id,
+                    Label = "Laundry Room",
+                    Capacity = 15,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = "Laundry Room",
+                    Amenities = new Collection<string> { "WiFi", "Washing Machines", "Dryers" },
+                },
+                new Room
+                {
+                    Id = StudyRoom2Id,
+                    BlockId = null,
+                    FloorId = AlphaFloor3Id,
+                    Label = "Study Room",
+                    Capacity = 10,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = "Study Room",
+                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
+                },
+                // Beta Building specialized rooms
+                new Room
+                {
+                    Id = CommonRoomId,
+                    BlockId = null,
+                    FloorId = BetaFloor1Id,
+                    Label = "Common Room",
+                    Capacity = 15,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = "Common Room",
+                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
+                },
+                new Room
+                {
+                    Id = LaundryRoom2Id,
+                    BlockId = null,
+                    FloorId = BetaFloor2Id,
+                    Label = "Laundry Room",
+                    Capacity = 15,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = "Laundry Room",
+                    Amenities = new Collection<string> { "WiFi", "Washing Machines", "Dryers" },
+                },
+                new Room
+                {
+                    Id = CommonRoom2Id,
+                    BlockId = null,
+                    FloorId = BetaFloor3Id,
+                    Label = "Common Room",
+                    Capacity = 15,
+                    Status = RoomStatus.Available,
+                    RoomType = RoomType.Specialized,
+                    Purpose = "Common Room",
+                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
+                },
+            };
 
+            rooms.AddRange(specializedRooms);
             dbContext.Rooms.AddRange(rooms);
             await dbContext.SaveChangesAsync(cancellationToken);
         }

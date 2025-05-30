@@ -11,8 +11,11 @@ import { TicketTabs } from "./maintenance/TicketTabs";
 import { Skeleton } from "./ui";
 
 export function MaintenanceCenter() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
   const router = useRouter();
+
+  // Check if user is admin
+  const isAdmin = userRole === "Admin";
 
   // Use the custom hook for filtering and sorting
   const {
@@ -97,6 +100,7 @@ export function MaintenanceCenter() {
           sortOrder={sortOrder}
           toggleSort={toggleSort}
           viewRoom={viewRoom}
+          isAdmin={isAdmin}
         />
       )}
     </div>

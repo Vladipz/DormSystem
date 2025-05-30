@@ -39,6 +39,9 @@ namespace Events.API.Database
             modelBuilder.Entity<InvitationToken>()
                 .HasIndex(i => i.Token)
                 .IsUnique();
+
+            // Seed data
+            SeedData.SeedEvents(modelBuilder);
         }
     }
 }

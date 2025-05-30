@@ -33,7 +33,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     authService.logout();
     setUser(null);
-    navigate({ to: "/login" });
+    navigate({ to: "/" });
   }, [navigate]);
 
   /**
