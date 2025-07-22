@@ -26,6 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />

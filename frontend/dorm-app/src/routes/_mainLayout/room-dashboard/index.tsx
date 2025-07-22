@@ -19,9 +19,8 @@ function RouteComponent() {
         <h1 className="text-2xl font-bold">Room Service</h1>
       </div>
       <Tabs defaultValue="building-map" className="w-full">
-        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <TabsTrigger value="building-map">Building Map</TabsTrigger>
-          <TabsTrigger value="free-places">Free Places</TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="move-wizard">Move In/Out</TabsTrigger>
           )}
@@ -29,9 +28,6 @@ function RouteComponent() {
         </TabsList>
         <TabsContent value="building-map">
           <BuildingMap></BuildingMap>
-        </TabsContent>
-        <TabsContent value="free-places">
-          <p>HI</p>
         </TabsContent>
         {isAdmin && (
           <TabsContent value="move-wizard">
