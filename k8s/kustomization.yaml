@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dormsystem
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Configuration
+  - configmap.yaml
+  - secrets.yaml
+
+  # Infrastructure
+  - postgres-statefulset.yaml
+  - rabbitmq-statefulset.yaml
+
+  # Microservices
+  - auth-service.yaml
+  - events-service.yaml
+  - rooms-service.yaml
+  - booking-service.yaml
+  - inspections-service.yaml
+  - notification-service.yaml
+  - telegram-service.yaml
+  - file-service.yaml
+
+  # API Gateway
+  - api-gateway.yaml
+
+  # Frontend
+  - frontend.yaml
+
+  # Ingress
+  - ingress.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/name: dormsystem
+  app.kubernetes.io/part-of: dormsystem
+  app.kubernetes.io/managed-by: kubectl
+
+# Images (can be used to override image tags)
+# images:
+#   - name: dormsystem/auth-service
+#     newTag: v1.0.0
+#   - name: dormsystem/events-service
+#     newTag: v1.0.0

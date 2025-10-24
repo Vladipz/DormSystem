@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: dormsystem
+  labels:
+    app: api-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: dormsystem/api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_ENVIRONMENT
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_URLS
+            - name: ReverseProxy__Clusters__auth__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: AUTH_SERVICE_URL
+            - name: ReverseProxy__Clusters__events__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: EVENTS_SERVICE_URL
+            - name: ReverseProxy__Clusters__rooms__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ROOMS_SERVICE_URL
+            - name: ReverseProxy__Clusters__booking__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: BOOKING_SERVICE_URL
+            - name: ReverseProxy__Clusters__inspections__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: INSPECTIONS_SERVICE_URL
+            - name: ReverseProxy__Clusters__files__Destinations__destination1__Address
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: FILE_SERVICE_URL
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: dormsystem
+  labels:
+    app: api-gateway
+spec:
+  type: LoadBalancer  # Can be changed to NodePort or ClusterIP based on your needs
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: api-gateway

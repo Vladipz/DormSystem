@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rooms-service
+  namespace: dormsystem
+  labels:
+    app: rooms-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rooms-service
+  template:
+    metadata:
+      labels:
+        app: rooms-service
+    spec:
+      containers:
+        - name: rooms-service
+          image: dormsystem/rooms-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_ENVIRONMENT
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_URLS
+            - name: ConnectionStrings__DefaultConnection
+              value: "Data Source=/app/data/rooms.db"
+            - name: JwtSettings__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: dormsystem-secrets
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: sqlite-storage
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-storage
+          persistentVolumeClaim:
+            claimName: rooms-sqlite-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rooms-service
+  namespace: dormsystem
+  labels:
+    app: rooms-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: rooms-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rooms-sqlite-pvc
+  namespace: dormsystem
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

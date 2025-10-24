@@ -1,0 +1,21 @@
+apiVersion: v2
+name: dormsystem
+description: A Helm chart for DormSystem - Dormitory Management System
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - dormitory
+  - management
+  - microservices
+
+maintainers:
+  - name: DormSystem Team
+    email: support@dormsystem.com
+
+home: https://github.com/your-org/dormsystem
+sources:
+  - https://github.com/your-org/dormsystem
+
+dependencies: []

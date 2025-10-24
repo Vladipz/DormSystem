@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: dormsystem
+  labels:
+    app: file-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: file-service
+  template:
+    metadata:
+      labels:
+        app: file-service
+    spec:
+      containers:
+        - name: file-service
+          image: dormsystem/file-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_ENVIRONMENT
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_URLS
+            - name: JwtSettings__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: dormsystem-secrets
+                  key: JWT_SECRET
+            - name: FileStorage__BasePath
+              value: "/app/uploads"
+          volumeMounts:
+            - name: file-storage
+              mountPath: /app/uploads
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: file-storage
+          persistentVolumeClaim:
+            claimName: file-storage-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-service
+  namespace: dormsystem
+  labels:
+    app: file-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: file-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: file-storage-pvc
+  namespace: dormsystem
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods need to access the same files
+  resources:
+    requests:
+      storage: 20Gi

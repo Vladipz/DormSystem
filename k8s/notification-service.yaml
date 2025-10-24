@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: dormsystem
+  labels:
+    app: notification-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: dormsystem/notification-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_ENVIRONMENT
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: ASPNETCORE_URLS
+            - name: ConnectionStrings__DefaultConnection
+              value: "Data Source=/app/data/notifications.db"
+            - name: JwtSettings__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: dormsystem-secrets
+                  key: JWT_SECRET
+            - name: RabbitMQ__Host
+              valueFrom:
+                configMapKeyRef:
+                  name: dormsystem-config
+                  key: RABBITMQ_HOST
+            - name: RabbitMQ__Username
+              valueFrom:
+                secretKeyRef:
+                  name: dormsystem-secrets
+                  key: RABBITMQ_DEFAULT_USER
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: dormsystem-secrets
+                  key: RABBITMQ_DEFAULT_PASS
+          volumeMounts:
+            - name: sqlite-storage
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-storage
+          persistentVolumeClaim:
+            claimName: notification-sqlite-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: dormsystem
+  labels:
+    app: notification-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: notification-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notification-sqlite-pvc
+  namespace: dormsystem
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
