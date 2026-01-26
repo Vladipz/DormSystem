@@ -7,7 +7,6 @@
 4. [Структура директорій](#%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0-%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D1%96%D0%B9)
    - [Корінь проєкту](#%D0%BA%D0%BE%D1%80%D1%96%D0%BD%D1%8C-%D0%BF%D1%80%D0%BE%D1%94%D0%BA%D1%82%D1%83)
    - [Frontend](#frontend)
-   - [Infrastructure-services](#infrastructure-services)
    - [Services](#services)
    - [Shared](#shared)
 5. [Frontend: dorm-app](#frontend-dorm-app)
@@ -67,8 +66,7 @@ DormSystem — система для управління гуртожиткам
 ```plaintext
 Docker-compose файли
 frontend/               # UI-додаток
-Infrastructure-services/
-Services/               # Auth, Events та інші мікросервіси
+Services/               # Auth, Events та інші мікросервіси (включає ApiGateway)
 Shared/                 # Загальні бібліотеки та сервіси
 ```
 
@@ -87,17 +85,12 @@ frontend/dorm-app/
   └─ vite.config.ts
 ```
 
-### Infrastructure-services
-```plaintext
-Infrastructure-services/
-  └─ ApiGateways/ApiGateway.YARP/   # конфіг API Gateway
-```
-
 ### Services
 ```plaintext
 Services/
-  ├─ Auth/      # Auth.sln з проектами API, BLL, DAL
-  └─ Events/    # Events.sln з Vertical Slice архітектурою
+  ├─ ApiGateway/ # YARP API Gateway конфігурація
+  ├─ Auth/       # Auth.sln з проектами API, BLL, DAL
+  └─ Events/     # Events.sln з Vertical Slice архітектурою
 ```
 
 ### Shared

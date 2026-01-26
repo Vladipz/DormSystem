@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileStorage.API", "FileStor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.FileServiceClient", "Shared\Shared.FileServiceClient\Shared.FileServiceClient.csproj", "{70D7A177-F890-4EDD-8999-59B2BB027E7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{19B770C8-25DB-4236-B90E-B64033A14A19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,18 @@ Global
 		{70D7A177-F890-4EDD-8999-59B2BB027E7B}.Release|x64.Build.0 = Release|Any CPU
 		{70D7A177-F890-4EDD-8999-59B2BB027E7B}.Release|x86.ActiveCfg = Release|Any CPU
 		{70D7A177-F890-4EDD-8999-59B2BB027E7B}.Release|x86.Build.0 = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|x64.Build.0 = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Debug|x86.Build.0 = Debug|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x64.ActiveCfg = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x64.Build.0 = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x86.ActiveCfg = Release|Any CPU
+		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

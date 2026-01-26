@@ -14,7 +14,7 @@ var telegramService = builder.AddProject<Projects.TelegramAgent_API>("telegram-s
 
 var fileStorageService = builder.AddProject<Projects.FileStorage_API>("file-storage-service");
 
-var apiGateway = builder.AddProject<Projects.ApiGateway_YARP>("api-gateway")
+var apiGateway = builder.AddProject<Projects.ApiGateway>("api-gateway")
     .WithReference(authService)
     .WithReference(eventService)
     .WithReference(inspectionService)
