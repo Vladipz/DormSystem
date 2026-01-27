@@ -1,7 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>08d5054e-ee7b-4ea9-a1ab-02eef49e72e7</UserSecretsId>
@@ -31,7 +30,8 @@
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
+    <ProjectReference
+      Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
   </ItemGroup>
 
 </Project>
