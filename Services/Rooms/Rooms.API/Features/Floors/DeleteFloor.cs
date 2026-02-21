@@ -103,12 +103,6 @@ namespace Rooms.API.Features.Floors
             .Produces(409)
             .WithName("DeleteFloor")
             .WithTags("Floors")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete floor by ID";
-                op.Parameters[0].Description = "Floor ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

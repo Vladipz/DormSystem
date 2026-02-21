@@ -11,7 +11,7 @@ import {
 } from "@/lib/types/building";
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_BUILDINGS_API_URL ?? "http://localhost:5137/api/buildings"}`;
+const API_URL = `${import.meta.env.VITE_BUILDINGS_API_URL ?? "http://localhost:5095/api/buildings"}`;
 
 export class BuildingService {
   // Get paginated list of buildings

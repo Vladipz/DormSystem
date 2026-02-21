@@ -4,7 +4,7 @@ import { AuthUser, JwtPayload, LinkCodeResponse } from "../types/auth";
 import { api } from "../utils/axios-client";
 
 // Define base API URL from environment variable
-const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5000";
+const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5095";
 
 class AuthService {
   private isRefreshing = false;

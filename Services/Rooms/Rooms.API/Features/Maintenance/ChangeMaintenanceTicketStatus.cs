@@ -122,13 +122,7 @@ namespace Rooms.API.Features.Maintenance
             .WithName("Maintenance.ChangeMaintenanceTicketStatus")
             .WithTags("Maintenance")
             .RequireAuthorization("AdminOnly")
-            .Accepts<ChangeMaintenanceTicketStatusRequest>("application/json")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Change maintenance ticket status";
-                op.Parameters[0].Description = "Maintenance ticket ID";
-                return op;
-            });
+            .Accepts<ChangeMaintenanceTicketStatusRequest>("application/json");
         }
     }
 }

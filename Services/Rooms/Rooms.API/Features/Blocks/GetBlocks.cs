@@ -105,11 +105,6 @@ namespace Rooms.API.Features.Blocks
             .Produces(400)
             .WithName("GetBlocks")
             .WithTags("Blocks")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of blocks";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

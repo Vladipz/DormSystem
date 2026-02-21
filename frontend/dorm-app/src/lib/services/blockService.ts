@@ -9,7 +9,7 @@ import {
   DeletedBlockResponse
 } from "@/lib/types/block";
 
-const API_URL = `${import.meta.env.VITE_BLOCKS_API_URL ?? "http://localhost:5137/api/blocks"}`;
+const API_URL = `${import.meta.env.VITE_BLOCKS_API_URL ?? "http://localhost:5095/api/blocks"}`;
 
 export class BlockService {
   // Отримати список блоків

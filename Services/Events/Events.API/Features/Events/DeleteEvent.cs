@@ -63,12 +63,6 @@ namespace Events.API.Features.Events
             .Produces<Error>(404)
             .WithTags("Events")
             .WithName("DeleteEvent")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Delete an existing event";
-                operation.Parameters[0].Description = "Event ID";
-                return operation;
-            })
             .IncludeInOpenApi();
         }
     }

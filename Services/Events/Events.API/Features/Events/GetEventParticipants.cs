@@ -83,12 +83,6 @@ namespace Events.API.Features.Events
             .Produces<ErrorOr.Error>(404)
             .WithTags("EventParticipants")
             .WithName("GetEventParticipants")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Get all participants for an event";
-                operation.Parameters[0].Description = "Event ID";
-                return operation;
-            })
             .IncludeInOpenApi();
         }
     }

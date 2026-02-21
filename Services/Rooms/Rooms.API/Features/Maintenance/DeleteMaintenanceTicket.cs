@@ -90,12 +90,6 @@ namespace Rooms.API.Features.Maintenance
             .WithName("Maintenance.DeleteMaintenanceTicket")
             .WithTags("Maintenance")
             .RequireAuthorization("AdminOnly")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete maintenance ticket by ID";
-                op.Parameters[0].Description = "Maintenance ticket ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

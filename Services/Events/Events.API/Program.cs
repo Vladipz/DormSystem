@@ -9,10 +9,12 @@ using FluentValidation;
 
 using MassTransit;
 
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+
+using Scalar.AspNetCore;
 
 using Shared.TokenService.Services;
 using Shared.UserServiceClient;
@@ -35,39 +37,8 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Events API", Version = "v1" });
-
-    // Define the OAuth2.0 or Bearer authentication scheme for Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-    });
-
-    // Make sure all endpoints are considered secured by default
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer",
-                },
-            },
-            Array.Empty<string>()
-        },
-    });
-});
+// Add native .NET 10 OpenAPI document generation
+builder.Services.AddOpenApi();
 
 // Setup Database
 builder.Services.AddDbContext<EventsDbContext>(options =>
@@ -151,13 +122,12 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Management API v1");
-        c.RoutePrefix = "swagger";
-        c.OAuthUseBasicAuthenticationWithAccessCodeGrant();
-    });
+    // Map OpenAPI document endpoint (.NET 10 native)
+    app.MapOpenApi();
+
+    // Use Scalar UI for modern, interactive API documentation
+    // Access at: /scalar/v1
+    app.MapScalarApiReference();
 }
 
 app.UsePathBase("/api");

@@ -116,12 +116,6 @@ namespace Rooms.API.Features.Rooms
             .Produces<Error>(404)
             .WithName("GetRoomById")
             .WithTags("Rooms")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get room by ID";
-                op.Parameters[0].Description = "Room ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }
