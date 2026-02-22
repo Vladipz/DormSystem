@@ -45,13 +45,9 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddAuthorization();
 
-// Setup Database with auto-detection (PostgreSQL for Aspire, SQLite for fallback)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("inspections-db")
-        ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("inspections-db"));
 });
 
 builder.Services.AddCors(options =>

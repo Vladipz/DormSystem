@@ -32,13 +32,9 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-// Setup Database with auto-detection (PostgreSQL for Aspire, SQLite for fallback)
 builder.Services.AddDbContext<TelegramDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("telegram-db")
-        ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("telegram-db"));
 });
 
 // Add Telegram Bot

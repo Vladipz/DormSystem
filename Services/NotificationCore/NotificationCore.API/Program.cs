@@ -28,10 +28,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("notifications-db")
-        ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("notifications-db"));
 });
 
 // Configure JSON options

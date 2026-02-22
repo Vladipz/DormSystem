@@ -114,10 +114,7 @@ builder.Services.AddScoped<MaintenanceTicketEnricher>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("rooms-db")
-        ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("rooms-db"));
 });
 
 // Register MediatR

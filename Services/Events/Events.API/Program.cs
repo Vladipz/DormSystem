@@ -45,10 +45,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<EventsDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("events-db")
-        ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("events-db"));
 });
 
 // Configure MassTransit

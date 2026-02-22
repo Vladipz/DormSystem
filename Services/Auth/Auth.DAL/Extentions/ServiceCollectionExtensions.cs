@@ -12,13 +12,11 @@ namespace Auth.DAL.Extentions
     {
         public static IServiceCollection AddDalServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Check for Aspire connection string first, then fall back to DefaultConnection
-            var connectionString = configuration.GetConnectionString("auth-db")
-                ?? configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("auth-db");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new ArgumentException("Connection string 'auth-db' or 'DefaultConnection' not found.");
+                throw new ArgumentException("Connection string 'auth-db' not found.");
             }
 
             services.AddDbContext<AuthDbContext>(options =>
