@@ -24,6 +24,9 @@ using Shared.TokenService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Configure Authentication
 builder.Services.AddAuthentication()
     .AddJwtBearer(opt =>
@@ -42,9 +45,14 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddAuthorization();
 
-// Add services to the container.
+// Setup Database with auto-detection (PostgreSQL for Aspire, SQLite for fallback)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("inspections-db")
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+    options.UseNpgsql(connectionString);
+});
 
 builder.Services.AddCors(options =>
 {
@@ -59,21 +67,12 @@ builder.Services.AddCors(options =>
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>
 {
-    // Configure RabbitMQ as the message broker
     config.SetKebabCaseEndpointNameFormatter();
 
     config.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
-        var host = rabbitMqSettings["Host"] ?? "localhost";
-        var username = rabbitMqSettings["Username"] ?? "guest";
-        var password = rabbitMqSettings["Password"] ?? "guest";
-
-        cfg.Host(host, h =>
-        {
-            h.Username(username);
-            h.Password(password);
-        });
+        var connectionString = builder.Configuration.GetConnectionString("rabbitmq");
+        cfg.Host(new Uri(connectionString!));
 
         cfg.ConfigureEndpoints(context);
     });
@@ -102,7 +101,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 builder.Services.AddCarter();
-builder.Services.AddRoomServiceClient(builder.Configuration);
+
+// Use Aspire service discovery (null) or fall back to configured URL
+var roomServiceUrl = builder.Configuration["RoomServiceSettings:BaseUrl"];
+builder.Services.AddRoomServiceClient(builder.Configuration, roomServiceUrl);
 
 // Register TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -125,5 +127,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapCarter();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();

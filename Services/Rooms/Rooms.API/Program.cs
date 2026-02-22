@@ -11,7 +11,6 @@ using MapsterMapper;
 using MassTransit;
 
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -28,10 +27,13 @@ using Rooms.API.Services;
 using Scalar.AspNetCore;
 
 using Shared.TokenService.Services;
-using Shared.UserServiceClient;
 using Shared.FileServiceClient.Extensions;
+using Shared.UserServiceClient;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
 
 // Configure Authentication
 builder.Services.AddAuthentication()
@@ -78,26 +80,14 @@ builder.Services.AddScoped<IMapper, Mapper>();
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>
 {
-    // Configure RabbitMQ as the message broker
     config.SetKebabCaseEndpointNameFormatter();
 
-    // Register the consumer
     config.AddConsumer<EventCreatedConsumer>();
 
     config.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
-        var host = rabbitMqSettings["Host"] ?? "localhost";
-        var username = rabbitMqSettings["Username"] ?? "guest";
-        var password = rabbitMqSettings["Password"] ?? "guest";
+        cfg.Host(new Uri(builder.Configuration.GetConnectionString("rabbitmq")!));
 
-        cfg.Host(host, h =>
-        {
-            h.Username(username);
-            h.Password(password);
-        });
-
-        // Configure the consumer on this endpoint
         cfg.ReceiveEndpoint("rooms-service-events", e =>
         {
             e.ConfigureConsumer<EventCreatedConsumer>(context);
@@ -108,21 +98,27 @@ builder.Services.AddMassTransit(config =>
 });
 
 // Register HttpClient for Auth Service
-string authServiceUrl = builder.Configuration["AuthService:ApiUrl"] ?? throw new InvalidOperationException("AuthServiceUrl:ApiUrl is not configured.");
-
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
+// Use Aspire service discovery (null) or fall back to configured URL
+var authServiceUrl = builder.Configuration["AuthService:ApiUrl"];
 builder.Services.AddUserServiceClient(authServiceUrl);
 
 // Register FileServiceClient for managing room photos
-builder.Services.AddFileServiceClient(builder.Configuration);
+// Use Aspire service discovery (null) or fall back to configured URL
+var fileServiceUrl = builder.Configuration["FileStorage:BaseUrl"];
+builder.Services.AddFileServiceClient(builder.Configuration, fileServiceUrl);
 
 // Register MaintenanceTicketEnricher
 builder.Services.AddScoped<MaintenanceTicketEnricher>();
 
-// Реєструємо DbContext з SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("rooms-db")
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+    options.UseNpgsql(connectionString);
+});
 
 // Register MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
@@ -208,7 +204,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 app.MapGroup("/api")
-   
+
    .MapCarter();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();

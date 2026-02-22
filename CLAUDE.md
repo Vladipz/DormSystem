@@ -19,15 +19,15 @@ DormSystem is a microservices-based dormitory management system featuring user a
 
 **Backend:**
 - .NET 8.0 / .NET 10.0
-- PostgreSQL as primary database
-- SQLite for some services (Events, Rooms)
+- PostgreSQL as primary database (all services)
 - RabbitMQ (MassTransit) for message bus
 - EF Core for data access
 
 **Infrastructure:**
-- Docker Compose for local development
-- YARP API Gateway
-- .NET Aspire for orchestration
+- **.NET Aspire for orchestration** (recommended - manages all services and infrastructure)
+- Docker Compose (fallback option for infrastructure only)
+- YARP API Gateway with service discovery
+- OpenTelemetry for observability
 
 ## Architecture Patterns
 
@@ -72,12 +72,13 @@ The system includes the following services:
 - **TelegramAgent**: Telegram bot integration
 
 **Shared Libraries** (`Services/Shared/`):
+- `ServiceDefaults`: Aspire integration (OpenTelemetry, health checks, service discovery)
 - `Shared.TokenService`: JWT authentication/authorization helpers
 - `Shared.Data`: Common data models and contracts
 - `Shared.PagedList`: Pagination utilities
-- `Shared.FileServiceClient`: File service client
-- `Shared.RoomServiceClient`: Room service client
-- `Shared.UserServiceClient`: User service client
+- `Shared.FileServiceClient`: File service client with service discovery
+- `Shared.RoomServiceClient`: Room service client with service discovery
+- `Shared.UserServiceClient`: User service client with service discovery
 
 ## Common Development Commands
 
@@ -130,20 +131,46 @@ dotnet ef database update
 dotnet ef migrations add MigrationName
 ```
 
-### Infrastructure
+## Running the Application
+
+### Option 1: .NET Aspire (Recommended)
+
+Start all services and infrastructure with unified dashboard:
 
 ```bash
-# Start all infrastructure services (PostgreSQL, pgAdmin, RabbitMQ)
-docker-compose -f docker-compose.local.yml up
+cd Services/AspireOrchestration
+dotnet run --project AspireOrchestration.AppHost
+```
 
-# Start in detached mode
+**Aspire Dashboard**: Automatically opens in browser (typically http://localhost:15001)
+- **View all services, databases, message queues in one place**
+- **Monitor logs, traces, metrics** via OpenTelemetry
+- **Health status** for all components
+- **Auto-assigned ports** - check dashboard for actual endpoints
+
+**Infrastructure managed by Aspire:**
+- PostgreSQL with 6 databases (auth-db, events-db, rooms-db, inspections-db, notifications-db, telegram-db)
+- pgAdmin for database management
+- RabbitMQ with management UI
+- All 9 microservices + API Gateway
+
+**Benefits:**
+- ✅ One command starts everything
+- ✅ No hardcoded URLs - automatic service discovery
+- ✅ Built-in observability (OpenTelemetry)
+- ✅ Production-ready configuration
+
+### Option 2: Docker Compose (Fallback)
+
+Start infrastructure only, then run services manually:
+
+```bash
+# Start infrastructure
 docker-compose -f docker-compose.local.yml up -d
 
-# Stop services
-docker-compose -f docker-compose.local.yml down
-
-# View logs
-docker-compose -f docker-compose.local.yml logs -f
+# Run services individually via IDE or dotnet CLI
+cd Services/Auth/Auth.API
+dotnet run
 ```
 
 **Infrastructure Services:**
@@ -163,11 +190,28 @@ dotnet test
 dotnet test --collect:"XPlat Code Coverage"
 ```
 
-## Service Communication
+## Service Communication and Discovery
 
 Services communicate via:
 1. **Synchronous HTTP calls** through the API Gateway or directly via service clients (Shared.*ServiceClient)
 2. **Asynchronous messaging** via RabbitMQ/MassTransit for events like `EventCreated`
+
+**Service Discovery (Aspire Mode):**
+- Services use Aspire service names: `https+http://auth-service`, `https+http://event-service`, etc.
+- No hardcoded URLs - automatic resolution via Microsoft.Extensions.ServiceDiscovery
+- API Gateway uses YARP service discovery resolver
+- Service clients auto-detect Aspire mode and use service discovery
+
+**Fallback Mode (Docker Compose):**
+- Services read URLs from appsettings.json (e.g., `http://localhost:5001`)
+- Developers manually start services on specific ports
+- Connection strings and RabbitMQ settings configured in appsettings
+
+**Auto-Detection:**
+All services automatically detect which mode they're running in:
+- **Database**: If connection string contains `Host=`, uses PostgreSQL; otherwise SQLite
+- **RabbitMQ**: If `rabbitmq` connection string exists, uses it; otherwise reads from RabbitMq config section
+- **Service Clients**: If no URL provided, uses Aspire service discovery; otherwise uses provided URL
 
 Example from Events service:
 ```csharp
@@ -244,7 +288,7 @@ public sealed class CreateEventEndpoint : ICarterModule
 - Always validate inputs with FluentValidation
 - Use structured logging with ILogger
 - Authorization: Use `ITokenService.GetUserId(HttpContext)` to get current user
-- Database: Prefer SQLite for development, PostgreSQL for production (check appsettings)
+- Database: All services use PostgreSQL in Aspire mode, SQLite in Docker Compose fallback mode (auto-detected)
 
 ### Error Handling Pattern
 
@@ -259,12 +303,22 @@ return result.Match(
 
 ## Database Configuration
 
-Services may use different databases:
-- **Auth**: PostgreSQL (`auth_db`)
-- **Events**: SQLite in development (`events_dev.db`), PostgreSQL in production
-- **Rooms**: SQLite (`rooms.db`)
+**Aspire Mode (Recommended):**
+All services use PostgreSQL with separate databases:
+- **Auth**: `auth-db`
+- **Events**: `events-db`
+- **Rooms**: `rooms-db`
+- **Inspections**: `inspections-db`
+- **NotificationCore**: `notifications-db`
+- **TelegramAgent**: `telegram-db`
 
-Multiple databases are created via the Docker initialization script in `docker-postgresql-multiple-databases/`.
+Databases are automatically created and managed by Aspire. Migrations run automatically on startup.
+
+**Docker Compose Fallback Mode:**
+Services use SQLite files (events_dev.db, rooms.db, etc.) for simpler local development.
+
+**Auto-Detection:**
+Services detect database type from connection string - if it contains `Host=`, PostgreSQL is used; otherwise SQLite.
 
 ## Authentication Flow
 

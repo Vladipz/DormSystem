@@ -2,7 +2,6 @@ using FluentValidation;
 
 using MassTransit;
 
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 
 using Scalar.AspNetCore;
@@ -17,6 +16,9 @@ using TelegramAgent.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Add services to the container
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -30,13 +32,26 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-// Add Entity Framework
+// Setup Database with auto-detection (PostgreSQL for Aspire, SQLite for fallback)
 builder.Services.AddDbContext<TelegramDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=TelegramAgent.db"));
+{
+    var connectionString = builder.Configuration.GetConnectionString("telegram-db")
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+    options.UseNpgsql(connectionString);
+});
 
 // Add Telegram Bot
+// NOTE: Do NOT use IHttpClientFactory here — Aspire's AddServiceDefaults() injects
+// service discovery and resilience handlers into all factory clients, which intercepts
+// the TLS handshake to api.telegram.org and causes UntrustedRoot SSL errors.
+// A direct HttpClient with SocketsHttpHandler bypasses Aspire's pipeline entirely.
 var botToken = builder.Configuration["TelegramBot:Token"] ?? throw new InvalidOperationException("Telegram bot token is required");
-builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken));
+builder.Services.AddSingleton<ITelegramBotClient>(_ =>
+{
+    var httpClient = new HttpClient(new SocketsHttpHandler(), disposeHandler: true);
+    return new TelegramBotClient(botToken, httpClient);
+});
 
 // Add Telegram commands
 builder.Services.AddScoped<ITelegramCommand, StartCommand>();
@@ -55,22 +70,14 @@ builder.Services.AddHostedService<TelegramBotService>();
 // Add MassTransit
 builder.Services.AddMassTransit(x =>
 {
-    // Add consumers
+    x.SetKebabCaseEndpointNameFormatter();
+
     x.AddConsumer<NotificationDelivery.NotificationCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
-        var rabbitMqUsername = builder.Configuration["RabbitMQ:Username"] ?? "guest";
-        var rabbitMqPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+        cfg.Host(new Uri(builder.Configuration.GetConnectionString("rabbitmq")!));
 
-        cfg.Host(rabbitMqHost, "/", h =>
-        {
-            h.Username(rabbitMqUsername);
-            h.Password(rabbitMqPassword);
-        });
-
-        // Configure endpoints automatically
         cfg.ConfigureEndpoints(context);
     });
 });
@@ -86,11 +93,29 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Ensure database is created and migrations are applied
+// Apply database migrations
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<TelegramDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<TelegramDbContext>();
+
+        // Apply any pending migrations
+        await context.Database.MigrateAsync();
+
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Database migrations applied successfully for TelegramAgent");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the TelegramAgent database");
+        throw;
+    }
 }
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();

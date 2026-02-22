@@ -10,4 +10,8 @@
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\ServiceDefaults\ServiceDefaults.csproj" />
+  </ItemGroup>
+
 </Project>

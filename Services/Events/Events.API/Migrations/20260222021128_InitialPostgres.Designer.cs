@@ -5,56 +5,61 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Events.API.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    [Migration("20250530151130_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260222021128_InitialPostgres")]
+    partial class InitialPostgres
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.12");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Events.API.Entities.DormEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("BuildingId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<int?>("NumberOfAttendees")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("RoomId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -65,7 +70,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
                             BuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                            Date = new DateTime(2025, 6, 6, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1576),
+                            Date = new DateTime(2024, 1, 8, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Welcome party for new dorm residents. Come meet your neighbors and enjoy some refreshments!",
                             IsPublic = true,
                             Location = "Main Hall - Alpha Building",
@@ -77,7 +82,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
                             BuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                            Date = new DateTime(2025, 6, 2, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1590),
+                            Date = new DateTime(2024, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Weekly study group for Computer Science students. Bring your textbooks and questions!",
                             IsPublic = true,
                             Location = "Study Room A - Alpha Building",
@@ -90,7 +95,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("66666666-6666-6666-6666-666666666666"),
                             BuildingId = new Guid("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
-                            Date = new DateTime(2025, 6, 13, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1595),
+                            Date = new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Board games, video games, and snacks! A fun evening for all dorm residents.",
                             IsPublic = true,
                             Location = "Common Room - Beta Building",
@@ -103,7 +108,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("88888888-8888-8888-8888-888888888888"),
                             BuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                            Date = new DateTime(2025, 6, 1, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1599),
+                            Date = new DateTime(2024, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Monthly floor meeting to discuss community guidelines and upcoming events.",
                             IsPublic = false,
                             Location = "2nd Floor Common Area - Alpha Building",
@@ -115,7 +120,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("99999999-9999-9999-9999-999999999999"),
                             BuildingId = new Guid("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
-                            Date = new DateTime(2025, 6, 9, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1602),
+                            Date = new DateTime(2024, 1, 11, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Free pizza night sponsored by the dorm council. First come, first served!",
                             IsPublic = true,
                             Location = "Main Dining Hall - Beta Building",
@@ -127,7 +132,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             BuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                            Date = new DateTime(2025, 6, 4, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1609),
+                            Date = new DateTime(2024, 1, 6, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Learn proper laundry techniques and machine usage. Perfect for first-year students!",
                             IsPublic = true,
                             Location = "Laundry Room - Alpha Building",
@@ -140,7 +145,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             BuildingId = new Guid("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                            Date = new DateTime(2025, 6, 7, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1612),
+                            Date = new DateTime(2024, 1, 9, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Advanced mathematics study session. Calculus and statistics focus.",
                             IsPublic = true,
                             Location = "Study Room B - Alpha Building",
@@ -153,7 +158,7 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
                             BuildingId = new Guid("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
-                            Date = new DateTime(2025, 6, 11, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1616),
+                            Date = new DateTime(2024, 1, 13, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Weekly movie night featuring classic films. Popcorn provided!",
                             IsPublic = true,
                             Location = "Common Room 2 - Beta Building",
@@ -168,16 +173,16 @@ namespace Events.API.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -190,63 +195,63 @@ namespace Events.API.Migrations
                         {
                             Id = new Guid("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             EventId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            JoinedAt = new DateTime(2025, 5, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1670),
+                            JoinedAt = new DateTime(2023, 12, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("22222222-2222-2222-2222-222222222222")
                         },
                         new
                         {
                             Id = new Guid("22222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             EventId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            JoinedAt = new DateTime(2025, 5, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1674),
+                            JoinedAt = new DateTime(2023, 12, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("33333333-3333-3333-3333-333333333333")
                         },
                         new
                         {
                             Id = new Guid("33333333-cccc-cccc-cccc-cccccccccccc"),
                             EventId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            JoinedAt = new DateTime(2025, 5, 28, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1676),
+                            JoinedAt = new DateTime(2023, 12, 30, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
                         new
                         {
                             Id = new Guid("44444444-dddd-dddd-dddd-dddddddddddd"),
                             EventId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            JoinedAt = new DateTime(2025, 5, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1678),
+                            JoinedAt = new DateTime(2023, 12, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("33333333-3333-3333-3333-333333333333")
                         },
                         new
                         {
                             Id = new Guid("55555555-eeee-eeee-eeee-eeeeeeeeeeee"),
                             EventId = new Guid("66666666-6666-6666-6666-666666666666"),
-                            JoinedAt = new DateTime(2025, 5, 27, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1680),
+                            JoinedAt = new DateTime(2023, 12, 29, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
                         new
                         {
                             Id = new Guid("66666666-ffff-ffff-ffff-ffffffffffff"),
                             EventId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            JoinedAt = new DateTime(2025, 5, 30, 9, 11, 29, 909, DateTimeKind.Utc).AddTicks(1683),
+                            JoinedAt = new DateTime(2023, 12, 31, 18, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("22222222-2222-2222-2222-222222222222")
                         },
                         new
                         {
                             Id = new Guid("77777777-aaaa-bbbb-cccc-dddddddddddd"),
                             EventId = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                            JoinedAt = new DateTime(2025, 5, 30, 3, 11, 29, 909, DateTimeKind.Utc).AddTicks(1686),
+                            JoinedAt = new DateTime(2023, 12, 31, 12, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
                         },
                         new
                         {
                             Id = new Guid("88888888-aaaa-bbbb-cccc-dddddddddddd"),
                             EventId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                            JoinedAt = new DateTime(2025, 5, 30, 7, 11, 29, 909, DateTimeKind.Utc).AddTicks(1688),
+                            JoinedAt = new DateTime(2023, 12, 31, 16, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("22222222-2222-2222-2222-222222222222")
                         },
                         new
                         {
                             Id = new Guid("99999999-aaaa-bbbb-cccc-dddddddddddd"),
                             EventId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                            JoinedAt = new DateTime(2025, 5, 30, 11, 11, 29, 909, DateTimeKind.Utc).AddTicks(1690),
+                            JoinedAt = new DateTime(2023, 12, 31, 20, 0, 0, 0, DateTimeKind.Utc),
                             UserId = new Guid("33333333-3333-3333-3333-333333333333")
                         });
                 });
@@ -255,23 +260,23 @@ namespace Events.API.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -286,54 +291,54 @@ namespace Events.API.Migrations
                         new
                         {
                             Id = new Guid("10101010-1010-1010-1010-101010101010"),
-                            CreatedAt = new DateTime(2025, 5, 25, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1726),
+                            CreatedAt = new DateTime(2023, 12, 27, 0, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            ExpiresAt = new DateTime(2025, 6, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1727),
+                            ExpiresAt = new DateTime(2024, 1, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "WELCOME2024"
                         },
                         new
                         {
                             Id = new Guid("20202020-2020-2020-2020-202020202020"),
-                            CreatedAt = new DateTime(2025, 5, 27, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1731),
+                            CreatedAt = new DateTime(2023, 12, 29, 0, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            ExpiresAt = new DateTime(2025, 6, 6, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1731),
+                            ExpiresAt = new DateTime(2024, 1, 8, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "STUDY2024"
                         },
                         new
                         {
                             Id = new Guid("30303030-3030-3030-3030-303030303030"),
-                            CreatedAt = new DateTime(2025, 5, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1734),
+                            CreatedAt = new DateTime(2023, 12, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("66666666-6666-6666-6666-666666666666"),
-                            ExpiresAt = new DateTime(2025, 6, 19, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1734),
+                            ExpiresAt = new DateTime(2024, 1, 21, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "GAME2024"
                         },
                         new
                         {
                             Id = new Guid("40404040-4040-4040-4040-404040404040"),
-                            CreatedAt = new DateTime(2025, 5, 29, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1736),
+                            CreatedAt = new DateTime(2023, 12, 31, 0, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            ExpiresAt = new DateTime(2025, 6, 9, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1737),
+                            ExpiresAt = new DateTime(2024, 1, 11, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "LAUNDRY2024"
                         },
                         new
                         {
                             Id = new Guid("50505050-5050-5050-5050-505050505050"),
-                            CreatedAt = new DateTime(2025, 5, 30, 9, 11, 29, 909, DateTimeKind.Utc).AddTicks(1739),
+                            CreatedAt = new DateTime(2023, 12, 31, 18, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                            ExpiresAt = new DateTime(2025, 6, 11, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1739),
+                            ExpiresAt = new DateTime(2024, 1, 13, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "MATH2024"
                         },
                         new
                         {
                             Id = new Guid("60606060-6060-6060-6060-606060606060"),
-                            CreatedAt = new DateTime(2025, 5, 30, 13, 11, 29, 909, DateTimeKind.Utc).AddTicks(1742),
+                            CreatedAt = new DateTime(2023, 12, 31, 22, 0, 0, 0, DateTimeKind.Utc),
                             EventId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                            ExpiresAt = new DateTime(2025, 6, 14, 15, 11, 29, 909, DateTimeKind.Utc).AddTicks(1742),
+                            ExpiresAt = new DateTime(2024, 1, 16, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             Token = "MOVIE2024"
                         });

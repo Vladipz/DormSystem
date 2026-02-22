@@ -21,6 +21,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
@@ -32,6 +33,7 @@
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
     <ProjectReference
       Include="..\..\Shared\Shared.RoomServiceClient\Shared.RoomServiceClient.csproj" />
+    <ProjectReference Include="..\..\Shared\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,6 +20,9 @@ using Shared.TokenService.Services;
 using Shared.UserServiceClient;
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 builder.Services.AddAuthentication()
     .AddJwtBearer(opt =>
     {
@@ -40,44 +43,35 @@ builder.Services.AddAuthorization();
 // Add native .NET 10 OpenAPI document generation
 builder.Services.AddOpenApi();
 
-// Setup Database
 builder.Services.AddDbContext<EventsDbContext>(options =>
 {
-    // Add SQLite support with default connection string
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString = builder.Configuration.GetConnectionString("events-db")
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+    options.UseNpgsql(connectionString);
 });
 
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>
 {
-    // Configure RabbitMQ as the message broker
     config.SetKebabCaseEndpointNameFormatter();
 
     config.AddConsumers(typeof(Program).Assembly);
 
     config.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
-        var host = rabbitMqSettings["Host"] ?? "localhost";
-        var username = rabbitMqSettings["Username"] ?? "guest";
-        var password = rabbitMqSettings["Password"] ?? "guest";
-
-        cfg.Host(host, h =>
-        {
-            h.Username(username);
-            h.Password(password);
-        });
+        var connectionString = builder.Configuration.GetConnectionString("rabbitmq");
+        cfg.Host(new Uri(connectionString!));
 
         cfg.ConfigureEndpoints(context);
     });
 });
 
 // Configure Auth Service integration
-string authServiceUrl = builder.Configuration.GetValue<string>("AuthService:ApiUrl") ?? throw new
-InvalidOperationException("AuthService:ApiUrl is not configured.");
-
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
+// Use Aspire service discovery (null) or fall back to configured URL
+var authServiceUrl = builder.Configuration.GetValue<string>("AuthService:ApiUrl");
 builder.Services.AddUserServiceClient(authServiceUrl);
 
 builder.Services.AddScoped<ParticipantEnricher>();
@@ -104,10 +98,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<EventsDbContext>();
-        
+
         // Apply any pending migrations
         await context.Database.MigrateAsync();
-        
+
         // Log migration completion
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Database migrations applied successfully");
@@ -136,5 +130,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapCarter();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 await app.RunAsync();

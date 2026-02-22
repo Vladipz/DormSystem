@@ -6,8 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Auth.BLL\Auth.BLL.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
+    <ProjectReference Include="../Auth.BLL/Auth.BLL.csproj" />
+    <ProjectReference Include="../../Shared/Shared.TokenService/Shared.TokenService.csproj" />
+    <ProjectReference Include="../../Shared/ServiceDefaults/ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>

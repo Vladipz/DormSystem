@@ -4,6 +4,9 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -36,8 +39,10 @@ app.MapGet("/weatherforecast", () =>
         .ToArray();
     return forecast;
 })
-.WithName("GetWeatherForecast")
-;
+.WithName("GetWeatherForecast");
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();
 

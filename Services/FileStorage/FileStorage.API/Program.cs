@@ -8,6 +8,9 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Налаштування конфігурації
 builder.Services.Configure<FileStorageSettings>(
     builder.Configuration.GetSection("FileStorage"));
@@ -45,5 +48,8 @@ app.UseCors("AllowAll");
 app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();
