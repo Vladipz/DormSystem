@@ -94,13 +94,6 @@ public sealed class GenerateInspectionReportEndpoint : ICarterModule
         .Produces<FileContentResult>(200, "application/pdf")
         .Produces<Error>(400)
         .WithName("GenerateInspectionReport")
-        .WithTags("Inspections")
-        .WithOpenApi(op =>
-        {
-            op.Summary = "Download PDF report for a completed inspection";
-            op.Parameters[1].Description =
-                "Report style: 'simple' (default) or 'fancy'";
-            return op;
-        });
+        .WithTags("Inspections");
     }
 }

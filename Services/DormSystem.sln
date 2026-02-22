@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.UserServiceClient", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inspections.API", "Inspections\Inspections.API\Inspections.API.csproj", "{35E3AA21-44C5-42A6-ADE9-3031A10C2211}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Data", "Shared\Shared.Data\Shared.Data.csproj", "{B449A780-B3F6-46EA-A652-B72DED44CE54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Data", "Shared\Shared.Data\Shared.Data.csproj", "{B449A780-B3F6-46EA-A652-B72DED44CE54}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.RoomServiceClient", "Shared\Shared.RoomServiceClient\Shared.RoomServiceClient.csproj", "{33D93306-38A5-4542-8AB0-17FA4B28E011}"
 EndProject

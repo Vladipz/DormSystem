@@ -2,6 +2,10 @@ using FileStorage.API.Configuration;
 using FileStorage.API.Middleware;
 using FileStorage.API.Services;
 
+using Microsoft.AspNetCore.OpenApi;
+
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Налаштування конфігурації
@@ -11,7 +15,7 @@ builder.Services.Configure<FileStorageSettings>(
 // Додавання сервісів
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 builder.Services.AddScoped<IFileService, FileService>();
 
 // CORS
@@ -32,8 +36,8 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

@@ -9,7 +9,7 @@ import {
   DeletedFloorResponse
 } from "@/lib/types/floor";
 
-const API_URL = `${import.meta.env.VITE_FLOORS_API_URL ?? "http://localhost:5137/api/floors"}`;
+const API_URL = `${import.meta.env.VITE_FLOORS_API_URL ?? "http://localhost:5095/api/floors"}`;
 
 export class FloorService {
   // Отримати список поверхів

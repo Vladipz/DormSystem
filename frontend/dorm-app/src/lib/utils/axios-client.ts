@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestCo
 import { authService } from "../services/authService";
 
 // Define base API URL from environment variable
-const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5000";
+const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5095";
 
 // Create axios instance with default config
 export const axiosClient: AxiosInstance = axios.create({

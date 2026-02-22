@@ -119,12 +119,6 @@ namespace Rooms.API.Features.Blocks
             .WithName("UpdateBlock")
             .WithTags("Blocks")
             .Accepts<UpdateBlockRequest>("application/json")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Update a block";
-                op.Parameters[0].Description = "Block ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

@@ -67,11 +67,6 @@ namespace Rooms.API.Features.Rooms
             .Produces<List<RoomDto>>(200)
             .WithName("GetRoomsForInspection")
             .WithTags("Rooms - Inspection")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get all rooms for inspection in dormitory";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

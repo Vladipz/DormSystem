@@ -121,11 +121,6 @@ namespace Rooms.API.Features.Blocks
             .WithTags("Blocks")
             .Accepts<CreateBlockRequest>("application/json")
             .IncludeInOpenApi()
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Create a new block";
-                return op;
-            })
             .RequireAuthorization("AdminOnly");
         }
     }

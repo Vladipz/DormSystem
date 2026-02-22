@@ -88,12 +88,6 @@ namespace Rooms.API.Features.Maintenance
             .WithName("Maintenance.GetMaintenanceTicketById")
             .WithTags("Maintenance")
             .RequireAuthorization("AdminOnly")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a maintenance ticket by ID";
-                op.Parameters[0].Description = "Maintenance Ticket ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

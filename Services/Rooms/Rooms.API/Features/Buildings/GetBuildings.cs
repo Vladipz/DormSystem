@@ -100,11 +100,6 @@ namespace Rooms.API.Features.Buildings
             .WithName("Buildings.GetBuildings")
             .WithTags("Buildings")
             .AllowAnonymous()
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of buildings";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

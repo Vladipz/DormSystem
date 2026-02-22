@@ -98,12 +98,6 @@ namespace Rooms.API.Features.Floors
             .Produces(404)
             .WithName("GetFloorById")
             .WithTags("Floors")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get floor details by ID";
-                op.Parameters[0].Description = "Floor ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

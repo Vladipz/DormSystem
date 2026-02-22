@@ -148,11 +148,6 @@ namespace Rooms.API.Features.Maintenance
             .Produces<Error>(400)
             .WithName("Maintenance.GetMaintenanceTickets")
             .WithTags("Maintenance")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of maintenance tickets with filters";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

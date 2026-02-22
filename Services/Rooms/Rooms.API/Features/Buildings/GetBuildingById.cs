@@ -87,12 +87,6 @@ namespace Rooms.API.Features.Buildings
             .WithName("Buildings.GetBuildingById")
             .WithTags("Buildings")
             .AllowAnonymous()
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get building by ID";
-                op.Parameters[0].Description = "Building ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

@@ -106,11 +106,6 @@ namespace Rooms.API.Features.Floors
             .Produces(400)
             .WithName("GetFloors")
             .WithTags("Floors")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of floors";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

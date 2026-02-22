@@ -2,7 +2,10 @@ using FluentValidation;
 
 using MassTransit;
 
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+
+using Scalar.AspNetCore;
 
 using Telegram.Bot;
 
@@ -16,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 // Add HTTP client factory
 builder.Services.AddHttpClient();
@@ -77,8 +80,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

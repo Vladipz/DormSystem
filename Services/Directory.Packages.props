@@ -4,60 +4,63 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
-  <ItemGroup Label="Core Framework (.NET 8 versions)">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.12" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16" />
+  <ItemGroup Label="Core Framework (.NET 10 versions)">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup Label="Entity Framework Core">
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.12" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.12" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
-  <ItemGroup Label="Messaging (standardized to 8.4.0)">
+  <ItemGroup Label="Messaging (Free MIT License - v8.x)">
     <PackageVersion Include="MassTransit" Version="8.4.0" />
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.4.0" />
+    <!-- MassTransit v8.4.0 is the last free MIT-licensed version -->
+    <!-- v8.x support continues through 2026 -->
+    <!-- v9+ requires commercial license ($400/mo or $4000/year) -->
   </ItemGroup>
 
   <ItemGroup Label="Vertical Slice Architecture">
-    <PackageVersion Include="Carter" Version="8.0.0" />
-    <PackageVersion Include="MediatR" Version="12.4.1" />
+    <PackageVersion Include="Carter" Version="10.0.0" />
+    <PackageVersion Include="MediatR" Version="14.0.0" />
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="ErrorOr" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup Label="API Documentation">
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="1.2.67" />
+    <!-- Using Scalar UI instead of Swashbuckle for modern OpenAPI documentation -->
   </ItemGroup>
 
   <ItemGroup Label="Infrastructure">
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.1.0" />
   </ItemGroup>
 
   <ItemGroup Label="Microsoft Extensions">
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup Label="Service-Specific Libraries">
-    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.8" />
-    <PackageVersion Include="Telegram.Bot" Version="22.5.1" />
-    <PackageVersion Include="QuestPDF" Version="2024.3.0" />
-    <PackageVersion Include="SkiaSharp" Version="3.119.0" />
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageVersion Include="Telegram.Bot" Version="22.8.1" />
+    <PackageVersion Include="QuestPDF" Version="2025.12.3" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.1" />
   </ItemGroup>
 
   <ItemGroup Label="Code Quality">
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.18.0.131500" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
   </ItemGroup>
 </Project>

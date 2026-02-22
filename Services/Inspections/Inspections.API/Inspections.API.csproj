@@ -22,8 +22,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="QuestPDF" />
+    <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="SkiaSharp" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

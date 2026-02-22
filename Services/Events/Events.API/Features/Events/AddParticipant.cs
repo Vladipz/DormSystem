@@ -138,13 +138,8 @@ namespace Events.API.Features.Events
             .Produces<Error>(409)
             .WithTags("EventParticipants")
             .WithName("AddParticipant")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Add a participant to an event (event owner only)";
-                operation.Description = "Allows event owners to add participants to their events";
-                operation.Parameters[0].Description = "Event ID";
-                return operation;
-            })
+            .WithSummary("Add a participant to an event (event owner only)")
+            .WithDescription("Allows event owners to add participants to their events")
             .IncludeInOpenApi()
             .RequireAuthorization();
         }

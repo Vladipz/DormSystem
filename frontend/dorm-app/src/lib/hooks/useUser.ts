@@ -34,7 +34,7 @@ export interface UpdateUserRoleRequest {
   currentRole?: string;
 }
 
-const API_URL = `${import.meta.env.VITE_USERS_API_URL ?? "http://localhost:5137/api/user"}`;
+const API_URL = `${import.meta.env.VITE_USERS_API_URL ?? "http://localhost:5095/api/user"}`;
 
 async function getUserDetails(userId: string): Promise<UserDetails> {
   const { data } = await axiosClient.get<UserDetails>(`${API_URL}/${userId}`);
