@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace Rooms.API.Entities
 {
     /// <summary>
@@ -72,13 +70,13 @@ namespace Rooms.API.Entities
         /// </summary>
         public string? Purpose { get; set; }
 
-        public Collection<string> Amenities { get; init; } = new Collection<string>();
+        public List<string> Amenities { get; init; } = [];
 
         /// <summary>
         /// Gets or sets the IDs of photos stored in FileStorage service.
         /// Multiple photos can be associated with a room.
         /// </summary>
-        public Collection<string> PhotoIds { get; init; } = new Collection<string>();
+        public List<string> PhotoIds { get; init; } = [];
 
         /// <summary>
         /// Gets or sets navigation property for the block this room belongs to.

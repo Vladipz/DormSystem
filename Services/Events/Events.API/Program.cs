@@ -11,9 +11,6 @@ using MassTransit;
 
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
-
 using Scalar.AspNetCore;
 
 using Shared.TokenService.Services;
@@ -23,21 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
 builder.AddServiceDefaults();
 
-builder.Services.AddAuthentication()
-    .AddJwtBearer(opt =>
-    {
-        opt.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateActor = false,
-            ValidateIssuerSigningKey = false,
-            ValidateLifetime = false,
-            ValidateTokenReplay = false,
-            SignatureValidator = (token, _) => new JsonWebToken(token),
-        };
-    });
-
+builder.AddJwtAuthentication();
 builder.Services.AddAuthorization();
 
 // Add native .NET 10 OpenAPI document generation

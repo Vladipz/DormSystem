@@ -11,7 +11,7 @@ builder.AddServiceDefaults();
 // Add CORS service
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("allowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -50,7 +50,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Use CORS before authentication middleware
-app.UseCors();
+app.UseCors("allowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

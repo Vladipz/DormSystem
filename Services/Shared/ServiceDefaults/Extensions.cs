@@ -1,8 +1,12 @@
+using System.Text;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -14,6 +18,40 @@ namespace Microsoft.Extensions.Hosting;
 /// </summary>
 public static class Extensions
 {
+    /// <summary>
+    /// Adds JWT Bearer authentication with full token validation using settings from configuration.
+    /// Expects Jwt:Secret, Jwt:Issuer, and Jwt:Audience in configuration (set via Aspire environment).
+    /// </summary>
+    public static IHostApplicationBuilder AddJwtAuthentication(this IHostApplicationBuilder builder)
+    {
+        var secret = builder.Configuration["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt:Secret is not configured. Ensure it is passed via Aspire environment.");
+        var issuer = builder.Configuration["Jwt:Issuer"]
+            ?? throw new InvalidOperationException("Jwt:Issuer is not configured.");
+        var audience = builder.Configuration["Jwt:Audience"]
+            ?? throw new InvalidOperationException("Jwt:Audience is not configured.");
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                // Map short standard JWT claim names (sub, role, given_name...) to .NET ClaimTypes URIs
+                // so that [Authorize(Roles = "...")] and ClaimTypes lookups work correctly
+                options.MapInboundClaims = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                };
+            });
+
+        return builder;
+    }
+
     /// <summary>
     /// Adds service defaults including OpenTelemetry, health checks, and service discovery.
     /// </summary>

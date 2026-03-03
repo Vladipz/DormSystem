@@ -1,5 +1,12 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+builder.AddDockerComposeEnvironment("compose");
+
+// env variables
+var jwtSecret = builder.AddParameter("jwt-secret", secret: true);
+var jwtIssuer = builder.AddParameter("jwt-issuer");
+var jwtAudience = builder.AddParameter("jwt-audience");
+
 // ===== INFRASTRUCTURE =====
 
 // PostgreSQL with multiple databases
@@ -24,14 +31,20 @@ var rabbitmq = builder.AddRabbitMQ("rabbitmq")
 // ===== MICROSERVICES =====
 var authService = builder.AddProject<Projects.Auth_API>("auth-service")
     .WithReference(authDb)
-    .WaitFor(authDb);
+    .WaitFor(authDb)
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Jwt__Issuer", jwtIssuer)
+    .WithEnvironment("Jwt__Audience", jwtAudience);
 
 var eventService = builder.AddProject<Projects.Events_API>("event-service")
     .WithReference(eventsDb)
     .WithReference(rabbitmq)
     .WithReference(authService)
     .WaitFor(eventsDb)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Jwt__Issuer", jwtIssuer)
+    .WithEnvironment("Jwt__Audience", jwtAudience);
 
 var roomService = builder.AddProject<Projects.Rooms_API>("room-service")
     .WithReference(roomsDb)
@@ -47,24 +60,33 @@ var inspectionService = builder.AddProject<Projects.Inspections_API>("inspection
     .WithReference(rabbitmq)
     .WithReference(roomService)
     .WaitFor(inspectionsDb)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Jwt__Issuer", jwtIssuer)
+    .WithEnvironment("Jwt__Audience", jwtAudience);
 
 var notificationService = builder.AddProject<Projects.NotificationCore_API>("notification-service")
     .WithReference(notificationsDb)
     .WithReference(rabbitmq)
     .WithReference(roomService)
     .WaitFor(notificationsDb)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Jwt__Issuer", jwtIssuer)
+    .WithEnvironment("Jwt__Audience", jwtAudience);
+
+var botToken = builder.AddParameter("botToken", secret: true);
 
 var telegramService = builder.AddProject<Projects.TelegramAgent_API>("telegram-service")
     .WithReference(telegramDb)
     .WithReference(rabbitmq)
+    .WithEnvironment("TelegramBot__Token", botToken)
     .WaitFor(telegramDb)
     .WaitFor(rabbitmq);
 
 var bookingService = builder.AddProject<Projects.Booking_API>("booking-service");
 
-var _ = builder.AddProject<Projects.ApiGateway>("api-gateway")
+var apiGateway = builder.AddProject<Projects.ApiGateway>("api-gateway")
     .WithReference(authService)
     .WithReference(eventService)
     .WithReference(inspectionService)
@@ -72,6 +94,14 @@ var _ = builder.AddProject<Projects.ApiGateway>("api-gateway")
     .WithReference(notificationService)
     .WithReference(telegramService)
     .WithReference(fileStorageService)
-    .WithReference(bookingService);
+    .WithReference(bookingService)
+    .WithEnvironment("Jwt__Secret", jwtSecret)
+    .WithEnvironment("Jwt__Issuer", jwtIssuer)
+    .WithEnvironment("Jwt__Audience", jwtAudience);
+
+// var frontend = builder.AddViteApp("frontend", "../../../frontend/dorm-app")
+//     .WithYarn()
+//     .WithReference(apiGateway)
+//     .WaitFor(apiGateway);
 
 builder.Build().Run();

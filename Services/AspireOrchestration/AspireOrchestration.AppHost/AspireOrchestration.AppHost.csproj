@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+<Project Sdk="Aspire.AppHost.Sdk/13.1.2">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,7 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.DevTunnels" />
+    <PackageReference Include="Aspire.Hosting.Docker" />
+    <PackageReference Include="Aspire.Hosting.JavaScript" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
   </ItemGroup>
@@ -22,8 +22,7 @@
     <ProjectReference Include="..\..\ApiGateway\ApiGateway.csproj" />
     <ProjectReference Include="..\..\Rooms\Rooms.API\Rooms.API.csproj" />
     <ProjectReference Include="..\..\Inspections\Inspections.API\Inspections.API.csproj" />
-    <ProjectReference
-      Include="..\..\NotificationCore\NotificationCore.API\NotificationCore.API.csproj" />
+    <ProjectReference Include="..\..\NotificationCore\NotificationCore.API\NotificationCore.API.csproj" />
     <ProjectReference Include="..\..\TelegramAgent\TelegramAgent.API\TelegramAgent.API.csproj" />
     <ProjectReference Include="..\..\FileStorage\FileStorage.API\FileStorage.API.csproj" />
     <ProjectReference Include="..\..\Booking\Booking.API\Booking.API.csproj" />

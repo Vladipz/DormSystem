@@ -21,5 +21,10 @@ namespace Auth.DAL.Entities
         /// Gets or sets the foreign key to the user.
         /// </summary>
         public Guid UserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets when the auth code expires.
+        /// </summary>
+        public DateTime ExpiresAt { get; set; }
     }
 }

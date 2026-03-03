@@ -62,6 +62,16 @@ namespace Auth.API.Controllers
                 errors => errors.ToResponse());
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+        {
+            var result = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
+
+            return result.Match(
+                _ => NoContent(),
+                errors => errors.ToResponse());
+        }
+
         // test protected endpoint
         [HttpGet("protected")]
         [Authorize(Roles = "Admin")]

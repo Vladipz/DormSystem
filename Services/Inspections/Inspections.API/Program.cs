@@ -13,9 +13,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
-
 using RoomService.Client;
 
 using Scalar.AspNetCore;
@@ -28,21 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Configure Authentication
-builder.Services.AddAuthentication()
-    .AddJwtBearer(opt =>
-    {
-        opt.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateActor = false,
-            ValidateIssuerSigningKey = false,
-            ValidateLifetime = false,
-            ValidateTokenReplay = false,
-            SignatureValidator = (token, _) => new JsonWebToken(token),
-        };
-    });
-
+builder.AddJwtAuthentication();
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

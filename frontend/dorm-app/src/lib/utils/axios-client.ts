@@ -21,11 +21,12 @@ declare module 'axios' {
   }
 }
 
-// Store pending requests that should be retried after token refresh
+// Track whether a token refresh is in progress at the interceptor level
+let isRefreshing = false;
+// Callbacks waiting for the new token: resolve with new token, reject on failure
 let pendingRequests: Array<{
-  resolve: (value: unknown) => void;
+  resolve: (token: string) => void;
   reject: (reason?: unknown) => void;
-  config: InternalAxiosRequestConfig;
 }> = [];
 
 // Request interceptor
@@ -64,35 +65,46 @@ axiosClient.interceptors.response.use(
       localStorage.getItem("refreshToken") &&
       !originalRequest._retry
     ) {
-      originalRequest._retry = true; // Mark this request as retried
+      originalRequest._retry = true;
+
+      // If a refresh is already in progress, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          pendingRequests.push({
+            resolve: (token: string) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(axiosClient(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      isRefreshing = true;
 
       try {
-        // Use authService's refreshToken method which handles concurrent refresh requests
         const refreshed = await authService.refreshToken();
-          
+
         if (refreshed) {
-          // Process all pending requests
-          pendingRequests.forEach(request => {
-            request.resolve(axiosClient(request.config));
-          });
+          const newToken = localStorage.getItem("accessToken") ?? "";
+          // Unblock all queued requests with the new token
+          pendingRequests.forEach(({ resolve }) => resolve(newToken));
           pendingRequests = [];
-            
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${localStorage.getItem("accessToken")}`;
+          isRefreshing = false;
+
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return axiosClient(originalRequest);
         } else {
-          // Refresh failed, reject all pending requests
-          pendingRequests.forEach(request => {
-            request.reject(new Error("Token refresh failed"));
-          });
+          pendingRequests.forEach(({ reject: rej }) => rej(new Error("Token refresh failed")));
           pendingRequests = [];
-            
-          // Redirect to login
+          isRefreshing = false;
           window.location.href = "/login";
           return Promise.reject(error);
         }
       } catch (refreshError) {
+        pendingRequests.forEach(({ reject: rej }) => rej(refreshError));
         pendingRequests = [];
+        isRefreshing = false;
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 using Microsoft.EntityFrameworkCore;
 
 using Rooms.API.Entities;
@@ -238,7 +236,7 @@ namespace Rooms.API.Data
                             Capacity = 2,
                             Status = RoomStatus.Available,
                             RoomType = RoomType.Regular,
-                            Amenities = new Collection<string> { "WiFi", "Desk" },
+                            Amenities = new List<string> { "WiFi", "Desk" },
                         });
 
                         roomCounter++;
@@ -260,7 +258,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Study Room",
-                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
+                    Amenities = new List<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
                 },
                 new Room
                 {
@@ -272,7 +270,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Laundry Room",
-                    Amenities = new Collection<string> { "WiFi", "Washing Machines", "Dryers" },
+                    Amenities = new List<string> { "WiFi", "Washing Machines", "Dryers" },
                 },
                 new Room
                 {
@@ -284,7 +282,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Study Room",
-                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
+                    Amenities = new List<string> { "WiFi", "Comfortable Seating", "Whiteboards" },
                 },
                 // Beta Building specialized rooms
                 new Room
@@ -297,7 +295,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Common Room",
-                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
+                    Amenities = new List<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
                 },
                 new Room
                 {
@@ -309,7 +307,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Laundry Room",
-                    Amenities = new Collection<string> { "WiFi", "Washing Machines", "Dryers" },
+                    Amenities = new List<string> { "WiFi", "Washing Machines", "Dryers" },
                 },
                 new Room
                 {
@@ -321,7 +319,7 @@ namespace Rooms.API.Data
                     Status = RoomStatus.Available,
                     RoomType = RoomType.Specialized,
                     Purpose = "Common Room",
-                    Amenities = new Collection<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
+                    Amenities = new List<string> { "WiFi", "Comfortable Seating", "TV", "Games" },
                 },
             };
 

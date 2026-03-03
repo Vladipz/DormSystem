@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.DAL.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20260222011133_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260302214316_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,9 @@ namespace Auth.DAL.Migrations
                     b.Property<string>("CodeChallenge")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");

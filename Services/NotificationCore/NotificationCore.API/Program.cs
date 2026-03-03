@@ -6,9 +6,6 @@ using MassTransit;
 
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
-
 using NotificationCore.API.Data;
 using NotificationCore.API.Events.Events;
 
@@ -68,21 +65,7 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Authentication
-builder.Services.AddAuthentication()
-    .AddJwtBearer(opt =>
-    {
-        opt.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateActor = false,
-            ValidateIssuerSigningKey = false,
-            ValidateLifetime = false,
-            ValidateTokenReplay = false,
-            SignatureValidator = (token, _) => new JsonWebToken(token),
-        };
-    });
-
+builder.AddJwtAuthentication();
 builder.Services.AddAuthorization();
 
 

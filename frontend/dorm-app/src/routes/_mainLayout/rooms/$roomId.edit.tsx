@@ -84,7 +84,7 @@ export default function RoomEditPage() {
       updateRoomMutation.mutate(payload, {
         onSuccess: () => {
           toast.success("Room updated successfully");
-          navigate({ to: `/_mainLayout/rooms/${roomId}` });
+          navigate({ to: "/rooms/$roomId", params: { roomId } });
         },
         onError: (err) => {
           toast.error("Failed to update room");
@@ -160,7 +160,7 @@ export default function RoomEditPage() {
       <div className="mb-6 flex items-center">
         <Button
           variant="outline"
-          onClick={() => navigate({ to: `/rooms/${roomId}` })}
+          onClick={() => navigate({ to: "/rooms/$roomId", params: { roomId } })}
           className="mr-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back

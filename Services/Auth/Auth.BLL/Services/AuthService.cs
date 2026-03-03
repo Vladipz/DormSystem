@@ -95,14 +95,14 @@ namespace Auth.BLL.Services
             IList<string> roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
             {
-                new (ClaimTypes.NameIdentifier, userId.ToString()),
-                new (ClaimTypes.GivenName, user.FirstName),
-                new (ClaimTypes.Surname, user.LastName),
+                new ("sub", userId.ToString()),
+                new ("given_name", user.FirstName),
+                new ("family_name", user.LastName),
             };
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("role", role));
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Secret));
@@ -138,6 +138,7 @@ namespace Auth.BLL.Services
                     Code = code,
                     CodeChallenge = codeChallenge,
                     UserId = user.Id,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(5),
                 });
 
                 await _dbContext.SaveChangesAsync();
@@ -161,6 +162,11 @@ namespace Auth.BLL.Services
             if (refreshTokenEntity == null)
             {
                 return Error.NotFound(description: "Invalid refresh token");
+            }
+
+            if (refreshTokenEntity.Expires < DateTime.UtcNow)
+            {
+                return Error.Unauthorized(description: "Refresh token expired");
             }
 
             // Store the user ID from the token entity
@@ -324,6 +330,20 @@ namespace Auth.BLL.Services
             };
         }
 
+        public async Task<ErrorOr<Success>> RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var deleted = await _dbContext.RefreshTokens
+                .Where(rt => rt.Token == refreshToken)
+                .ExecuteDeleteAsync();
+
+            if (deleted == 0)
+            {
+                return Error.NotFound(description: "Refresh token not found");
+            }
+
+            return Result.Success;
+        }
+
         private ErrorOr<Success> ValidateInputs(string authCode, string codeVerifier)
         {
             if (string.IsNullOrWhiteSpace(authCode))
@@ -347,6 +367,11 @@ namespace Auth.BLL.Services
             if (authCodeEntity is null)
             {
                 return Error.NotFound("Auth code not found");
+            }
+
+            if (authCodeEntity.ExpiresAt < DateTime.UtcNow)
+            {
+                return Error.Unauthorized(description: "Auth code has expired");
             }
 
             return authCodeEntity;

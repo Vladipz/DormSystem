@@ -94,10 +94,6 @@ interface AuthorizeRequest {
   codeChallenge: string;
 }
 
-interface AuthorizeResponse {
-  authCode: string;
-}
-
 interface TokenRequest {
   authCode: string;
   codeVerifier: string;
@@ -118,9 +114,7 @@ export const authApi = {
     try {
       // Generate code verifier and challenge
       const codeVerifier = generateCodeVerifier();
-      console.log(`Code verifier: ${codeVerifier}`);
       const codeChallenge = await generateCodeChallenge(codeVerifier);
-      console.log(`Code challenge: ${codeChallenge}`);
 
       // Store code verifier in session storage for the token request
       sessionStorage.setItem("codeVerifier", codeVerifier);
@@ -141,11 +135,7 @@ export const authApi = {
         },
       );
 
-      //TODO: Fix this
-      // const { authCode } = await handleResponse<AuthorizeResponse>(authorizeResponse);
-      const authCode = await authorizeResponse.text();
-
-      console.log(authCode);
+      const authCode = await handleResponse<string>(authorizeResponse);
 
       // Step 2: Exchange code for tokens
       const tokenResponse = await fetch(`${API_BASE_URL}/api/Auth/token`, {
@@ -192,13 +182,7 @@ export const authApi = {
     return handleResponse<void>(response);
   },
 
-  // Logout function
-  logout(): void {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("tokenExpiry");
-    sessionStorage.removeItem("codeVerifier");
-  },
+
 };
 
 // Protected API request helper

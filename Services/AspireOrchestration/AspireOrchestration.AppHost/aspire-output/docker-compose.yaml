@@ -1,0 +1,331 @@
+services:
+  compose-dashboard:
+    image: "mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest"
+    ports:
+      - "18888"
+    expose:
+      - "18889"
+      - "18890"
+    networks:
+      - "aspire"
+    restart: "always"
+  postgres:
+    image: "docker.io/library/postgres:17.6"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    expose:
+      - "5432"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/postgresql/data"
+        source: "shared_postgres_data"
+        read_only: false
+    networks:
+      - "aspire"
+  rabbitmq:
+    image: "docker.io/library/rabbitmq:4.2-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
+    expose:
+      - "5672"
+      - "15672"
+    volumes:
+      - type: "volume"
+        target: "/var/lib/rabbitmq"
+        source: "rabbitmq_data"
+        read_only: false
+    networks:
+      - "aspire"
+  auth-service:
+    image: "${AUTH_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${AUTH_SERVICE_PORT}"
+      ConnectionStrings__auth-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=auth-db"
+      AUTH_DB_HOST: "postgres"
+      AUTH_DB_PORT: "5432"
+      AUTH_DB_USERNAME: "postgres"
+      AUTH_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      AUTH_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/auth-db"
+      AUTH_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/auth-db"
+      AUTH_DB_DATABASENAME: "auth-db"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "auth-service"
+    expose:
+      - "${AUTH_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  event-service:
+    image: "${EVENT_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${EVENT_SERVICE_PORT}"
+      ConnectionStrings__events-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=events-db"
+      EVENTS_DB_HOST: "postgres"
+      EVENTS_DB_PORT: "5432"
+      EVENTS_DB_USERNAME: "postgres"
+      EVENTS_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      EVENTS_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/events-db"
+      EVENTS_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/events-db"
+      EVENTS_DB_DATABASENAME: "events-db"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      AUTH_SERVICE_HTTP: "http://auth-service:${AUTH_SERVICE_PORT}"
+      services__auth-service__http__0: "http://auth-service:${AUTH_SERVICE_PORT}"
+      AUTH_SERVICE_HTTPS: "https://auth-service:${AUTH_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "event-service"
+    expose:
+      - "${EVENT_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  room-service:
+    image: "${ROOM_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${ROOM_SERVICE_PORT}"
+      ConnectionStrings__rooms-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=rooms-db"
+      ROOMS_DB_HOST: "postgres"
+      ROOMS_DB_PORT: "5432"
+      ROOMS_DB_USERNAME: "postgres"
+      ROOMS_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      ROOMS_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/rooms-db"
+      ROOMS_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/rooms-db"
+      ROOMS_DB_DATABASENAME: "rooms-db"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      AUTH_SERVICE_HTTP: "http://auth-service:${AUTH_SERVICE_PORT}"
+      services__auth-service__http__0: "http://auth-service:${AUTH_SERVICE_PORT}"
+      AUTH_SERVICE_HTTPS: "https://auth-service:${AUTH_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "room-service"
+    expose:
+      - "${ROOM_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  file-storage-service:
+    image: "${FILE_STORAGE_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${FILE_STORAGE_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "file-storage-service"
+    expose:
+      - "${FILE_STORAGE_SERVICE_PORT}"
+    networks:
+      - "aspire"
+  inspection-service:
+    image: "${INSPECTION_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${INSPECTION_SERVICE_PORT}"
+      ConnectionStrings__inspections-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=inspections-db"
+      INSPECTIONS_DB_HOST: "postgres"
+      INSPECTIONS_DB_PORT: "5432"
+      INSPECTIONS_DB_USERNAME: "postgres"
+      INSPECTIONS_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      INSPECTIONS_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/inspections-db"
+      INSPECTIONS_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/inspections-db"
+      INSPECTIONS_DB_DATABASENAME: "inspections-db"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      ROOM_SERVICE_HTTP: "http://room-service:${ROOM_SERVICE_PORT}"
+      services__room-service__http__0: "http://room-service:${ROOM_SERVICE_PORT}"
+      ROOM_SERVICE_HTTPS: "https://room-service:${ROOM_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "inspection-service"
+    expose:
+      - "${INSPECTION_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  notification-service:
+    image: "${NOTIFICATION_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${NOTIFICATION_SERVICE_PORT}"
+      ConnectionStrings__notifications-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=notifications-db"
+      NOTIFICATIONS_DB_HOST: "postgres"
+      NOTIFICATIONS_DB_PORT: "5432"
+      NOTIFICATIONS_DB_USERNAME: "postgres"
+      NOTIFICATIONS_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      NOTIFICATIONS_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/notifications-db"
+      NOTIFICATIONS_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/notifications-db"
+      NOTIFICATIONS_DB_DATABASENAME: "notifications-db"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      ROOM_SERVICE_HTTP: "http://room-service:${ROOM_SERVICE_PORT}"
+      services__room-service__http__0: "http://room-service:${ROOM_SERVICE_PORT}"
+      ROOM_SERVICE_HTTPS: "https://room-service:${ROOM_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "notification-service"
+    expose:
+      - "${NOTIFICATION_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  telegram-service:
+    image: "${TELEGRAM_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${TELEGRAM_SERVICE_PORT}"
+      ConnectionStrings__telegram-db: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=telegram-db"
+      TELEGRAM_DB_HOST: "postgres"
+      TELEGRAM_DB_PORT: "5432"
+      TELEGRAM_DB_USERNAME: "postgres"
+      TELEGRAM_DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      TELEGRAM_DB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/telegram-db"
+      TELEGRAM_DB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/telegram-db"
+      TELEGRAM_DB_DATABASENAME: "telegram-db"
+      ConnectionStrings__rabbitmq: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: "guest"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      RABBITMQ_URI: "amqp://guest:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+      TelegramBot__Token: "${BOTTOKEN}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "telegram-service"
+    expose:
+      - "${TELEGRAM_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: "service_started"
+      rabbitmq:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  booking-service:
+    image: "${BOOKING_SERVICE_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${BOOKING_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "booking-service"
+    expose:
+      - "${BOOKING_SERVICE_PORT}"
+    networks:
+      - "aspire"
+  api-gateway:
+    image: "${API_GATEWAY_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${API_GATEWAY_PORT}"
+      AUTH_SERVICE_HTTP: "http://auth-service:${AUTH_SERVICE_PORT}"
+      services__auth-service__http__0: "http://auth-service:${AUTH_SERVICE_PORT}"
+      AUTH_SERVICE_HTTPS: "https://auth-service:${AUTH_SERVICE_PORT}"
+      EVENT_SERVICE_HTTP: "http://event-service:${EVENT_SERVICE_PORT}"
+      services__event-service__http__0: "http://event-service:${EVENT_SERVICE_PORT}"
+      EVENT_SERVICE_HTTPS: "https://event-service:${EVENT_SERVICE_PORT}"
+      INSPECTION_SERVICE_HTTP: "http://inspection-service:${INSPECTION_SERVICE_PORT}"
+      services__inspection-service__http__0: "http://inspection-service:${INSPECTION_SERVICE_PORT}"
+      INSPECTION_SERVICE_HTTPS: "https://inspection-service:${INSPECTION_SERVICE_PORT}"
+      ROOM_SERVICE_HTTP: "http://room-service:${ROOM_SERVICE_PORT}"
+      services__room-service__http__0: "http://room-service:${ROOM_SERVICE_PORT}"
+      ROOM_SERVICE_HTTPS: "https://room-service:${ROOM_SERVICE_PORT}"
+      NOTIFICATION_SERVICE_HTTP: "http://notification-service:${NOTIFICATION_SERVICE_PORT}"
+      services__notification-service__http__0: "http://notification-service:${NOTIFICATION_SERVICE_PORT}"
+      NOTIFICATION_SERVICE_HTTPS: "https://notification-service:${NOTIFICATION_SERVICE_PORT}"
+      TELEGRAM_SERVICE_HTTP: "http://telegram-service:${TELEGRAM_SERVICE_PORT}"
+      services__telegram-service__http__0: "http://telegram-service:${TELEGRAM_SERVICE_PORT}"
+      TELEGRAM_SERVICE_HTTPS: "https://telegram-service:${TELEGRAM_SERVICE_PORT}"
+      FILE_STORAGE_SERVICE_HTTP: "http://file-storage-service:${FILE_STORAGE_SERVICE_PORT}"
+      services__file-storage-service__http__0: "http://file-storage-service:${FILE_STORAGE_SERVICE_PORT}"
+      FILE_STORAGE_SERVICE_HTTPS: "https://file-storage-service:${FILE_STORAGE_SERVICE_PORT}"
+      BOOKING_SERVICE_HTTP: "http://booking-service:${BOOKING_SERVICE_PORT}"
+      services__booking-service__http__0: "http://booking-service:${BOOKING_SERVICE_PORT}"
+      BOOKING_SERVICE_HTTPS: "https://booking-service:${BOOKING_SERVICE_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "api-gateway"
+    expose:
+      - "${API_GATEWAY_PORT}"
+    networks:
+      - "aspire"
+networks:
+  aspire:
+    driver: "bridge"
+volumes:
+  shared_postgres_data:
+    driver: "local"
+  rabbitmq_data:
+    driver: "local"
