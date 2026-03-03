@@ -8,7 +8,9 @@ namespace Shared.TokenService.Services
     {
         public ErrorOr<Guid> GetUserId(HttpContext context)
         {
-            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Support both long URI claim names (legacy) and short names (current)
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? context.User.FindFirstValue("sub");
 
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
             {

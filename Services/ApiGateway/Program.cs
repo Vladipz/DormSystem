@@ -1,13 +1,17 @@
 using System.Text;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Add CORS service
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("allowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -16,7 +20,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddReverseProxy()
-  .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+  .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+  .AddServiceDiscoveryDestinationResolver(); // Add YARP service discovery
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -45,11 +50,14 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Use CORS before authentication middleware
-app.UseCors();
+app.UseCors("allowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapReverseProxy();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();

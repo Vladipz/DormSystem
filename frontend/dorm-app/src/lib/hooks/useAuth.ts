@@ -30,8 +30,8 @@ export function useAuth() {
   /**
    * Logout function that handles both auth service and React state
    */
-  const logout = useCallback(() => {
-    authService.logout();
+  const logout = useCallback(async () => {
+    await authService.logout();
     setUser(null);
     navigate({ to: "/" });
   }, [navigate]);

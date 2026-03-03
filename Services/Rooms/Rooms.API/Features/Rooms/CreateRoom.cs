@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 
 using Carter;
 using Carter.OpenApi;
@@ -93,7 +92,7 @@ namespace Rooms.API.Features.Rooms
                     Status = request.Status,
                     RoomType = request.RoomType,
                     Purpose = request.Purpose,
-                    Amenities = new Collection<string>(request.Amenities),
+                    Amenities = new List<string>(request.Amenities),
                 };
 
                 _dbContext.Rooms.Add(room);

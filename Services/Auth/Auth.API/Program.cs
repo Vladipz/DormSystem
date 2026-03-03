@@ -19,6 +19,9 @@ using Shared.TokenService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
+
 // Add CORS service
 builder.Services.AddCors(options =>
 {
@@ -65,6 +68,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.MapInboundClaims = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -106,6 +110,9 @@ app.UseHttpsRedirection();
 
 // Реєстрація маршрутів контролерів
 app.MapControllers();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 // Запуск програми
 await app.RunAsync();

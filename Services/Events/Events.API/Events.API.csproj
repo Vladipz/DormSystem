@@ -21,7 +21,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +30,7 @@
     <ProjectReference
       Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
+    <ProjectReference Include="..\..\Shared\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
 

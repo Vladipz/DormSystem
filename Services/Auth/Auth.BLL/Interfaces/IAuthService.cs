@@ -61,5 +61,12 @@ namespace Auth.BLL.Interfaces
         /// <param name="codeVerifier">The PKCE code verifier.</param>
         /// <returns>A TokenResponse containing new access and refresh tokens or an error.</returns>
         Task<ErrorOr<TokenModel>> ValidateAndCreateTokensAsync(string authCode, string codeVerifier);
+
+        /// <summary>
+        /// Revokes a refresh token, effectively logging the user out on the server side.
+        /// </summary>
+        /// <param name="refreshToken">The refresh token to revoke.</param>
+        /// <returns>Success or an error.</returns>
+        Task<ErrorOr<Success>> RevokeRefreshTokenAsync(string refreshToken);
     }
 }

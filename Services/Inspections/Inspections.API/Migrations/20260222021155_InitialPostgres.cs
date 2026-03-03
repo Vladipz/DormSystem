@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Inspections.API.Migrations
 {
     /// <inheritdoc />
-    public partial class AddInspection : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +15,11 @@ namespace Inspections.API.Migrations
                 name: "Inspections",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Type = table.Column<string>(type: "TEXT", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Status = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,14 +30,14 @@ namespace Inspections.API.Migrations
                 name: "RoomInspections",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    RoomId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    RoomNumber = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
-                    Floor = table.Column<string>(type: "TEXT", maxLength: 16, nullable: false),
-                    Building = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
-                    Status = table.Column<string>(type: "TEXT", nullable: false),
-                    Comment = table.Column<string>(type: "TEXT", nullable: true),
-                    InspectionId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoomId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoomNumber = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    Floor = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Building = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    InspectionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
