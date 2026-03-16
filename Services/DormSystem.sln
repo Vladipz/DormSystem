@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -42,6 +42,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.FileServiceClient", "Shared\Shared.FileServiceClient\Shared.FileServiceClient.csproj", "{70D7A177-F890-4EDD-8999-59B2BB027E7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{19B770C8-25DB-4236-B90E-B64033A14A19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Events", "Events", "{CDDCADCD-9350-8E22-D67F-1D4576D8025F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.Tests", "Events\Events.Tests\Events.Tests.csproj", "{1BE40582-3098-427F-823B-CC63377B911C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -269,6 +273,18 @@ Global
 		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x64.Build.0 = Release|Any CPU
 		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x86.ActiveCfg = Release|Any CPU
 		{19B770C8-25DB-4236-B90E-B64033A14A19}.Release|x86.Build.0 = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|x64.Build.0 = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Debug|x86.Build.0 = Debug|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|x64.ActiveCfg = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|x64.Build.0 = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|x86.ActiveCfg = Release|Any CPU
+		{1BE40582-3098-427F-823B-CC63377B911C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -291,5 +307,6 @@ Global
 		{59BBB004-51A7-4A61-9CB3-168FE79B0B5B} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
 		{5D699163-92BF-4BD9-94B6-355F83DF098B} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
 		{70D7A177-F890-4EDD-8999-59B2BB027E7B} = {755B1F3D-3AC5-2B33-F0F0-57EF8FFF673B}
+		{1BE40582-3098-427F-823B-CC63377B911C} = {CDDCADCD-9350-8E22-D67F-1D4576D8025F}
 	EndGlobalSection
 EndGlobal

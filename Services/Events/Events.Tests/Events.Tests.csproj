@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <NoWarn>SA0001;SA1600;CA1707;CA2007;SA1202;CA2000</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Events.API\Events.API.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -5,15 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup Label="Core Framework (.NET 10 versions)">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Entity Framework Core">
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
@@ -76,6 +76,14 @@
     <PackageVersion Include="Telegram.Bot" Version="22.8.1" />
     <PackageVersion Include="QuestPDF" Version="2025.12.3" />
     <PackageVersion Include="SkiaSharp" Version="3.119.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Code Quality">

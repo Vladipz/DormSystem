@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Events.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" />
     <ProjectReference
