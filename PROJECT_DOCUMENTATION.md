@@ -166,7 +166,16 @@ Shared/Shared.TokenService/         # бібліотека для JWT авто- 
   ```
 - **Docker Compose**:
   ```bash
-  docker-compose -f docker-compose.local.yml up --build
+  docker compose up --build
+  ```
+
+  PostgreSQL databases for services are provisioned by init scripts in `docker/postgres-init/`.
+  These scripts run only on first initialization of the `postgres_data` volume.
+  To re-run provisioning from scratch:
+
+  ```bash
+  docker compose down -v
+  docker compose up --build
   ```
 
 ## Додаткові ресурси
