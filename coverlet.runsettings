@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[Shared.*]*,[ServiceDefaults]*,[Microsoft.AspNetCore.OpenApi.Generated]*,[System.Runtime.CompilerServices]*</Exclude>
+          <ExcludeByFile>**/Migrations/**/*.cs,**/Program.cs,**/*Endpoint.cs,**/Contracts/**/*.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
