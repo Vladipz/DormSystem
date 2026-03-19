@@ -3,6 +3,12 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <NoWarn>SA0001;SA1600;CA1707;CA2007;SA1202;CA2000</NoWarn>
+    <!-- Coverlet configuration -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <Exclude>[Shared.*]*,[ServiceDefaults]*,[Microsoft.AspNetCore.OpenApi.Generated]*,[System.Runtime.CompilerServices]*</Exclude>
+    <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+    <ExcludeByFile>**/Migrations/**/*.cs,**/Program.cs,**/*Endpoint.cs,**/Contracts/**/*.cs</ExcludeByFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +20,11 @@
     </PackageReference>
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" />
   </ItemGroup>
 
   <ItemGroup>

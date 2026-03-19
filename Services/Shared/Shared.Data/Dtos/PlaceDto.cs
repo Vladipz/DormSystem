@@ -7,4 +7,4 @@ public record PlaceDto(
     bool IsOccupied,
     DateTime? MovedInAt,
     string RoomLabel,
-    Guid? OccupiedByUserId); 
+    Guid? OccupiedByUserId);
