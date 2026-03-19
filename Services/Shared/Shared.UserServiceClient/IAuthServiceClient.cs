@@ -1,6 +1,5 @@
 using ErrorOr;
 
-
 namespace Shared.UserServiceClient
 {
     public interface IAuthServiceClient

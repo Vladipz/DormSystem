@@ -1,5 +1,7 @@
 using System.Security.Claims;
+
 using ErrorOr;
+
 using Microsoft.AspNetCore.Http;
 
 namespace Shared.TokenService.Services

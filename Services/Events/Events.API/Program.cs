@@ -11,6 +11,7 @@ using MassTransit;
 
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+
 using Scalar.AspNetCore;
 
 using Shared.TokenService.Services;

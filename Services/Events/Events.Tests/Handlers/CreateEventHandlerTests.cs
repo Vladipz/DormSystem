@@ -33,7 +33,7 @@ public sealed class CreateEventHandlerTests
             busMock.Object);
     }
 
-    private static CreateEvent.Command ValidCommand(Guid? ownerId = null) => new()
+    private static CreateEvent.Command ValidCommand(Guid? ownerId = null) => new ()
     {
         Name = "Test Event",
         Date = DateTime.UtcNow.AddDays(1),

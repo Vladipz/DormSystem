@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Shared.UserServiceClient
 {
-
     public static class UserServiceClientExtensions
     {
         /// <summary>
@@ -22,6 +21,10 @@ namespace Shared.UserServiceClient
 
             return services;
         }
-    }
 
+        public static IServiceCollection AddUserServiceClient(this IServiceCollection services, Uri? serviceUrl = null)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

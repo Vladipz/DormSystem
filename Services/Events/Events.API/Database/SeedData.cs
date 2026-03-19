@@ -153,6 +153,7 @@ namespace Events.API.Database
                     UserId = MaintenanceStaffId,
                     JoinedAt = BaseDate.AddDays(-1),
                 },
+
                 // Study Group participants
                 new EventParticipant
                 {
@@ -168,6 +169,7 @@ namespace Events.API.Database
                     UserId = MaintenanceStaffId,
                     JoinedAt = BaseDate.AddDays(-1),
                 },
+
                 // Game Night participants
                 new EventParticipant
                 {
@@ -176,6 +178,7 @@ namespace Events.API.Database
                     UserId = AdminUserId,
                     JoinedAt = BaseDate.AddDays(-3),
                 },
+
                 // Laundry Workshop participants
                 new EventParticipant
                 {
@@ -184,6 +187,7 @@ namespace Events.API.Database
                     UserId = RegularUserId,
                     JoinedAt = BaseDate.AddHours(-6),
                 },
+
                 // Advanced Math Study participants
                 new EventParticipant
                 {
@@ -192,6 +196,7 @@ namespace Events.API.Database
                     UserId = AdminUserId,
                     JoinedAt = BaseDate.AddHours(-12),
                 },
+
                 // Movie Night participants
                 new EventParticipant
                 {

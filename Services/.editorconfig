@@ -373,6 +373,13 @@ dotnet_diagnostic.SA1101.severity = none
 dotnet_diagnostic.CA2007.severity = none
 dotnet_diagnostic.IDE0058.severity = none
 
+# Custom CA Rules Configuration for Events Project
+dotnet_diagnostic.CA1716.severity = none        # Shared namespace conflicts - DISABLED
+dotnet_diagnostic.CA1000.severity = none        # Static members on generic types - DISABLED  
+dotnet_diagnostic.CA1056.severity = suggestion  # Uri properties - RECOMMENDATION
+# CA2227 (Read-only collections) - remains WARNING (default)
+# CA1002 (Use Collection<T>) - remains WARNING (default)
+
 # disable rules for Migration files 
 
 # SA1313: Parameter names should begin with lower-case letter

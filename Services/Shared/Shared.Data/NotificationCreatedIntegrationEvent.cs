@@ -6,4 +6,4 @@ namespace Shared.Data
         string Title,
         string Message,
         DateTime CreatedAt);
-} 
+}

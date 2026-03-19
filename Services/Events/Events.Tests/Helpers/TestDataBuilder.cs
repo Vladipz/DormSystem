@@ -49,4 +49,13 @@ internal static class TestDataBuilder
             ExpiresAt = DateTime.UtcNow.AddDays(-1),
             IsActive = true,
         };
+
+    public static EventParticipant CreateEventParticipant(Guid eventId, Guid? userId = null) =>
+        new EventParticipant
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventId,
+            UserId = userId ?? Guid.NewGuid(),
+            JoinedAt = DateTime.UtcNow,
+        };
 }
