@@ -160,7 +160,7 @@ Services/
 ├── global.json                      # ✨ НОВИЙ - SDK version
 ├── Directory.Build.props            # ✨ НОВИЙ - Global properties
 ├── Directory.Packages.props         # ✨ НОВИЙ - Package versions
-├── DormSystem.sln
+├── DormSystem.slnx
 ├── Auth/
 │   ├── Auth.API/
 │   │   └── Auth.API.csproj         # ✏️ ОНОВЛЕНО - без Version attrs

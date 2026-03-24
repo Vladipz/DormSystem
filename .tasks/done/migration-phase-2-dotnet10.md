@@ -188,14 +188,14 @@ dotnet ef migrations remove
 cd /home/vlad/data/Code/Projects/DormSystem/Services
 
 # 1. Очистити повністю
-dotnet clean DormSystem.sln
+dotnet clean DormSystem.slnx
 rm -rf **/bin **/obj
 
 # 2. Відновити з .NET 10 пакетами
-dotnet restore DormSystem.sln
+dotnet restore DormSystem.slnx
 
 # 3. Білд
-dotnet build DormSystem.sln --configuration Debug
+dotnet build DormSystem.slnx --configuration Debug
 
 # 4. Перевірити що використовується .NET 10
 dotnet list package --framework net10.0
@@ -377,10 +377,10 @@ sed -i 's/net10.0/net8.0/g' Directory.Build.props
 git checkout Directory.Packages.props
 
 # 3. Очистити та перебілдити
-dotnet clean DormSystem.sln
+dotnet clean DormSystem.slnx
 rm -rf **/bin **/obj
-dotnet restore DormSystem.sln
-dotnet build DormSystem.sln
+dotnet restore DormSystem.slnx
+dotnet build DormSystem.slnx
 ```
 
 **Альтернативний відкат (повний):**
@@ -388,8 +388,8 @@ dotnet build DormSystem.sln
 # Відновити ВСЕ з git
 cd /home/vlad/data/Code/Projects/DormSystem/Services
 git checkout Directory.Build.props Directory.Packages.props
-dotnet restore DormSystem.sln
-dotnet build DormSystem.sln
+dotnet restore DormSystem.slnx
+dotnet build DormSystem.slnx
 ```
 
 ---
@@ -408,7 +408,7 @@ grep -r "PackageVersion" Services/**/Directory.Packages.props
 # Повинно бути ТІЛЬКИ в /Services/Directory.Packages.props
 
 # 3. Білд Release конфігурації
-dotnet build DormSystem.sln --configuration Release
+dotnet build DormSystem.slnx --configuration Release
 
 # 4. Перевірити розмір артефактів (не повинен істотно збільшитись)
 du -sh Services/*/bin/Release/net10.0/
