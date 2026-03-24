@@ -90,7 +90,7 @@ grep "TargetFramework" Directory.Build.props
 grep -c "PackageVersion Include" Directory.Packages.props
 
 # Білд
-dotnet build DormSystem.sln
+dotnet build DormSystem.slnx
 ```
 
 ### Перевірка пакетів

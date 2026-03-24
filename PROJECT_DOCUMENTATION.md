@@ -89,8 +89,8 @@ frontend/dorm-app/
 ```plaintext
 Services/
   ├─ ApiGateway/ # YARP API Gateway конфігурація
-  ├─ Auth/       # Auth.sln з проектами API, BLL, DAL
-  └─ Events/     # Events.sln з Vertical Slice архітектурою
+  ├─ Auth/       # Auth.slnx з проектами API, BLL, DAL
+  └─ Events/     # Events.slnx з Vertical Slice архітектурою
 ```
 
 ### Shared

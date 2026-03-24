@@ -27,7 +27,7 @@ Generate a **stand‑alone microservice** named **StoreService** that implements
 - **CI‑ready** Dockerfile (Alpine image) and optional docker‑compose with a volume‑mounted SQLite db.
 
 ## 5. Deliverables
-1. Solution & project: `StoreService.sln`, `StoreService.csproj`.
+1. Solution & project: `StoreService.slnx`, `StoreService.csproj`.
 2. Folder structure:
    ```
 Domain/

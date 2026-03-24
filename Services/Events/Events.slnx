@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Events.API/Events.API.csproj" />
+  <Project Path="Events.Tests/Events.Tests.csproj" />
+</Solution>

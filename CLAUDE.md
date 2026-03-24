@@ -356,8 +356,8 @@ Services publish domain events via MassTransit/RabbitMQ. Key events:
 
 ## Solution Structure
 
-- `Services/DormSystem.sln`: Root solution containing all services
-- `Services/{ServiceName}/{ServiceName}.sln`: Individual service solutions
+- `Services/DormSystem.slnx`: Root solution containing all services
+- `Services/{ServiceName}/{ServiceName}.slnx`: Individual service solutions
 - `Services/Shared/`: Cross-cutting shared libraries
 - `frontend/dorm-app/`: React SPA
 
