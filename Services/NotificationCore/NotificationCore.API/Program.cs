@@ -74,9 +74,7 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 // Configure Room Service Client
-// Use Aspire service discovery (null) or fall back to configured URL
-var roomServiceUrl = builder.Configuration["RoomServiceSettings:BaseUrl"];
-builder.Services.AddRoomServiceClient(builder.Configuration, roomServiceUrl);
+builder.Services.AddRoomServiceClient();
 
 builder.Services.AddCarter();
 builder.Services.AddScoped<ITokenService, TokenService>();

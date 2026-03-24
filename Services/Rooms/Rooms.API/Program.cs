@@ -100,14 +100,10 @@ builder.Services.AddMassTransit(config =>
 // Register HttpClient for Auth Service
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
-// Use Aspire service discovery (null) or fall back to configured URL
-var authServiceUrl = builder.Configuration["AuthService:ApiUrl"];
-builder.Services.AddUserServiceClient(authServiceUrl);
+builder.Services.AddUserServiceClient();
 
 // Register FileServiceClient for managing room photos
-// Use Aspire service discovery (null) or fall back to configured URL
-var fileServiceUrl = builder.Configuration["FileStorage:BaseUrl"];
-builder.Services.AddFileServiceClient(builder.Configuration, fileServiceUrl);
+builder.Services.AddFileServiceClient(builder.Configuration);
 
 // Register MaintenanceTicketEnricher
 builder.Services.AddScoped<MaintenanceTicketEnricher>();

@@ -12,7 +12,6 @@ namespace Shared.UserServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<HttpAuthServiceClient> _logger;
-        private readonly AuthServiceSettings _settings;
 
         public HttpAuthServiceClient(
             HttpClient httpClient,
@@ -21,15 +20,14 @@ namespace Shared.UserServiceClient
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
+            _ = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
         }
 
         public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid userId)
         {
             try
             {
-                var requestUri = new Uri($"{_settings.ApiUrl}/api/user/{userId}");
-                var response = await _httpClient.GetAsync(requestUri);
+                var response = await _httpClient.GetAsync($"/api/user/{userId}");
 
                 if (!response.IsSuccessStatusCode)
                 {

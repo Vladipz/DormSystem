@@ -29,8 +29,11 @@ var rabbitmq = builder.AddRabbitMQ("rabbitmq")
     .WithDataVolume("rabbitmq_data");
 
 // ===== MICROSERVICES =====
+var fileStorageService = builder.AddProject<Projects.FileStorage_API>("file-storage-service");
+
 var authService = builder.AddProject<Projects.Auth_API>("auth-service")
     .WithReference(authDb)
+    .WithReference(fileStorageService)
     .WaitFor(authDb)
     .WithEnvironment("Jwt__Secret", jwtSecret)
     .WithEnvironment("Jwt__Issuer", jwtIssuer)
@@ -50,10 +53,9 @@ var roomService = builder.AddProject<Projects.Rooms_API>("room-service")
     .WithReference(roomsDb)
     .WithReference(rabbitmq)
     .WithReference(authService)
+    .WithReference(fileStorageService)
     .WaitFor(roomsDb)
     .WaitFor(rabbitmq);
-
-var fileStorageService = builder.AddProject<Projects.FileStorage_API>("file-storage-service");
 
 var inspectionService = builder.AddProject<Projects.Inspections_API>("inspection-service")
     .WithReference(inspectionsDb)
@@ -80,6 +82,7 @@ var botToken = builder.AddParameter("botToken", secret: true);
 var telegramService = builder.AddProject<Projects.TelegramAgent_API>("telegram-service")
     .WithReference(telegramDb)
     .WithReference(rabbitmq)
+    .WithReference(authService)
     .WithEnvironment("TelegramBot__Token", botToken)
     .WaitFor(telegramDb)
     .WaitFor(rabbitmq);

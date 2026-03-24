@@ -25,6 +25,11 @@ builder.Services.AddOpenApi();
 
 // Add HTTP client factory
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("AuthService", client =>
+{
+    client.BaseAddress = new Uri("https+http://auth-service");
+})
+.AddServiceDiscovery();
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));

@@ -51,9 +51,7 @@ builder.Services.AddMassTransit(config =>
 // Configure Auth Service integration
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
-// Use Aspire service discovery (null) or fall back to configured URL
-var authServiceUrl = builder.Configuration.GetValue<string>("AuthService:ApiUrl");
-builder.Services.AddUserServiceClient(authServiceUrl);
+builder.Services.AddUserServiceClient();
 
 builder.Services.AddScoped<ParticipantEnricher>();
 

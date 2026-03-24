@@ -81,9 +81,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddCarter();
 
-// Use Aspire service discovery (null) or fall back to configured URL
-var roomServiceUrl = builder.Configuration["RoomServiceSettings:BaseUrl"];
-builder.Services.AddRoomServiceClient(builder.Configuration, roomServiceUrl);
+builder.Services.AddRoomServiceClient();
 
 // Register TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();

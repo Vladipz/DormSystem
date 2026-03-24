@@ -1,7 +1,9 @@
 using System.Text.Json;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Shared.FileServiceClient.Models;
 
 namespace Shared.FileServiceClient
@@ -10,7 +12,6 @@ namespace Shared.FileServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<FileServiceClient> _logger;
-        private readonly FileStorageSettings _settings;
 
         public FileServiceClient(
             HttpClient httpClient,
@@ -19,7 +20,7 @@ namespace Shared.FileServiceClient
         {
             _httpClient = httpClient;
             _logger = logger;
-            _settings = settings.Value;
+            _ = settings.Value;
         }
 
         public async Task<FileUploadResult?> UploadFileAsync(Stream fileStream, string fileName, string contentType, string category = "document")
@@ -34,7 +35,7 @@ namespace Shared.FileServiceClient
                 content.Add(fileContent, "File", fileName);
                 content.Add(new StringContent(category), "Category");
 
-                var response = await _httpClient.PostAsync($"{_settings.BaseUrl}/api/files/upload", content);
+                var response = await _httpClient.PostAsync("/api/files/upload", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -80,15 +81,15 @@ namespace Shared.FileServiceClient
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{_settings.BaseUrl}/api/files/{fileId}");
-                
+                var response = await _httpClient.DeleteAsync($"/api/files/{fileId}");
+
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("Successfully deleted file with ID: {FileId}", fileId);
                     return true;
                 }
 
-                _logger.LogWarning("Failed to delete file with ID: {FileId}. Status: {StatusCode}", 
+                _logger.LogWarning("Failed to delete file with ID: {FileId}. Status: {StatusCode}",
                     fileId, response.StatusCode);
                 return false;
             }
@@ -107,14 +108,20 @@ namespace Shared.FileServiceClient
                 return string.Empty;
             }
 
-            return $"{_settings.BaseUrl}/api/files/{fileId}";
+            if (_httpClient.BaseAddress is null)
+            {
+                _logger.LogWarning("Attempted to get file URL without configured base address");
+                return $"/api/files/{fileId}";
+            }
+
+            return new Uri(_httpClient.BaseAddress, $"/api/files/{fileId}").ToString();
         }
 
         public async Task<(byte[] data, string contentType, string fileName)?> GetFileAsync(string fileId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_settings.BaseUrl}/api/files/{fileId}");
+                var response = await _httpClient.GetAsync($"/api/files/{fileId}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -125,7 +132,7 @@ namespace Shared.FileServiceClient
                     return (data, contentType, fileName);
                 }
 
-                _logger.LogWarning("Failed to get file with ID: {FileId}. Status: {StatusCode}", 
+                _logger.LogWarning("Failed to get file with ID: {FileId}. Status: {StatusCode}",
                     fileId, response.StatusCode);
                 return null;
             }
@@ -140,17 +147,17 @@ namespace Shared.FileServiceClient
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_settings.BaseUrl}/api/files/category/{category}");
+                var response = await _httpClient.GetAsync($"/api/files/category/{category}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    return JsonSerializer.Deserialize<IEnumerable<FileUploadResult>>(responseContent, options) 
+                    return JsonSerializer.Deserialize<IEnumerable<FileUploadResult>>(responseContent, options)
                            ?? Enumerable.Empty<FileUploadResult>();
                 }
 
-                _logger.LogWarning("Failed to get files for category: {Category}. Status: {StatusCode}", 
+                _logger.LogWarning("Failed to get files for category: {Category}. Status: {StatusCode}",
                     category, response.StatusCode);
                 return Enumerable.Empty<FileUploadResult>();
             }
@@ -167,4 +174,4 @@ namespace Shared.FileServiceClient
             return contentDisposition?.FileName?.Trim('"');
         }
     }
-} 
+}
