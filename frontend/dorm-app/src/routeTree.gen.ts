@@ -18,6 +18,7 @@ import { Route as AuthLayoutRegisterImport } from './routes/_authLayout/register
 import { Route as AuthLayoutLoginImport } from './routes/_authLayout/login'
 import { Route as MainLayoutRoomDashboardIndexImport } from './routes/_mainLayout/room-dashboard/index'
 import { Route as MainLayoutProfileIndexImport } from './routes/_mainLayout/profile/index'
+import { Route as MainLayoutNotificationsIndexImport } from './routes/_mainLayout/notifications/index'
 import { Route as MainLayoutInspectionsIndexImport } from './routes/_mainLayout/inspections/index'
 import { Route as MainLayoutEventsIndexImport } from './routes/_mainLayout/events/index'
 import { Route as MainLayoutAdminIndexImport } from './routes/_mainLayout/admin/index'
@@ -73,6 +74,13 @@ const MainLayoutProfileIndexRoute = MainLayoutProfileIndexImport.update({
   path: '/profile/',
   getParentRoute: () => MainLayoutRoute,
 } as any)
+
+const MainLayoutNotificationsIndexRoute =
+  MainLayoutNotificationsIndexImport.update({
+    id: '/notifications/',
+    path: '/notifications/',
+    getParentRoute: () => MainLayoutRoute,
+  } as any)
 
 const MainLayoutInspectionsIndexRoute = MainLayoutInspectionsIndexImport.update(
   {
@@ -230,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainLayoutInspectionsIndexImport
       parentRoute: typeof MainLayoutImport
     }
+    '/_mainLayout/notifications/': {
+      id: '/_mainLayout/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof MainLayoutNotificationsIndexImport
+      parentRoute: typeof MainLayoutImport
+    }
     '/_mainLayout/profile/': {
       id: '/_mainLayout/profile/'
       path: '/profile'
@@ -319,6 +334,7 @@ interface MainLayoutRouteChildren {
   MainLayoutAdminIndexRoute: typeof MainLayoutAdminIndexRoute
   MainLayoutEventsIndexRoute: typeof MainLayoutEventsIndexRoute
   MainLayoutInspectionsIndexRoute: typeof MainLayoutInspectionsIndexRoute
+  MainLayoutNotificationsIndexRoute: typeof MainLayoutNotificationsIndexRoute
   MainLayoutProfileIndexRoute: typeof MainLayoutProfileIndexRoute
   MainLayoutRoomDashboardIndexRoute: typeof MainLayoutRoomDashboardIndexRoute
   MainLayoutEventsEventIdEditRoute: typeof MainLayoutEventsEventIdEditRoute
@@ -337,6 +353,7 @@ const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MainLayoutAdminIndexRoute: MainLayoutAdminIndexRoute,
   MainLayoutEventsIndexRoute: MainLayoutEventsIndexRoute,
   MainLayoutInspectionsIndexRoute: MainLayoutInspectionsIndexRoute,
+  MainLayoutNotificationsIndexRoute: MainLayoutNotificationsIndexRoute,
   MainLayoutProfileIndexRoute: MainLayoutProfileIndexRoute,
   MainLayoutRoomDashboardIndexRoute: MainLayoutRoomDashboardIndexRoute,
   MainLayoutEventsEventIdEditRoute: MainLayoutEventsEventIdEditRoute,
@@ -363,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof MainLayoutAdminIndexRoute
   '/events': typeof MainLayoutEventsIndexRoute
   '/inspections': typeof MainLayoutInspectionsIndexRoute
+  '/notifications': typeof MainLayoutNotificationsIndexRoute
   '/profile': typeof MainLayoutProfileIndexRoute
   '/room-dashboard': typeof MainLayoutRoomDashboardIndexRoute
   '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
@@ -384,6 +402,7 @@ export interface FileRoutesByTo {
   '/admin': typeof MainLayoutAdminIndexRoute
   '/events': typeof MainLayoutEventsIndexRoute
   '/inspections': typeof MainLayoutInspectionsIndexRoute
+  '/notifications': typeof MainLayoutNotificationsIndexRoute
   '/profile': typeof MainLayoutProfileIndexRoute
   '/room-dashboard': typeof MainLayoutRoomDashboardIndexRoute
   '/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
@@ -407,6 +426,7 @@ export interface FileRoutesById {
   '/_mainLayout/admin/': typeof MainLayoutAdminIndexRoute
   '/_mainLayout/events/': typeof MainLayoutEventsIndexRoute
   '/_mainLayout/inspections/': typeof MainLayoutInspectionsIndexRoute
+  '/_mainLayout/notifications/': typeof MainLayoutNotificationsIndexRoute
   '/_mainLayout/profile/': typeof MainLayoutProfileIndexRoute
   '/_mainLayout/room-dashboard/': typeof MainLayoutRoomDashboardIndexRoute
   '/_mainLayout/events/$eventId/edit': typeof MainLayoutEventsEventIdEditRoute
@@ -430,6 +450,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/events'
     | '/inspections'
+    | '/notifications'
     | '/profile'
     | '/room-dashboard'
     | '/events/$eventId/edit'
@@ -450,6 +471,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/events'
     | '/inspections'
+    | '/notifications'
     | '/profile'
     | '/room-dashboard'
     | '/events/$eventId/edit'
@@ -471,6 +493,7 @@ export interface FileRouteTypes {
     | '/_mainLayout/admin/'
     | '/_mainLayout/events/'
     | '/_mainLayout/inspections/'
+    | '/_mainLayout/notifications/'
     | '/_mainLayout/profile/'
     | '/_mainLayout/room-dashboard/'
     | '/_mainLayout/events/$eventId/edit'
@@ -523,6 +546,7 @@ export const routeTree = rootRoute
         "/_mainLayout/admin/",
         "/_mainLayout/events/",
         "/_mainLayout/inspections/",
+        "/_mainLayout/notifications/",
         "/_mainLayout/profile/",
         "/_mainLayout/room-dashboard/",
         "/_mainLayout/events/$eventId/edit",
@@ -564,6 +588,10 @@ export const routeTree = rootRoute
     },
     "/_mainLayout/inspections/": {
       "filePath": "_mainLayout/inspections/index.tsx",
+      "parent": "/_mainLayout"
+    },
+    "/_mainLayout/notifications/": {
+      "filePath": "_mainLayout/notifications/index.tsx",
       "parent": "/_mainLayout"
     },
     "/_mainLayout/profile/": {

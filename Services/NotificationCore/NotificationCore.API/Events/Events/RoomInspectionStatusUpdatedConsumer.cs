@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using NotificationCore.API.Data;
 using NotificationCore.API.Entities;
+using NotificationCore.API.Services;
 
 using Shared.Data;
 using Shared.RoomServiceClient;
@@ -33,15 +34,18 @@ namespace NotificationCore.API.Events.Events
                 "Failed to get room occupants for room {RoomId}");
 
         private readonly ApplicationDbContext _db;
+        private readonly IInAppNotificationDispatcher _inAppNotificationDispatcher;
         private readonly IRoomService _roomService;
         private readonly ILogger<RoomInspectionStatusUpdatedConsumer> _logger;
 
         public RoomInspectionStatusUpdatedConsumer(
             ApplicationDbContext db,
+            IInAppNotificationDispatcher inAppNotificationDispatcher,
             IRoomService roomService,
             ILogger<RoomInspectionStatusUpdatedConsumer> logger)
         {
             _db = db;
+            _inAppNotificationDispatcher = inAppNotificationDispatcher;
             _roomService = roomService;
             _logger = logger;
         }
@@ -122,6 +126,8 @@ namespace NotificationCore.API.Events.Events
                 // Save all notifications to database
                 _db.Notifications.AddRange(notifications);
                 await _db.SaveChangesAsync(context.CancellationToken);
+
+                await _inAppNotificationDispatcher.DispatchAsync(notifications, context.CancellationToken);
 
                 // Publish integration events for each notification
                 foreach (var notification in notifications)

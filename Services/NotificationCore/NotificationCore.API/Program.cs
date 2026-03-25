@@ -4,8 +4,11 @@ using Carter;
 
 using MassTransit;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using NotificationCore.API.Hubs;
+using NotificationCore.API.Services;
 using NotificationCore.API.Data;
 using NotificationCore.API.Events.Events;
 
@@ -34,6 +37,12 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>
 {
@@ -54,10 +63,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173", // Vite dev server
-                "http://localhost:4173", // Vite preview
-                "http://localhost:3000") // Alternative local development
+            .SetIsOriginAllowed(_ => true)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -66,8 +72,32 @@ builder.Services.AddCors(options =>
 
 // Configure Authentication
 builder.AddJwtAuthentication();
-builder.Services.AddAuthorization();
+builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Events ??= new JwtBearerEvents();
 
+    var currentHandler = options.Events.OnMessageReceived;
+    options.Events.OnMessageReceived = async context =>
+    {
+        if (currentHandler is not null)
+        {
+            await currentHandler(context);
+        }
+
+        if (!string.IsNullOrEmpty(context.Token))
+        {
+            return;
+        }
+
+        var accessToken = context.Request.Query["access_token"];
+        var path = context.HttpContext.Request.Path;
+        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/notifications/hubs/in-app"))
+        {
+            context.Token = accessToken;
+        }
+    };
+});
+builder.Services.AddAuthorization();
 
 // Configure MediatR
 builder.Services.AddMediatR(cfg =>
@@ -78,6 +108,7 @@ builder.Services.AddRoomServiceClient();
 
 builder.Services.AddCarter();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IInAppNotificationDispatcher, InAppNotificationDispatcher>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -105,6 +136,9 @@ using (var scope = app.Services.CreateScope())
 app.MapGroup("/api")
 
    .MapCarter();
+
+app.MapHub<NotificationHub>("/api/notifications/hubs/in-app")
+    .RequireAuthorization();
 
 // Map Aspire health check endpoints
 app.MapDefaultEndpoints();

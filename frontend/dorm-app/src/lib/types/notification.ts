@@ -10,7 +10,7 @@ export enum NotificationType {
 export enum NotificationChannel {
   Email = "Email",
   Telegram = "Telegram",
-  WebPush = "WebPush",
+  InApp = "InApp",
 }
 
 /* Single setting */
@@ -35,4 +35,28 @@ export interface NotificationPreferencesResponse {
 export interface UpdateNotificationPreferencesRequest {
   types: NotificationTypeSetting[];
   channels: NotificationChannelSetting[];
+}
+
+export interface UserNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  createdAt: string;
+  isRead: boolean;
+}
+
+export interface MyNotificationsResponse {
+  userId: string;
+  unreadCount: number;
+  notifications: UserNotification[];
+}
+
+export interface MarkNotificationsAsReadRequest {
+  ids: string[];
+}
+
+export interface MarkNotificationsAsReadResponse {
+  markedCount: number;
+  readIds: string[];
 }
