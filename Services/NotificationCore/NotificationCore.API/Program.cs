@@ -6,11 +6,13 @@ using MassTransit;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using NotificationCore.API.Hubs;
-using NotificationCore.API.Services;
+
 using NotificationCore.API.Data;
 using NotificationCore.API.Events.Events;
+using NotificationCore.API.Hubs;
+using NotificationCore.API.Services;
 
 using RoomService.Client;
 
@@ -42,6 +44,7 @@ builder.Services.AddSignalR()
     {
         options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+builder.Services.AddSingleton<IUserIdProvider, NotificationUserIdProvider>();
 
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>

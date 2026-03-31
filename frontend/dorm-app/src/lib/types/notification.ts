@@ -46,9 +46,15 @@ export interface UserNotification {
   isRead: boolean;
 }
 
+export type NotificationDeliveryMode = "websocket" | "polling_5s";
+
 export interface MyNotificationsResponse {
   userId: string;
   unreadCount: number;
+  notifications: UserNotification[];
+}
+
+export interface NotificationChangesResponse {
   notifications: UserNotification[];
 }
 
@@ -59,4 +65,10 @@ export interface MarkNotificationsAsReadRequest {
 export interface MarkNotificationsAsReadResponse {
   markedCount: number;
   readIds: string[];
+}
+
+export interface RegisterNotificationReceiptRequest {
+  notificationId: string;
+  mode: NotificationDeliveryMode;
+  receivedAtUtc: string;
 }

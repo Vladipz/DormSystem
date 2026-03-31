@@ -1,5 +1,7 @@
+import { notificationDeliveryMode } from "@/lib/config/notificationDelivery";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authService } from "@/lib/services/authService";
+import { notificationService } from "@/lib/services/notificationService";
 import type {
   MyNotificationsResponse,
   UserNotification,
@@ -23,6 +25,10 @@ export function NotificationRealtimeListener() {
   const connectionRef = useRef<HubConnection | null>(null);
 
   useEffect(() => {
+    if (notificationDeliveryMode !== "websocket") {
+      return;
+    }
+
     const stopConnection = async () => {
       if (connectionRef.current) {
         await connectionRef.current.stop();
@@ -87,6 +93,12 @@ export function NotificationRealtimeListener() {
 
         void queryClient.invalidateQueries({
           queryKey: ["myNotifications", user.id],
+        });
+
+        void notificationService.registerReceipt({
+          notificationId: notification.id,
+          mode: "websocket",
+          receivedAtUtc: new Date().toISOString(),
         });
       },
     );
