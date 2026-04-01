@@ -64,11 +64,11 @@ const NOTIFICATION_TYPES_CONFIG = {
 const NOTIFICATION_CHANNELS_CONFIG = {
   IMPLEMENTED: [
     NotificationChannel.Telegram,
+    NotificationChannel.InApp,
   ] as NotificationChannel[],
   
   SOON: [
     NotificationChannel.Email,
-    NotificationChannel.WebPush,
   ] as NotificationChannel[],
 } as const;
 
@@ -125,7 +125,7 @@ const getAllNotificationChannels = (): NotificationChannel[] => {
  * 
  * Notification Channels:
  *   1. Email - SMTP integration for email notifications
- *   2. WebPush - Browser push notifications (service worker required)
+ *   2. InApp - Notifications inside the client application
  * 
  * TODO FOR DEVELOPERS:
  * - Move items from SOON to IMPLEMENTED as features are completed
@@ -184,10 +184,19 @@ const getNotificationChannelIcon = (channel: NotificationChannel) => {
       return <Mail className="h-4 w-4" />;
     case NotificationChannel.Telegram:
       return <MessageCircle className="h-4 w-4" />;
-    case NotificationChannel.WebPush:
+    case NotificationChannel.InApp:
       return <Bell className="h-4 w-4" />;
     default:
       return <Bell className="h-4 w-4" />;
+  }
+};
+
+const getNotificationChannelLabel = (channel: NotificationChannel): string => {
+  switch (channel) {
+    case NotificationChannel.InApp:
+      return "In-App";
+    default:
+      return channel;
   }
 };
 
@@ -423,7 +432,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                       }`}
                     >
                       {getNotificationChannelIcon(channel)}
-                      {channel}
+                      {getNotificationChannelLabel(channel)}
                       {channel === NotificationChannel.Telegram &&
                         channelSetting?.externalId && (
                           <span className="text-muted-foreground text-xs">

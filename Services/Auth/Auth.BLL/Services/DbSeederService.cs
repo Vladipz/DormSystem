@@ -13,6 +13,8 @@ namespace Auth.BLL.Services
         private static readonly Guid AdminUserId = new Guid("11111111-1111-1111-1111-111111111111");
         private static readonly Guid RegularUserId = new Guid("22222222-2222-2222-2222-222222222222");
         private static readonly Guid MaintenanceStaffId = new Guid("33333333-3333-3333-3333-333333333333");
+        private static readonly Guid TestStudentOneId = new Guid("44444444-4444-4444-4444-444444444444");
+        private static readonly Guid TestStudentTwoId = new Guid("55555555-5555-5555-5555-555555555555");
 
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
@@ -107,46 +109,100 @@ namespace Auth.BLL.Services
 
         private async Task SeedRegularUsersAsync()
         {
-            // Create a regular user with the Reporter1 ID if it doesn't exist
-            var regularUser = await _userManager.FindByIdAsync(RegularUserId.ToString());
-            if (regularUser == null)
+            await EnsureUserAsync(
+                RegularUserId,
+                "student@dorm.com",
+                "Student",
+                "User",
+                "Student123!",
+                "Student");
+
+            await EnsureUserAsync(
+                TestStudentOneId,
+                "student1.test@dorm.com",
+                "Test",
+                "StudentOne",
+                "Student123!",
+                "Student");
+
+            await EnsureUserAsync(
+                TestStudentTwoId,
+                "student2.test@dorm.com",
+                "Test",
+                "StudentTwo",
+                "Student123!",
+                "Student");
+
+            await EnsureUserAsync(
+                MaintenanceStaffId,
+                "maintenance@dorm.com",
+                "Maintenance",
+                "Staff",
+                "Maintenance123!",
+                "Security");
+        }
+
+        private async Task EnsureUserAsync(
+            Guid userId,
+            string email,
+            string firstName,
+            string lastName,
+            string password,
+            string role)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
             {
-                regularUser = new User
+                user = new User
                 {
-                    Id = RegularUserId,
-                    UserName = "student@dorm.com",
-                    Email = "student@dorm.com",
+                    Id = userId,
+                    UserName = email,
+                    Email = email,
                     EmailConfirmed = true,
-                    FirstName = "Student",
-                    LastName = "User",
+                    FirstName = firstName,
+                    LastName = lastName,
                 };
 
-                var result = await _userManager.CreateAsync(regularUser, "Student123!");
-                if (result.Succeeded)
+                var result = await _userManager.CreateAsync(user, password);
+                if (!result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(regularUser, "Student");
+                    throw new Exception($"Error creating seeded user {email}: {string.Join(", ", result.Errors.Select(x => x.Description))}");
                 }
             }
 
-            // Create a maintenance staff user if it doesn't exist
-            var maintenanceUser = await _userManager.FindByIdAsync(MaintenanceStaffId.ToString());
-            if (maintenanceUser == null)
+            if (!await _userManager.IsInRoleAsync(user, role))
             {
-                maintenanceUser = new User
-                {
-                    Id = MaintenanceStaffId,
-                    UserName = "maintenance@dorm.com",
-                    Email = "maintenance@dorm.com",
-                    EmailConfirmed = true,
-                    FirstName = "Maintenance",
-                    LastName = "Staff",
-                };
+                await _userManager.AddToRoleAsync(user, role);
+            }
 
-                var result = await _userManager.CreateAsync(maintenanceUser, "Maintenance123!");
-                if (result.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(maintenanceUser, "Security");
-                }
+            var needsUpdate = false;
+            if (user.FirstName != firstName)
+            {
+                user.FirstName = firstName;
+                needsUpdate = true;
+            }
+
+            if (user.LastName != lastName)
+            {
+                user.LastName = lastName;
+                needsUpdate = true;
+            }
+
+            if (user.Email != email)
+            {
+                user.Email = email;
+                needsUpdate = true;
+            }
+
+            if (user.UserName != email)
+            {
+                user.UserName = email;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate)
+            {
+                await _userManager.UpdateAsync(user);
             }
         }
 

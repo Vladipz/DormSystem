@@ -16,6 +16,7 @@ const pages: PageConfig[] = [
   { path: "/laundry", title: "Laundry Booking" },
   { path: "/requests", title: "Purchase Requests" },
   { path: "/marketplace", title: "Marketplace" },
+  { path: "/notifications", title: "Messages" },
   { path: "/profile", title: "Profile" },
   { path: "/settings", title: "Settings" },
   { path: "/login", title: "Login" }

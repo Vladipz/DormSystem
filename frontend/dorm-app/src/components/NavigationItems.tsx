@@ -136,11 +136,13 @@ export function NavigationItems({
                 <Icon className="mr-2 h-5 w-5" />
                 {item.label}
               </div>
-              {isComingSoon && (
-                <Badge variant="secondary" className="text-xs ml-2">
-                  Soon
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {isComingSoon && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    Soon
+                  </Badge>
+                )}
+              </div>
             </div>
           </Button>
         );

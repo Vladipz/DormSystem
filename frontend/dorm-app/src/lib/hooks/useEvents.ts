@@ -28,8 +28,8 @@ export const useEvents = ({ pageNumber = 1, pageSize = 10 }: UseEventsParams = {
   });
 
   const joinEventMutation = useMutation({
-    mutationFn: ({ eventId, userId }: { eventId: string; userId: string }) =>
-      EventService.joinEvent(eventId, userId),
+    mutationFn: ({ eventId }: { eventId: string }) =>
+      EventService.joinEvent(eventId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },
@@ -82,8 +82,8 @@ export const useEvents = ({ pageNumber = 1, pageSize = 10 }: UseEventsParams = {
     loading: isLoading,
     error,
     refreshEvents: () => refetch(),
-    joinEvent: (eventId: string, userId: string) =>
-      joinEventMutation.mutate({ eventId, userId }),
+    joinEvent: (eventId: string, _userId: string) =>
+      joinEventMutation.mutate({ eventId }),
     leaveEvent: (eventId: string, userId: string) =>
       leaveEventMutation.mutate({ eventId, userId }),
     createEvent: (eventData: CreateEventRequest) =>

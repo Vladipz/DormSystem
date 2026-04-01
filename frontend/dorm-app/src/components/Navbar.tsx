@@ -10,18 +10,23 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useMyNotifications } from "@/lib/hooks/useNotification";
 import { usePageTitle } from "@/lib/hooks/usePageTitle";
 import { userService } from "@/lib/services/userService";
 import { UserProfile } from "@/lib/types/auth";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { LogOut, User } from "lucide-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Bell, LogOut, User } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
     const { pageTitle } = usePageTitle();
     const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+    const location = useLocation();
     const [error, setError] = useState<string | null>(null);
+    const { data: notificationData } = useMyNotifications(user?.id, 5);
+    const unreadCount = notificationData?.unreadCount ?? 0;
+    const isNotificationsPage = location.pathname === "/notifications";
 
     // Fetch full user profile when authenticated
     const { data: userProfile, isLoading: profileLoading } = useQuery<UserProfile>({
@@ -82,64 +87,84 @@ export function Navbar() {
                             <span className="text-sm text-muted-foreground">Loading...</span>
                         </div>
                     ) : isAuthenticated && user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-auto p-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-right">
-                                            <div className="text-sm font-medium">{displayName}</div>
-                                            <div className="flex items-center gap-1">
-                                                <Badge variant="secondary" className="text-xs">
-                                                    {userRole}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage
-                                                src={avatarUrl}
-                                                alt={displayName}
-                                            />
-                                            <AvatarFallback className="text-xs">
-                                                {initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </div>
-                                </Button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{displayName}</p>
-                                        {userEmail && (
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                                {userEmail}
-                                            </p>
+                        <>
+                            <Button
+                                variant={isNotificationsPage ? "secondary" : "ghost"}
+                                className="relative h-auto px-3 py-2"
+                                asChild
+                            >
+                                <Link to="/notifications">
+                                    <div className="flex items-center gap-2">
+                                        <Bell className="h-4 w-4" />
+                                        <span className="text-sm font-medium">Messages</span>
+                                        {unreadCount > 0 && (
+                                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white">
+                                                {unreadCount > 9 ? "9+" : unreadCount}
+                                            </span>
                                         )}
                                     </div>
-                                </DropdownMenuLabel>
+                                </Link>
+                            </Button>
 
-                                <DropdownMenuSeparator />
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="relative h-auto p-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <div className="text-sm font-medium">{displayName}</div>
+                                                <div className="flex items-center gap-1">
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        {userRole}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage
+                                                    src={avatarUrl}
+                                                    alt={displayName}
+                                                />
+                                                <AvatarFallback className="text-xs">
+                                                    {initials}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </div>
+                                    </Button>
+                                </DropdownMenuTrigger>
 
-                                <DropdownMenuItem asChild>
-                                    <Link to="/profile" className="flex items-center">
-                                        <User className="mr-2 h-4 w-4" />
-                                        Profile
-                                    </Link>
-                                </DropdownMenuItem>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuLabel>
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{displayName}</p>
+                                            {userEmail && (
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                    {userEmail}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </DropdownMenuLabel>
 
-                                <DropdownMenuSeparator />
+                                    <DropdownMenuSeparator />
 
-                                <DropdownMenuItem
-                                    onClick={handleLogout}
-                                    disabled={isLoading}
-                                    className="text-red-600 focus:text-red-600"
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    {isLoading ? "Logging out..." : "Logout"}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/profile" className="flex items-center">
+                                            <User className="mr-2 h-4 w-4" />
+                                            Profile
+                                        </Link>
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator />
+
+                                    <DropdownMenuItem
+                                        onClick={handleLogout}
+                                        disabled={isLoading}
+                                        className="text-red-600 focus:text-red-600"
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        {isLoading ? "Logging out..." : "Logout"}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </>
                     ) : (
                         <div className="flex gap-2">
                             <Button variant="ghost" asChild>

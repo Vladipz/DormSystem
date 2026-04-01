@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { NotificationDeliveryListener } from "@/components/NotificationDeliveryListener";
 import { Navbar } from "@/components/Navbar";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 export const Route = createFileRoute("/_mainLayout")({
@@ -16,6 +17,7 @@ function RouteComponent() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <NotificationDeliveryListener />
       <AppSidebar />
       <div className="flex h-screen flex-1 flex-col">
         <header className="min-h-[60px]">
