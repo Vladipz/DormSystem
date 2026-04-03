@@ -77,12 +77,14 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<EventsDbContext>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
 
         // Apply any pending migrations
         await context.Database.MigrateAsync();
 
+        await RuntimeSeedData.SeedAsync(context, logger);
+
         // Log migration completion
-        var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Database migrations applied successfully");
     }
     catch (Exception ex)

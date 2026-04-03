@@ -129,6 +129,41 @@ namespace Auth.BLL.Services
             }
         }
 
+        public async Task<ErrorOr<List<UserResponse>>> GetUsersByIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                ArgumentNullException.ThrowIfNull(userIds);
+
+                var normalizedIds = userIds
+                    .Distinct()
+                    .ToList();
+
+                if (normalizedIds.Count == 0)
+                {
+                    return new List<UserResponse>();
+                }
+
+                var users = await _userManager.Users
+                    .Where(u => normalizedIds.Contains(u.Id))
+                    .Select(u => new UserResponse
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email ?? string.Empty,
+                        AvatarUrl = !string.IsNullOrEmpty(u.AvatarId) ? _fileServiceClient.GetFileUrl(u.AvatarId) : null,
+                    })
+                    .ToListAsync(cancellationToken);
+
+                return users;
+            }
+            catch (Exception ex)
+            {
+                return Error.Failure(description: $"Failed to retrieve users: {ex.Message}");
+            }
+        }
+
         public async Task<ErrorOr<bool>> DeleteUserAvatarAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             try
