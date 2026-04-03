@@ -1,4 +1,5 @@
-// Services/FileService.cs
+using System.Text.Json;
+
 using FileStorage.API.Configuration;
 using FileStorage.API.Models;
 
@@ -6,8 +7,6 @@ using Microsoft.Extensions.Options;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-
-using System.Text.Json;
 
 namespace FileStorage.API.Services
 {

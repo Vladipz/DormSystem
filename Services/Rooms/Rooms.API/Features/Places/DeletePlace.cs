@@ -86,12 +86,6 @@ namespace Rooms.API.Features.Places
             .Produces(404)
             .WithName("Place.Delete")
             .WithTags("Places")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete place by ID";
-                op.Parameters[0].Description = "Place ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

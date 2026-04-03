@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Web;
 
 using ErrorOr;
 
@@ -9,14 +10,12 @@ using RoomService.Client;
 
 using Shared.Data.Dtos;
 
-
 namespace Shared.RoomServiceClient;
 
 public sealed class HttpRoomService : IRoomService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HttpRoomService> _logger;
-    private readonly RoomServiceSettings _settings;
 
     public HttpRoomService(
         HttpClient httpClient,
@@ -25,20 +24,25 @@ public sealed class HttpRoomService : IRoomService
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
+        _ = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
     }
 
     public async Task<ErrorOr<List<RoomDto>>> GetRoomsInfoByDormitoryIdAsync(Guid dormitoryId, CancellationToken ct = default)
     {
         try
         {
-            var requestUri = new Uri($"{_settings.ApiUrl}/api/rooms?dormitoryId={dormitoryId}");
+            var requestUri = BuildRelativeUri("/api/rooms", new Dictionary<string, string?>
+            {
+                ["dormitoryId"] = dormitoryId.ToString(),
+            });
             var response = await _httpClient.GetAsync(requestUri, ct);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to get rooms from Room service: {StatusCode} {Response}",
-                    response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+                _logger.LogWarning(
+                    "Failed to get rooms from Room service: {StatusCode} {Response}",
+                    response.StatusCode,
+                    await response.Content.ReadAsStringAsync(ct));
 
                 return Error.Failure("Room.GetRoomsFailed", $"Failed to get rooms. Status: {response.StatusCode}");
             }
@@ -74,13 +78,19 @@ public sealed class HttpRoomService : IRoomService
     {
         try
         {
-            var requestUri = new Uri($"{_settings.ApiUrl}/api/rooms/for-inspection?dormitoryId={dormitoryId}&includeSpecial={includeSpecial}");
+            var requestUri = BuildRelativeUri("/api/rooms/for-inspection", new Dictionary<string, string?>
+            {
+                ["dormitoryId"] = dormitoryId.ToString(),
+                ["includeSpecial"] = includeSpecial.ToString().ToLowerInvariant(),
+            });
             var response = await _httpClient.GetAsync(requestUri, ct);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to get rooms for inspection from Room service: {StatusCode} {Response}",
-                    response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+                _logger.LogWarning(
+                    "Failed to get rooms for inspection from Room service: {StatusCode} {Response}",
+                    response.StatusCode,
+                    await response.Content.ReadAsStringAsync(ct));
 
                 return Error.Failure("Room.GetRoomsForInspectionFailed", $"Failed to get rooms for inspection. Status: {response.StatusCode}");
             }
@@ -116,13 +126,20 @@ public sealed class HttpRoomService : IRoomService
     {
         try
         {
-            var requestUri = new Uri($"{_settings.ApiUrl}/api/places?roomId={roomId}&isOccupied=true&pageSize=100");
+            var requestUri = BuildRelativeUri("/api/places", new Dictionary<string, string?>
+            {
+                ["roomId"] = roomId.ToString(),
+                ["isOccupied"] = bool.TrueString.ToLowerInvariant(),
+                ["pageSize"] = "100",
+            });
             var response = await _httpClient.GetAsync(requestUri, ct);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to get occupied places from Room service: {StatusCode} {Response}",
-                    response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+                _logger.LogWarning(
+                    "Failed to get occupied places from Room service: {StatusCode} {Response}",
+                    response.StatusCode,
+                    await response.Content.ReadAsStringAsync(ct));
 
                 return Error.Failure("Room.GetOccupiedPlacesFailed", $"Failed to get occupied places. Status: {response.StatusCode}");
             }
@@ -154,9 +171,25 @@ public sealed class HttpRoomService : IRoomService
         }
     }
 
+    private static Uri BuildRelativeUri(string path, IReadOnlyDictionary<string, string?> queryParameters)
+    {
+        var query = HttpUtility.ParseQueryString(string.Empty);
+
+        foreach (var (key, value) in queryParameters)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                query[key] = value;
+            }
+        }
+
+        var queryString = query.ToString();
+        return new Uri(string.IsNullOrEmpty(queryString) ? path : $"{path}?{queryString}", UriKind.Relative);
+    }
+
     // Generic paged response wrapper
     private class PagedResponse<T>
     {
-        public List<T> Items { get; set; } = new();
+        public List<T> Items { get; set; } = new List<T>();
     }
 }

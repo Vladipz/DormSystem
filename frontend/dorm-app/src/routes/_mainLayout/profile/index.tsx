@@ -32,7 +32,7 @@ function RouteComponent() {
 
   if (error) {
     console.log(error);
-    authService.logout();
+    void authService.logout();
     navigate({ to: "/login", search: { returnTo: "/profile" } });
     return null;
   }

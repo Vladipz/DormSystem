@@ -100,12 +100,6 @@ namespace Events.API.Features.Events
             .ProducesProblem(404)
             .WithName("GetEvent")
             .WithTags("Events")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Get event by ID";
-                operation.Parameters[0].Description = "Event ID";
-                return operation;
-            })
             .IncludeInOpenApi();
         }
     }

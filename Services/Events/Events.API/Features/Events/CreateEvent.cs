@@ -123,16 +123,16 @@ namespace Events.API.Features.Events
                 // Publish the event creation message
                 await _bus.Publish(
                     new EventCreated
-                {
-                    EventId = newEvent.Id,
-                    Name = newEvent.Name,
-                    Date = newEvent.Date,
-                    CustomLocation = newEvent.Location,
-                    BuildingId = newEvent.BuildingId,
-                    RoomId = newEvent.RoomId,
-                    OwnerId = newEvent.OwnerId,
-                    IsPublic = newEvent.IsPublic,
-                }, cancellationToken);
+                    {
+                        EventId = newEvent.Id,
+                        Name = newEvent.Name,
+                        Date = newEvent.Date,
+                        CustomLocation = newEvent.Location,
+                        BuildingId = newEvent.BuildingId,
+                        RoomId = newEvent.RoomId,
+                        OwnerId = newEvent.OwnerId,
+                        IsPublic = newEvent.IsPublic,
+                    }, cancellationToken);
 
                 _logger.LogInformation("Event created successfully with ID: {EventId}", newEvent.Id);
 

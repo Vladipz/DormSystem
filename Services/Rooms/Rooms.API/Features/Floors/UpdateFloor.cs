@@ -127,12 +127,6 @@ namespace Rooms.API.Features.Floors
             .WithName("UpdateFloor")
             .WithTags("Floors")
             .Accepts<UpdateFloorRequest>("application/json")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Update a floor";
-                op.Parameters[0].Description = "Floor ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

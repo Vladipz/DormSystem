@@ -69,6 +69,7 @@ namespace Events.API.Services
         /// <summary>
         /// Enriches a single short participant with user information, converting it to a detailed response.
         /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<ParticipantDetailedResponse> EnrichParticipantAsync(ParticipantShortResponse participant)
         {
             ArgumentNullException.ThrowIfNull(participant);

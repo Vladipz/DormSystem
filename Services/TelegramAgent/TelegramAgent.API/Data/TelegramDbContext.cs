@@ -8,9 +8,23 @@ namespace TelegramAgent.API.Data
     {
         public DbSet<TelegramLink> TelegramLinks { get; set; } = null!;
 
+        // Parameterless constructor for EF Core design-time tools
+        public TelegramDbContext()
+        {
+        }
+
         public TelegramDbContext(DbContextOptions<TelegramDbContext> options)
             : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            // This is only used at design-time for migrations
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseNpgsql("Host=localhost;Database=telegram-db;Username=postgres;Password=postgres");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

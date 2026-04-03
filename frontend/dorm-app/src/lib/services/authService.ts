@@ -4,7 +4,7 @@ import { AuthUser, JwtPayload, LinkCodeResponse } from "../types/auth";
 import { api } from "../utils/axios-client";
 
 // Define base API URL from environment variable
-const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5000";
+const VITE_API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5095";
 
 class AuthService {
   private isRefreshing = false;
@@ -24,7 +24,8 @@ class AuthService {
   isTokenExpired(): boolean {
     const decodedToken = this.getDecodedToken();
     if (!decodedToken) return true;
-    
+
+    if (!decodedToken.exp) return true;
     return decodedToken.exp * 1000 < Date.now();
   }
 
@@ -33,7 +34,7 @@ class AuthService {
     const token = localStorage.getItem("accessToken");
     console.log("auth check")
     if (!token) return null;
-    
+
     // Перевіряємо валідність
     if (this.isTokenExpired()) {
       // Токен простроченний, пробуємо оновити
@@ -44,25 +45,15 @@ class AuthService {
         return null;
       }
     }
-    
+
     // Отримуємо дані з токена (який може бути оновленим)
     const decodedToken = this.getDecodedToken();
     if (!decodedToken) return null;
     return {
-      id: decodedToken[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-      ],
-      role: decodedToken[
-        "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-      ],
-      firstName:
-        decodedToken[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-        ],
-      lastName:
-        decodedToken[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
-        ],
+      id: decodedToken.sub ?? "",
+      role: decodedToken.role,
+      firstName: decodedToken.given_name,
+      lastName: decodedToken.family_name,
       isAuthenticated: true,
     };
   }
@@ -98,16 +89,28 @@ class AuthService {
           this.refreshPromise = null;
         }
       };
-      
+
       refreshAsync();
     });
 
     return this.refreshPromise;
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      try {
+        await axios.post(
+          `${VITE_API_GATEWAY_URL}/api/auth/logout`,
+          { refreshToken },
+        );
+      } catch {
+        // Ignore server errors during logout — clear local tokens regardless
+      }
+    }
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("codeVerifier");
   }
 
   async generateLinkCode(): Promise<LinkCodeResponse> {

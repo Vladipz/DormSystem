@@ -88,11 +88,8 @@ namespace Events.API.Features.Events
             .Produces<PagedResponse<EventResponce>>(StatusCodes.Status200OK)
             .WithName("GetEvents")
             .WithTags("Events")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Get paginated list of events";
-                return operation;
-            })
+            .WithSummary("Get paginated list of events")
+            .WithDescription("Retrieves a paginated list of all events. Supports filtering by page number and page size. Returns event details including name, dates, location, and participant count.")
             .IncludeInOpenApi();
         }
     }

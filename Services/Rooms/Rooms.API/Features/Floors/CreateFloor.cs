@@ -128,11 +128,6 @@ namespace Rooms.API.Features.Floors
             .WithName("CreateFloor")
             .WithTags("Floors")
             .Accepts<CreateFloorRequest>("application/json")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Create a new floor";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
@@ -21,16 +20,19 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- <ProjectReference Include="..\..\Shared\Shared.PagedList\Shared.PagedList.csproj" /> -->
-    <ProjectReference Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
+    <ProjectReference
+      Include="..\..\Shared\Shared.UserServiceClient\Shared.UserServiceClient.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.TokenService\Shared.TokenService.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.Data\Shared.Data.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.RoomServiceClient\Shared.RoomServiceClient.csproj" />
+    <ProjectReference
+      Include="..\..\Shared\Shared.RoomServiceClient\Shared.RoomServiceClient.csproj" />
+    <ProjectReference Include="..\..\Shared\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

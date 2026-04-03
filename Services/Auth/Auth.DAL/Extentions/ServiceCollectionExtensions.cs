@@ -12,11 +12,11 @@ namespace Auth.DAL.Extentions
     {
         public static IServiceCollection AddDalServices(this IServiceCollection services, IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("auth-db");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new ArgumentException("Connection string 'DefaultConnection' not found.");
+                throw new ArgumentException("Connection string 'auth-db' not found.");
             }
 
             services.AddDbContext<AuthDbContext>(options =>

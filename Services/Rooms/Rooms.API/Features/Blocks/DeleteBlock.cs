@@ -103,12 +103,6 @@ namespace Rooms.API.Features.Blocks
             .Produces(409)
             .WithName("DeleteBlock")
             .WithTags("Blocks")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete block by ID";
-                op.Parameters[0].Description = "Block ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

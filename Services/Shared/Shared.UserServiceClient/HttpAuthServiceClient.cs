@@ -12,7 +12,6 @@ namespace Shared.UserServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<HttpAuthServiceClient> _logger;
-        private readonly AuthServiceSettings _settings;
 
         public HttpAuthServiceClient(
             HttpClient httpClient,
@@ -21,15 +20,14 @@ namespace Shared.UserServiceClient
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
+            _ = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
         }
 
         public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid userId)
         {
             try
             {
-                var requestUri = new Uri($"{_settings.ApiUrl}/api/user/{userId}");
-                var response = await _httpClient.GetAsync(requestUri);
+                var response = await _httpClient.GetAsync($"/api/user/{userId}");
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -68,24 +66,55 @@ namespace Shared.UserServiceClient
         {
             ArgumentNullException.ThrowIfNull(userIds);
 
-            // This is a simple implementation that fetches users one by one
-            // In a production environment, you would want to implement a batch endpoint
-            var result = new Dictionary<Guid, UserDto>();
+            var normalizedIds = userIds
+                .Distinct()
+                .ToList();
 
-            foreach (var userId in userIds)
+            if (normalizedIds.Count == 0)
             {
-                var userResult = await GetUserByIdAsync(userId);
-
-                if (userResult.IsError)
-                {
-                    _logger.LogWarning("Failed to get user {UserId}: {Error}", userId, userResult.FirstError.Description);
-                    continue;
-                }
-
-                result[userId] = userResult.Value;
+                return new Dictionary<Guid, UserDto>();
             }
 
-            return result;
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(
+                    "/api/user/batch",
+                    new GetUsersByIdsRequest { UserIds = normalizedIds });
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "Failed to get users information from Auth service: {StatusCode} {Response}",
+                        response.StatusCode,
+                        await response.Content.ReadAsStringAsync());
+                    return Error.Failure("Auth.GetUsersFailed", $"Failed to get users information. Status: {response.StatusCode}");
+                }
+
+                var users = await response.Content.ReadFromJsonAsync<List<UserDto>>();
+                if (users is null)
+                {
+                    return Error.Failure("Auth.InvalidResponse", "Invalid response from Auth service");
+                }
+
+                return users.ToDictionary(user => user.Id, user => user);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error when getting users info in batch");
+                return Error.Failure("Auth.ConnectionError", ex.Message);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error when getting users info in batch");
+                return Error.Failure("Auth.InvalidResponse", ex.Message);
+            }
+            catch (Exception ex) when (
+                ex is not OperationCanceledException &&
+                ex is not ObjectDisposedException)
+            {
+                _logger.LogError(ex, "Unexpected error when getting users info in batch");
+                return Error.Unexpected(description: ex.Message);
+            }
         }
     }
 }

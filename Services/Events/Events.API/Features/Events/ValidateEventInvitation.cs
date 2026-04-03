@@ -82,7 +82,8 @@ namespace Events.API.Features.Events
 
                 // Check if token exists and is valid
                 var invitation = await _dbContext.InvitationTokens
-                    .FirstOrDefaultAsync(i =>
+                    .FirstOrDefaultAsync(
+                        i =>
                         i.Token == request.Token &&
                         i.EventId == request.EventId &&
                         i.IsActive &&

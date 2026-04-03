@@ -87,12 +87,6 @@ namespace Rooms.API.Features.Buildings
             .WithName("Buildings.DeleteBuilding")
             .WithTags("Buildings")
             .RequireAuthorization("AdminOnly")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete building by ID";
-                op.Parameters[0].Description = "Building ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

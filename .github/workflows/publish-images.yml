@@ -1,0 +1,117 @@
+name: Build And Publish Docker Images
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-solution:
+    name: Build DormSystem solution
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Services
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Services/global.json
+
+      - name: Restore solution
+        run: dotnet restore DormSystem.slnx
+
+      - name: Build solution
+        run: dotnet build DormSystem.slnx --configuration Release --no-restore
+
+  publish-images:
+    name: Publish ${{ matrix.service.name }}
+    runs-on: ubuntu-latest
+    needs: build-solution
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: auth-service
+            image: dormsystem-auth-service
+            context: ./Services
+            dockerfile: ./Services/Auth/Auth.API/Dockerfile
+
+          - name: event-service
+            image: dormsystem-event-service
+            context: ./Services
+            dockerfile: ./Services/Events/Events.API/Dockerfile
+
+          - name: room-service
+            image: dormsystem-room-service
+            context: ./Services
+            dockerfile: ./Services/Rooms/Rooms.API/Dockerfile
+
+          - name: inspection-service
+            image: dormsystem-inspection-service
+            context: ./Services
+            dockerfile: ./Services/Inspections/Inspections.API/Dockerfile
+
+          - name: notification-service
+            image: dormsystem-notification-service
+            context: ./Services
+            dockerfile: ./Services/NotificationCore/NotificationCore.API/Dockerfile
+
+          - name: telegram-service
+            image: dormsystem-telegram-service
+            context: ./Services
+            dockerfile: ./Services/TelegramAgent/TelegramAgent.API/Dockerfile
+
+          - name: file-storage-service
+            image: dormsystem-file-storage-service
+            context: ./Services
+            dockerfile: ./Services/FileStorage/FileStorage.API/Dockerfile
+
+          - name: booking-service
+            image: dormsystem-booking-service
+            context: ./Services
+            dockerfile: ./Services/Booking/Booking.API/Dockerfile
+
+          - name: api-gateway
+            image: dormsystem-api-gateway
+            context: ./Services
+            dockerfile: ./Services/ApiGateway/Dockerfile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/vladipz/${{ matrix.service.image }}
+          tags: |
+            type=sha,format=short,prefix=sha-
+            type=raw,value=main,enable={{is_default_branch}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

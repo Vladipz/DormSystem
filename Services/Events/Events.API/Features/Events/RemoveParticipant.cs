@@ -93,13 +93,6 @@ namespace Events.API.Features.Events
             .Produces<Error>(404)
             .WithTags("EventParticipants")
             .WithName("RemoveParticipant")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Remove a participant from an event";
-                operation.Parameters[0].Description = "Event ID";
-                operation.Parameters[1].Description = "User ID";
-                return operation;
-            })
             .IncludeInOpenApi();
         }
     }

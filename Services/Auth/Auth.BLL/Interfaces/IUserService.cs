@@ -40,6 +40,14 @@ namespace Auth.BLL.Interfaces
         Task<ErrorOr<bool>> DeleteUserAvatarAsync(Guid userId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets multiple users by their IDs.
+        /// </summary>
+        /// <param name="userIds">The user IDs.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Collection of users or an error.</returns>
+        Task<ErrorOr<List<UserResponse>>> GetUsersByIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets a user by ID with avatar URL.
         /// </summary>
         /// <param name="userId">The user ID.</param>

@@ -173,11 +173,6 @@ namespace Rooms.API.Features.Rooms
             .Produces<Error>(400)
             .WithName("GetRooms")
             .WithTags("Rooms")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of rooms";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

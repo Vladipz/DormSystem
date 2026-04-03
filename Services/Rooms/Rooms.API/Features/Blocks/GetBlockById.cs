@@ -98,12 +98,6 @@ namespace Rooms.API.Features.Blocks
             .Produces(404)
             .WithName("GetBlockById")
             .WithTags("Blocks")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get block details by ID";
-                op.Parameters[0].Description = "Block ID";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

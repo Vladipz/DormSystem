@@ -86,12 +86,6 @@ namespace Rooms.API.Features.Rooms
             .Produces<Error>(404)
             .WithName("DeleteRoom")
             .WithTags("Rooms")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Delete room by ID";
-                op.Parameters[0].Description = "Room ID";
-                return op;
-            })
             .IncludeInOpenApi()
             .RequireAuthorization("AdminOnly");
         }

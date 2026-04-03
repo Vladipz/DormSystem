@@ -3,8 +3,9 @@ import { allNavigationItems } from "@/components/NavigationItems";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useMyNotifications } from "@/lib/hooks/useNotification";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { useState } from "react";
 import { Separator } from "./ui/separator";
 import {
@@ -18,12 +19,20 @@ import {
 
 // Main navigation items for bottom bar (4 most important implemented items)
 const mainNavPaths = ["/", "/events", "/room-dashboard", "/profile"];
+const mobileNotificationsItem = {
+  path: "/notifications",
+  icon: Bell,
+  label: "Messages",
+  comingSoon: false,
+};
 
 export function MobileBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: notificationData } = useMyNotifications(user?.id, 5);
+  const unreadCount = notificationData?.unreadCount ?? 0;
 
   // Filter navigation items based on user role
   const filteredNavigationItems = allNavigationItems.filter((item) => {
@@ -35,7 +44,10 @@ export function MobileBottomNav() {
 
   // Filter navigation items
   const mainNavItems = filteredNavigationItems.filter(item => mainNavPaths.includes(item.path));
-  const menuNavItems = filteredNavigationItems.filter(item => !mainNavPaths.includes(item.path));
+  const menuNavItems = [
+    mobileNotificationsItem,
+    ...filteredNavigationItems.filter(item => !mainNavPaths.includes(item.path)),
+  ];
 
   const isRouteActive = (path: string) => {
     return location.pathname === path;
@@ -152,13 +164,18 @@ export function MobileBottomNav() {
               className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 h-auto"
             >
               <div
-                className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                className={`relative flex flex-col items-center justify-center gap-1 transition-colors ${
                   isMenuItemActive
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Menu className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 left-1/2 ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-semibold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
                 <span className="text-xs font-medium">More</span>
               </div>
             </Button>
@@ -188,11 +205,18 @@ export function MobileBottomNav() {
                         <Icon className="mr-3 h-5 w-5" />
                         {item.label}
                       </div>
-                      {isComingSoon && (
-                        <Badge variant="secondary" className="text-xs ml-2">
-                          Soon
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {item.path === "/notifications" && unreadCount > 0 && (
+                          <Badge variant="destructive" className="min-w-5 px-1 text-[10px]">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </Badge>
+                        )}
+                        {isComingSoon && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            Soon
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </Button>
                 );

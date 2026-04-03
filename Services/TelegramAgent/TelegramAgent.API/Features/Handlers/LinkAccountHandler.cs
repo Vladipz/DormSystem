@@ -11,18 +11,15 @@ namespace TelegramAgent.API.Features.Handlers
     {
         private readonly TelegramDbContext _dbContext;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<LinkAccountHandler> _logger;
 
         public LinkAccountHandler(
             TelegramDbContext dbContext,
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration,
             ILogger<LinkAccountHandler> logger)
         {
             _dbContext = dbContext;
             _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
             _logger = logger;
         }
 
@@ -65,14 +62,13 @@ namespace TelegramAgent.API.Features.Handlers
 
         private async Task<Guid?> ValidateCodeWithAuthService(string code, CancellationToken cancellationToken)
         {
-            var authServiceUrl = _configuration["Services:AuthService:BaseUrl"] ?? "http://localhost:5001";
-            using var httpClient = _httpClientFactory.CreateClient();
+            using var httpClient = _httpClientFactory.CreateClient("AuthService");
 
             var validateRequest = new { code };
             var json = JsonSerializer.Serialize(validateRequest);
             using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PostAsync($"{authServiceUrl}/api/link-codes/validate", content, cancellationToken);
+            var response = await httpClient.PostAsync("/api/link-codes/validate", content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

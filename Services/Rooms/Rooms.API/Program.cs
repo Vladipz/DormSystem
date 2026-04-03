@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 
 using Rooms.API.Data;
 using Rooms.API.Features.Blocks;
@@ -25,11 +24,16 @@ using Rooms.API.Features.Places;
 using Rooms.API.Features.Rooms;
 using Rooms.API.Services;
 
+using Scalar.AspNetCore;
+
 using Shared.TokenService.Services;
-using Shared.UserServiceClient;
 using Shared.FileServiceClient.Extensions;
+using Shared.UserServiceClient;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Aspire service defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
 
 // Configure Authentication
 builder.Services.AddAuthentication()
@@ -56,7 +60,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
+              .AllowCredentials()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -76,26 +81,14 @@ builder.Services.AddScoped<IMapper, Mapper>();
 // Configure MassTransit
 builder.Services.AddMassTransit(config =>
 {
-    // Configure RabbitMQ as the message broker
     config.SetKebabCaseEndpointNameFormatter();
 
-    // Register the consumer
     config.AddConsumer<EventCreatedConsumer>();
 
     config.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
-        var host = rabbitMqSettings["Host"] ?? "localhost";
-        var username = rabbitMqSettings["Username"] ?? "guest";
-        var password = rabbitMqSettings["Password"] ?? "guest";
+        cfg.Host(new Uri(builder.Configuration.GetConnectionString("rabbitmq")!));
 
-        cfg.Host(host, h =>
-        {
-            h.Username(username);
-            h.Password(password);
-        });
-
-        // Configure the consumer on this endpoint
         cfg.ReceiveEndpoint("rooms-service-events", e =>
         {
             e.ConfigureConsumer<EventCreatedConsumer>(context);
@@ -106,11 +99,9 @@ builder.Services.AddMassTransit(config =>
 });
 
 // Register HttpClient for Auth Service
-string authServiceUrl = builder.Configuration["AuthService:ApiUrl"] ?? throw new InvalidOperationException("AuthServiceUrl:ApiUrl is not configured.");
-
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
-builder.Services.AddUserServiceClient(authServiceUrl);
+builder.Services.AddUserServiceClient();
 
 // Register FileServiceClient for managing room photos
 builder.Services.AddFileServiceClient(builder.Configuration);
@@ -118,9 +109,10 @@ builder.Services.AddFileServiceClient(builder.Configuration);
 // Register MaintenanceTicketEnricher
 builder.Services.AddScoped<MaintenanceTicketEnricher>();
 
-// Реєструємо DbContext з SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("rooms-db"));
+});
 
 // Register MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
@@ -180,37 +172,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddCarter();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Rooms API", Version = "v1" });
-
-    // Define the OAuth2.0 or Bearer authentication scheme for Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-    });
-
-    // Make sure all endpoints are considered secured by default
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer",
-                },
-            },
-            Array.Empty<string>()
-        },
-    });
-});
+builder.Services.AddOpenApi();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -222,13 +184,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Rooms API v1");
-        c.RoutePrefix = "swagger";
-        c.OAuthUseBasicAuthenticationWithAccessCodeGrant();
-    });
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 using var scope = app.Services.CreateScope();
@@ -241,7 +198,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 app.MapGroup("/api")
-   .WithOpenApi()
+
    .MapCarter();
+
+// Map Aspire health check endpoints
+app.MapDefaultEndpoints();
 
 app.Run();

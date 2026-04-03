@@ -11,7 +11,7 @@
 *.suo
 *.user
 *.userosscache
-*.sln.docstates
+*.slnx.docstates
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -401,7 +401,7 @@ FodyWeavers.xsd
 *.msp
 
 # JetBrains Rider
-*.sln.iml
+*.slnx.iml
 .idea
 
 ##
@@ -521,3 +521,6 @@ bench/bench
 deno.lock
 bun.lockb
 .DS_Store
+
+.claude/
+.aspire/

@@ -128,11 +128,6 @@ namespace Rooms.API.Features.Places
             .Produces(400)
             .WithName("Place.GetList")
             .WithTags("Places")
-            .WithOpenApi(op =>
-            {
-                op.Summary = "Get a paged list of places";
-                return op;
-            })
             .IncludeInOpenApi();
         }
     }

@@ -9,9 +9,9 @@ import {
   UpdateBuildingRequest,
   UpdatedBuildingResponse,
 } from "@/lib/types/building";
-import axios from "axios";
+import { axiosClient } from "@/lib/utils/axios-client";
 
-const API_URL = `${import.meta.env.VITE_BUILDINGS_API_URL ?? "http://localhost:5137/api/buildings"}`;
+const API_URL = "/buildings";
 
 export class BuildingService {
   // Get paginated list of buildings
@@ -21,7 +21,7 @@ export class BuildingService {
     isActive = true
   ): Promise<BuildingsResponse[]> {
     try {
-      const res = await axios.get<{ items: BuildingsResponse[] }>(
+      const res = await axiosClient.get<{ items: BuildingsResponse[] }>(
         `${API_URL}`,
         {
           params: { page, pageSize, isActive },
@@ -39,7 +39,7 @@ export class BuildingService {
     id: string
   ): Promise<BuildingDetailsResponse> {
     try {
-      const res = await axios.get<BuildingDetailsResponse>(`${API_URL}/${id}`);
+      const res = await axiosClient.get<BuildingDetailsResponse>(`${API_URL}/${id}`);
       return res.data;
     } catch (error) {
       console.error(`Error fetching building ${id}:`, error);
@@ -52,7 +52,7 @@ export class BuildingService {
     data: CreateBuildingRequest
   ): Promise<CreateBuildingResponse> {
     try {
-      const res = await axios.post<CreateBuildingResponse>(`${API_URL}`, data);
+      const res = await axiosClient.post<CreateBuildingResponse>(`${API_URL}`, data);
       return res.data;
     } catch (error) {
       console.error("Error creating building:", error);
@@ -65,7 +65,7 @@ export class BuildingService {
     data: UpdateBuildingRequest
   ): Promise<UpdatedBuildingResponse> {
     try {
-      const res = await axios.put<UpdatedBuildingResponse>(
+      const res = await axiosClient.put<UpdatedBuildingResponse>(
         `${API_URL}/${data.id}`,
         data
       );
@@ -81,7 +81,7 @@ export class BuildingService {
     id: string
   ): Promise<DeletedBuildingResponse> {
     try {
-      const res = await axios.delete<DeletedBuildingResponse>(
+      const res = await axiosClient.delete<DeletedBuildingResponse>(
         `${API_URL}/${id}`
       );
       return res.data;

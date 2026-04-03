@@ -138,12 +138,6 @@ namespace Events.API.Features.Events
             .WithTags("Events")
             .WithName("EditEvent")
             .Accepts<EditEventRequest>("application/json")
-            .WithOpenApi(operation =>
-            {
-                operation.Summary = "Update an existing event";
-                operation.Parameters[0].Description = "Event ID";
-                return operation;
-            })
             .IncludeInOpenApi();
         }
     }

@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/AspireOrchestration/">
+    <Project Path="AspireOrchestration/AspireOrchestration.AppHost/AspireOrchestration.AppHost.csproj" />
+    <Project Path="Auth/Auth.API/Auth.API.csproj" />
+    <Project Path="Auth/Auth.BLL/Auth.BLL.csproj" />
+    <Project Path="Auth/Auth.DAL/Auth.DAL.csproj" />
+    <Project Path="Booking/Booking.API/Booking.API.csproj" />
+    <Project Path="Events/Events.API/Events.API.csproj" />
+    <Project Path="FileStorage/FileStorage.API/FileStorage.API.csproj" />
+    <Project Path="Inspections/Inspections.API/Inspections.API.csproj" />
+    <Project Path="NotificationCore/NotificationCore.API/NotificationCore.API.csproj" />
+    <Project Path="Rooms/Rooms.API/Rooms.API.csproj" />
+    <Project Path="Shared/Shared.Data/Shared.Data.csproj" />
+    <Project Path="Shared/Shared.FileServiceClient/Shared.FileServiceClient.csproj" />
+    <Project Path="Shared/Shared.PagedList/Shared.PagedList.csproj" />
+    <Project Path="Shared/Shared.RoomServiceClient/Shared.RoomServiceClient.csproj" />
+    <Project Path="Shared/Shared.TokenService/Shared.TokenService.csproj" />
+    <Project Path="TelegramAgent/TelegramAgent.API/TelegramAgent.API.csproj" />
+  </Folder>
+  <Folder Name="/Events/">
+    <Project Path="Events/Events.Tests/Events.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/Shared.UserServiceClient/Shared.UserServiceClient.csproj" />
+  </Folder>
+  <Project Path="ApiGateway/ApiGateway.csproj" />
+</Solution>

@@ -1,0 +1,18 @@
+{
+  "Exclude": [
+    "[Shared.*]*",
+    "[ServiceDefaults]*",
+    "[Microsoft.AspNetCore.OpenApi.Generated]*",
+    "[System.Runtime.CompilerServices]*",
+    "[Events.API]*Endpoint",
+    "[Events.API]Events.API.Contracts.*",
+    "[Events.API]Events.API.Migrations.*",
+    "[Events.API]Program*"
+  ],
+  "ExcludeByFile": [
+    "**/Migrations/**/*.cs",
+    "**/Program.cs",
+    "**/*Endpoint.cs",
+    "**/Contracts/**/*.cs"
+  ]
+}

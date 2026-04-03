@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shared.RoomServiceClient;
@@ -7,19 +6,25 @@ namespace RoomService.Client;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRoomServiceClient(
-        this IServiceCollection services, 
-        IConfiguration configuration)
-    {
-        services.Configure<RoomServiceSettings>(
-            configuration.GetSection("RoomServiceSettings"));
+    private const string RoomServiceBaseUrl = "https+http://room-service";
 
-        services.AddHttpClient<IRoomService, HttpRoomService>((serviceProvider, client) =>
+    /// <summary>
+    /// Adds RoomServiceClient with Aspire service discovery support.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    public static IServiceCollection AddRoomServiceClient(
+        this IServiceCollection services)
+    {
+        services.Configure<RoomServiceSettings>(_ =>
         {
-            // Base address can be set here if needed
-            // Any other HTTP client configuration can be done here
         });
+
+        services.AddHttpClient<IRoomService, HttpRoomService>(client =>
+        {
+            client.BaseAddress = new Uri(RoomServiceBaseUrl);
+        })
+        .AddServiceDiscovery();
 
         return services;
     }
-} 
+}
