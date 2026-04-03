@@ -1,4 +1,5 @@
 using Auth.API.Mappins;
+using Auth.API.Models.Requests;
 using Auth.BLL.Interfaces;
 using Auth.DAL.Entities;
 
@@ -114,6 +115,30 @@ namespace Auth.API.Controllers
             pageSize = Math.Clamp(pageSize, 1, 100);
 
             var result = await _userService.GetUsersAsync(pageNumber, pageSize, cancellationToken);
+
+            return result.Match<IActionResult>(
+                success => Ok(success),
+                errors => BadRequest(new { Errors = errors.Select(e => e.Description) }));
+        }
+
+        /// <summary>
+        /// Gets multiple users by IDs.
+        /// </summary>
+        /// <param name="request">Batch user IDs request.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Users matching the provided IDs.</returns>
+        [HttpPost("batch")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUsersByIds(
+            [FromBody] GetUsersByIdsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (request?.UserIds == null)
+            {
+                return BadRequest(new { Errors = new[] { "UserIds are required." } });
+            }
+
+            var result = await _userService.GetUsersByIdsAsync(request.UserIds, cancellationToken);
 
             return result.Match<IActionResult>(
                 success => Ok(success),
