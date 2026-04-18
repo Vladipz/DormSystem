@@ -5,51 +5,51 @@ const BASE_URL = 'http://localhost:5095';
 const PAGE_NUMBER = __ENV.PAGE_NUMBER || '1';
 const PAGE_SIZE = __ENV.PAGE_SIZE || '50';
 
-// ⭐ НОВА КОНФІГУРАЦІЯ: progressive load з реалістичним навантаженням
+// Progressive load configuration with realistic traffic patterns.
 export const options = {
-  // Сценарії з різним навантаженням
+  // Scenarios with different load levels.
   scenarios: {
-    // Warm-up: поступовий підйом до базового навантаження
+    // Warm-up: gradually ramp to baseline load.
     warmup: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: 50 },  // 0 → 50 users за 30 сек
+        { duration: '30s', target: 50 },
       ],
       gracefulRampDown: '10s',
-      exec: 'browseEvents',               // виконує функцію browseEvents
+      exec: 'browseEvents',
     },
     
-    // Normal load: базове навантаження (типовий день)
+    // Normal load: baseline traffic.
     normal_load: {
       executor: 'constant-vus',
       vus: 150,
       duration: '2m',
-      startTime: '40s',                   // починається після warmup
+      startTime: '40s',
       exec: 'browseEvents',
     },
     
-    // Peak load: пікове навантаження (оголошення події)
+    // Peak load: temporary traffic spike.
     peak_load: {
       executor: 'ramping-vus',
-      startTime: '2m40s',                 // після normal load
+      startTime: '2m40s',
       stages: [
-        { duration: '30s', target: 300 }, // різко до 300 users
-        { duration: '1m', target: 300 },  // тримаємо 1 хв
-        { duration: '20s', target: 100 }, // назад до норми
+        { duration: '30s', target: 300 },
+        { duration: '1m', target: 300 },
+        { duration: '20s', target: 100 },
       ],
       gracefulRampDown: '10s',
-      exec: 'browseEventsDetailed',       // під піком більш складні запити
+      exec: 'browseEventsDetailed',
     },
     
-    // Stress test: знаходимо breaking point
+    // Stress test: find the breaking point.
     stress_test: {
       executor: 'ramping-vus',
       startTime: '4m40s',
       stages: [
         { duration: '5s', target: 300 },
         { duration: '5s', target: 450 },
-        { duration: '5s', target: 600 },  // короткий spike наприкінці
+        { duration: '5s', target: 600 },
         { duration: '5s', target: 0 },
       ],
       gracefulRampDown: '5s',
@@ -60,15 +60,15 @@ export const options = {
   thresholds: {
     checks: ['rate>0.95'],
     
-    // Різні пороги для різних навантажень
+    // Scenario-specific latency thresholds.
     'http_req_duration{scenario:warmup}': ['p(95)<500'],
     'http_req_duration{scenario:normal_load}': ['p(95)<800'],
     'http_req_duration{scenario:peak_load}': ['p(95)<1200'],
-    'http_req_duration{scenario:stress_test}': ['p(95)<2000'], // під стресом можна повільніше
+    'http_req_duration{scenario:stress_test}': ['p(95)<2000'],
     
     'http_req_failed': ['rate<0.05'],
     
-    // Окремі метрики для GET list vs GET single
+    // Separate thresholds for list and detail endpoints.
     'http_req_duration{endpoint:get-events-list}': ['p(95)<600'],
     'http_req_duration{endpoint:get-event-detail}': ['p(95)<400'],
   },
@@ -85,7 +85,7 @@ function buildEventDetailUrl(eventId) {
   return `${BASE_URL}/api/events/${eventId}`;
 }
 
-// ⭐ SCENARIO 1: Простий перегляд списку (легке навантаження)
+// Scenario 1: list browsing (light workload).
 export function browseEvents() {
   const listUrl = buildEventsUrl();
   
@@ -122,9 +122,8 @@ export function browseEvents() {
   sleep(0.1);
 }
 
-// ⭐ SCENARIO 2: Перегляд списку + детальний перегляд випадкового івенту
+// Scenario 2: list browsing + random event detail request.
 export function browseEventsDetailed() {
-  // Крок 1: Отримати список подій
   const listUrl = buildEventsUrl();
   
   const listResponse = http.get(listUrl, {
@@ -149,11 +148,9 @@ export function browseEventsDetailed() {
     'list: has items': () => listBody !== null && Array.isArray(listBody.items),
   });
   
-  // Якщо список успішно отримали і є івенти
   if (listChecks && listBody && listBody.items && listBody.items.length > 0) {
     sleep(0.1);
     
-    // Крок 2: Вибрати випадковий івент зі списку
     const randomIndex = Math.floor(Math.random() * listBody.items.length);
     const randomEvent = listBody.items[randomIndex];
     
@@ -196,9 +193,9 @@ export function browseEventsDetailed() {
   }
 }
 
-// ⭐ SCENARIO 3 (опційно): Пагінація - переглянути кілька сторінок
+// Scenario 3 (optional): browse several pages with pagination.
 export function browsePagination() {
-  const totalPages = 5; // переглянемо 5 сторінок
+  const totalPages = 5;
   
   for (let page = 1; page <= totalPages; page++) {
     const url = buildEventsUrl(page, PAGE_SIZE);
@@ -231,18 +228,17 @@ export function browsePagination() {
   }
 }
 
-// Default function (якщо запускаєте без scenarios)
+// Default run function when executing without explicit scenarios.
 export default function () {
   browseEventsDetailed();
 }
 
-// ⭐ CUSTOM METRICS для детальнішого аналізу
+// Custom metrics for request timing analysis.
 import { Trend } from 'k6/metrics';
 
 const listDuration = new Trend('list_request_duration', true);
 const detailDuration = new Trend('detail_request_duration', true);
 
-// Можна додати до функцій для окремого tracking
 export function browseEventsWithMetrics() {
   const t1 = Date.now();
   const listResponse = http.get(buildEventsUrl());

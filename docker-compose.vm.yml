@@ -1,0 +1,268 @@
+services:
+
+  # Infrastructure
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Application Services
+
+  auth-service:
+    image: ghcr.io/vladipz/dormsystem-auth-service:main
+    environment:
+      - "ConnectionStrings__auth-db=Host=postgres;Port=5432;Database=auth-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=15;Minimum Pool Size=5;Timeout=15;Command Timeout=30"
+      - "Jwt__Secret=${JWT_SECRET}"
+      - "Jwt__Issuer=${JWT_ISSUER}"
+      - "Jwt__Audience=${JWT_AUDIENCE}"
+      - "Jwt__AccessTokenExpirationMinutes=${JWT_ACCESS_EXPIRY_MINUTES}"
+      - "Jwt__RefreshTokenExpirationDays=${JWT_REFRESH_EXPIRY_DAYS}"
+      - "AdminSettings__Email=${ADMIN_EMAIL}"
+      - "AdminSettings__Password=${ADMIN_PASSWORD}"
+      - "AdminSettings__FirstName=${ADMIN_FIRST_NAME}"
+      - "AdminSettings__LastName=${ADMIN_LAST_NAME}"
+      - "services__file-storage-service__http__0=http://file-storage-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=auth-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  event-service:
+    image: ghcr.io/vladipz/dormsystem-event-service:main
+    environment:
+      - "ConnectionStrings__events-db=Host=postgres;Port=5432;Database=events-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=20;Minimum Pool Size=5;Timeout=15;Command Timeout=30"
+      - "ConnectionStrings__rabbitmq=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      - "Jwt__Secret=${JWT_SECRET}"
+      - "Jwt__Issuer=${JWT_ISSUER}"
+      - "Jwt__Audience=${JWT_AUDIENCE}"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=event-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  room-service:
+    image: ghcr.io/vladipz/dormsystem-room-service:main
+    container_name: room-service
+    environment:
+      - "ConnectionStrings__rooms-db=Host=postgres;Port=5432;Database=rooms-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Minimum Pool Size=2;Timeout=15;Command Timeout=30"
+      - "ConnectionStrings__rabbitmq=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "services__file-storage-service__http__0=http://file-storage-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=room-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  inspection-service:
+    image: ghcr.io/vladipz/dormsystem-inspection-service:main
+    container_name: inspection-service
+    environment:
+      - "ConnectionStrings__inspections-db=Host=postgres;Port=5432;Database=inspections-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Minimum Pool Size=2;Timeout=15;Command Timeout=30"
+      - "ConnectionStrings__rabbitmq=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      - "Jwt__Secret=${JWT_SECRET}"
+      - "Jwt__Issuer=${JWT_ISSUER}"
+      - "Jwt__Audience=${JWT_AUDIENCE}"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "services__room-service__http__0=http://room-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=inspection-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-service:
+    image: ghcr.io/vladipz/dormsystem-notification-service:main
+    container_name: notification-service
+    environment:
+      - "ConnectionStrings__notifications-db=Host=postgres;Port=5432;Database=notifications-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Minimum Pool Size=2;Timeout=15;Command Timeout=30"
+      - "ConnectionStrings__rabbitmq=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      - "Jwt__Secret=${JWT_SECRET}"
+      - "Jwt__Issuer=${JWT_ISSUER}"
+      - "Jwt__Audience=${JWT_AUDIENCE}"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "services__room-service__http__0=http://room-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=notification-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  telegram-service:
+    image: ghcr.io/vladipz/dormsystem-telegram-service:main
+    container_name: telegram-service
+    environment:
+      - "ConnectionStrings__telegram-db=Host=postgres;Port=5432;Database=telegram-db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=10;Minimum Pool Size=2;Timeout=15;Command Timeout=30"
+      - "ConnectionStrings__rabbitmq=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      - "TelegramBot__Token=${TELEGRAM_BOT_TOKEN}"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=telegram-service"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  file-storage-service:
+    image: ghcr.io/vladipz/dormsystem-file-storage-service:main
+    container_name: file-storage-service
+    environment:
+      - "FileStorage__StoragePath=/app/storage"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=file-storage-service"
+    volumes:
+      - filestorage_data:/app/storage
+    restart: unless-stopped
+
+  booking-service:
+    image: ghcr.io/vladipz/dormsystem-booking-service:main
+    container_name: booking-service
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=booking-service"
+    restart: unless-stopped
+
+  api-gateway:
+    image: ghcr.io/vladipz/dormsystem-api-gateway:main
+    container_name: api-gateway
+    ports:
+      - "5095:8080"
+    environment:
+      - "Jwt__Secret=${JWT_SECRET}"
+      - "Jwt__Issuer=${JWT_ISSUER}"
+      - "Jwt__Audience=${JWT_AUDIENCE}"
+      - "services__auth-service__http__0=http://auth-service:8080"
+      - "services__event-service__http__0=http://event-service:8080"
+      - "services__room-service__http__0=http://room-service:8080"
+      - "services__inspection-service__http__0=http://inspection-service:8080"
+      - "services__notification-service__http__0=http://notification-service:8080"
+      - "services__file-storage-service__http__0=http://file-storage-service:8080"
+      - "services__booking-service__http__0=http://booking-service:8080"
+      - "services__telegram-service__http__0=http://telegram-service:8080"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=api-gateway"
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.99.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-remote-write-receiver"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:2.4.0
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./docker/tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  filestorage_data:
+  prometheus_data:
+  loki_data:
+  tempo_data:
+  grafana_data:
