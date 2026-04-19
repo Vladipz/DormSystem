@@ -527,3 +527,5 @@ bun.lockb
 
 # Aspire generated deployment output (contains environment-specific secrets)
 Services/AspireOrchestration/AspireOrchestration.AppHost/aspire-output/
+
+.codex
