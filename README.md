@@ -1,0 +1,190 @@
+# DormSystem
+
+DormSystem is a dormitory management platform built as a microservices-based system. It combines a React frontend with a .NET backend to support core dorm workflows such as authentication, events, room management, bookings, inspections, notifications, file storage, and Telegram integration.
+
+## Product Scope
+
+The platform is intended to centralize everyday dorm operations for residents and administrators. The current repository and project vision cover:
+
+- authentication and resident account flows
+- event creation and participation
+- room and facility management
+- laundry and booking scenarios
+- inspections and operational tracking
+- notifications across multiple channels
+- file uploads and storage
+- Telegram-based integration points
+
+## What Is In This Repository
+
+- `frontend/dorm-app` contains the React 19 + TypeScript + Vite web client.
+- `Services/` contains backend microservices, shared libraries, the API gateway, and Aspire orchestration.
+- `docker/` and `docker-compose.yml` provide the fallback local infrastructure setup.
+- `AGENTS.md` contains repo-specific instructions for coding agents and automated contributors.
+
+## Core Services
+
+- `Auth` handles authentication, JWT tokens, and role-related flows.
+- `Events` handles event creation, invitations, and participant flows.
+- `Rooms` manages rooms, room photos, and reservations.
+- `Booking` supports laundry and facility booking scenarios.
+- `FileStorage` handles file uploads and storage access.
+- `Inspections` manages room inspections.
+- `NotificationCore` provides notification workflows.
+- `TelegramAgent` integrates the system with Telegram.
+- `ApiGateway` routes external traffic to the internal services.
+
+Shared libraries live under `Services/Shared/` and cover common concerns such as token validation, service defaults, and inter-service clients.
+
+## Architecture Overview
+
+DormSystem uses two backend architecture styles:
+
+- `Auth` follows a classic three-layer design with API, BLL, and DAL projects.
+- `Events`, `Rooms`, and newer services follow a Vertical Slice pattern built around feature-oriented handlers, validators, and Carter endpoints.
+
+The platform also relies on:
+
+- PostgreSQL for service data
+- RabbitMQ and MassTransit for asynchronous messaging
+- YARP for API gateway routing
+- .NET Aspire for orchestration, service discovery, and observability
+
+## Technology Stack
+
+### Frontend
+
+- React 19
+- TypeScript
+- Vite
+- TanStack Router
+- TanStack Query
+- shadcn/ui
+- Tailwind CSS
+- npm as the package manager
+
+### Backend
+
+- .NET 8.0 / .NET 10.0
+- ASP.NET Core
+- EF Core
+- Carter
+- MediatR
+- FluentValidation
+- Mapster
+- ErrorOr
+- MassTransit
+
+### Infrastructure
+
+- .NET Aspire
+- Docker Compose
+- PostgreSQL
+- RabbitMQ
+- OpenTelemetry
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm
+- .NET SDK
+- Docker Desktop or Docker Engine for local containers
+
+### Recommended Local Run: Aspire
+
+Aspire is the preferred way to run the whole system because it starts the application services and infrastructure together.
+
+```bash
+cd Services/AspireOrchestration
+dotnet run --project AspireOrchestration.AppHost
+```
+
+Use the Aspire dashboard to inspect service health, logs, traces, and the actual service endpoints assigned for the current run.
+
+### Fallback Local Run: Docker Compose + Manual Services
+
+Use Docker Compose when you want local infrastructure without the full Aspire workflow.
+
+```bash
+docker compose up -d
+```
+
+This starts infrastructure and containerized services defined in `docker-compose.yml`. If you want to run specific services manually during development, start the needed infrastructure first and then run the corresponding .NET project locally.
+
+## Common Commands
+
+### Frontend
+
+```bash
+cd frontend/dorm-app
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run typecheck
+npm run format
+npm run format:check
+```
+
+### Backend
+
+```bash
+cd Services
+dotnet restore DormSystem.slnx
+dotnet build DormSystem.slnx
+```
+
+Run a specific service:
+
+```bash
+cd Services/Auth
+dotnet run --project Auth.API/Auth.API.csproj
+```
+
+Run tests for a service:
+
+```bash
+cd Services/Events
+dotnet test
+```
+
+## Configuration
+
+### Frontend
+
+Frontend environment variables live in `.env` files and should use the `VITE_` prefix.
+
+Example:
+
+```env
+VITE_AUTH_API_URL=http://localhost:5001
+VITE_EVENTS_API_URL=http://localhost:5002
+```
+
+### Backend
+
+Backend configuration lives in `appsettings.json` and `appsettings.Development.json`.
+
+Typical configuration includes:
+
+- connection strings
+- JWT settings
+- service URLs
+- RabbitMQ settings
+
+## Service Communication
+
+Services communicate in two ways:
+
+- synchronous HTTP calls through the API Gateway or shared service clients
+- asynchronous domain events through RabbitMQ and MassTransit
+
+When running under Aspire, services use service discovery instead of hardcoded local URLs.
+
+## Documentation Map
+
+- Start here for project overview, setup, and day-to-day development commands.
+- Read `AGENTS.md` for repository rules aimed at coding agents and automated contributors.
+
+Legacy project documents have been reduced to short redirect notes so this file remains the primary human-facing source of truth.
