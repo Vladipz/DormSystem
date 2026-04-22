@@ -7,7 +7,7 @@ import http from 'k6/http';
 
 // This script only targets the API Gateway.
 // Keep the gateway running locally before starting the test.
-const BASE_URL = 'http://localhost:5095';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:5095';
 
 // Keep pagination configurable so you can reuse the same script with different data sizes.
 const PAGE_NUMBER = __ENV.PAGE_NUMBER || '1';
