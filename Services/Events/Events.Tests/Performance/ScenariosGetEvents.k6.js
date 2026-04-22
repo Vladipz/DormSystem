@@ -1,7 +1,7 @@
 import { check, sleep } from 'k6';
 import http from 'k6/http';
 
-const BASE_URL = 'http://localhost:5095';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:5095';
 const PAGE_NUMBER = __ENV.PAGE_NUMBER || '1';
 const PAGE_SIZE = __ENV.PAGE_SIZE || '50';
 

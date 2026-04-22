@@ -112,6 +112,47 @@ docker compose up -d
 
 This starts infrastructure and containerized services defined in `docker-compose.yml`. If you want to run specific services manually during development, start the needed infrastructure first and then run the corresponding .NET project locally.
 
+### Stress Test VM: Vagrant + Prebuilt Images
+
+For a disposable stress-test environment, the repo includes:
+
+- `Vagrantfile` for a VM with 4 vCPU and 4 GB RAM
+- `vagrant/bootstrap.sh` to install Docker Engine and Docker Compose inside the guest
+- `docker-compose.vm.yml` to run the stack from prebuilt container images instead of building from source
+
+Recommended host setup:
+
+- run Vagrant from Windows or another non-WSL host path
+- if your repo currently lives only inside WSL, copy or clone it to a Windows-accessible directory first, for example `C:\vm\DormSystem`
+- create `.env` from `.env.example` before starting the VM
+
+Bring up the VM from the repository root:
+
+```bash
+vagrant up
+vagrant ssh
+```
+
+Inside the VM, start the stack:
+
+```bash
+dormsystem-up
+```
+
+Useful endpoints from the host machine:
+
+- API gateway: `http://localhost:5095`
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9090`
+- RabbitMQ management: `http://localhost:15672`
+
+If 4 GB RAM is too tight for the full observability stack, start only the core services first:
+
+```bash
+cd /workspace
+docker compose -f docker-compose.vm.yml up -d postgres rabbitmq file-storage-service auth-service event-service room-service inspection-service notification-service booking-service api-gateway
+```
+
 ## Common Commands
 
 ### Frontend
