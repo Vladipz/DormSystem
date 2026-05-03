@@ -199,6 +199,15 @@ services:
       - "OTEL_SERVICE_NAME=api-gateway"
     restart: unless-stopped
 
+  frontend:
+    image: ghcr.io/vladipz/dormsystem-frontend:main
+    container_name: dorm-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.99.0
     container_name: otel-collector

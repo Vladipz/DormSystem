@@ -16,7 +16,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+    
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq
@@ -26,10 +26,11 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+        test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_running"]
+        interval: 10s
+        timeout: 10s
+        retries: 10
+        start_period: 20s
 
   # ── Application Services ────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ services:
       - "Jwt__Issuer=${JWT_ISSUER}"
       - "Jwt__Audience=${JWT_AUDIENCE}"
       - "services__auth-service__http__0=http://auth-service:8080"
+      - "Resilience__EnableStandardResilience=${EVENT_RESILIENCE_ENABLE_STANDARD_RESILIENCE:-true}"
       - "ASPNETCORE_ENVIRONMENT=Production"
       - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
       - "OTEL_SERVICE_NAME=event-service"
@@ -206,6 +208,19 @@ services:
       - "ASPNETCORE_ENVIRONMENT=Production"
       - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
       - "OTEL_SERVICE_NAME=api-gateway"
+
+  frontend:
+    build:
+      context: ./frontend/dorm-app
+      dockerfile: Dockerfile
+      args:
+        VITE_API_GATEWAY_URL: http://localhost:5095
+        VITE_NOTIFICATIONS_DELIVERY_MODE: websocket
+    container_name: dorm-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - api-gateway
 
   otel-collector:
       image: otel/opentelemetry-collector-contrib:0.99.0
