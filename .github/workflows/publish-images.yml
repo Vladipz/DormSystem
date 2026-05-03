@@ -52,6 +52,11 @@ jobs:
             context: ./Services
             dockerfile: ./Services/Events/Events.API/Dockerfile
 
+          - name: motivation-fake-service
+            image: dormsystem-motivation-fake-service
+            context: ./Services
+            dockerfile: ./Services/MotivationFake/MotivationFake.API/Dockerfile
+
           - name: room-service
             image: dormsystem-room-service
             context: ./Services

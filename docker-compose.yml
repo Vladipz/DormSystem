@@ -78,6 +78,25 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      motivation-fake-service:
+        condition: service_started
+
+  motivation-fake-service:
+    build:
+      context: ./Services
+      dockerfile: MotivationFake/MotivationFake.API/Dockerfile
+    container_name: motivation-fake-service
+    environment:
+      - "MotivationFake__SlowDelayMs=${MOTIVATION_FAKE_SLOW_DELAY_MS:-5000}"
+      - "MotivationFake__Probabilities__Slow=${MOTIVATION_FAKE_PROBABILITY_SLOW:-0.2}"
+      - "MotivationFake__Probabilities__Error=${MOTIVATION_FAKE_PROBABILITY_ERROR:-0.1}"
+      - "MotivationFake__Probabilities__Unavailable=${MOTIVATION_FAKE_PROBABILITY_UNAVAILABLE:-0.05}"
+      - "MotivationFake__Probabilities__Abort=${MOTIVATION_FAKE_PROBABILITY_ABORT:-0.05}"
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317"
+      - "OTEL_SERVICE_NAME=motivation-fake-service"
+    ports:
+      - "5294:8080"
 
   room-service:
     build:
