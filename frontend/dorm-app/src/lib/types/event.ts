@@ -16,6 +16,7 @@ export interface Event {
 
 export interface EventDetails extends Event {
   participants: Participant[];
+  motivationalPhrase: string;
 }
 
 export interface Participant {

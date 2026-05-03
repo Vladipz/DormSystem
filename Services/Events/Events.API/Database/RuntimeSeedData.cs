@@ -75,7 +75,7 @@ namespace Events.API.Database
             var eventsToCreate = TargetEventCount - existingCount;
             var baseDate = new DateTime(2026, 1, 1, 18, 0, 0, DateTimeKind.Utc);
             var generatedEvents = new List<DormEvent>(eventsToCreate);
-            var generatedParticipants = new List<EventParticipant>(eventsToCreate);
+            var generatedParticipants = new List<EventParticipant>(eventsToCreate * 2);
 
             for (var i = 0; i < eventsToCreate; i++)
             {
@@ -98,7 +98,11 @@ namespace Events.API.Database
                     RoomId = location.RoomId,
                 });
 
-                var participantIds = UserIds.Where(userId => userId != ownerId).Take(i % 3).ToArray();
+                var participantIds = UserIds
+                    .Where(userId => userId != ownerId)
+                    .Concat([ownerId])
+                    .Take(1 + (i % 2))
+                    .ToArray();
                 for (var participantIndex = 0; participantIndex < participantIds.Length; participantIndex++)
                 {
                     generatedParticipants.Add(new EventParticipant

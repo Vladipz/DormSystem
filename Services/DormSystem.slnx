@@ -13,6 +13,7 @@
     <Project Path="Events/Events.API/Events.API.csproj" />
     <Project Path="FileStorage/FileStorage.API/FileStorage.API.csproj" />
     <Project Path="Inspections/Inspections.API/Inspections.API.csproj" />
+    <Project Path="MotivationFake/MotivationFake.API/MotivationFake.API.csproj" />
     <Project Path="NotificationCore/NotificationCore.API/NotificationCore.API.csproj" />
     <Project Path="Rooms/Rooms.API/Rooms.API.csproj" />
     <Project Path="Shared/Shared.Data/Shared.Data.csproj" />

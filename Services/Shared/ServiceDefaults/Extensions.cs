@@ -65,15 +65,10 @@ public static class Extensions
 
         builder.Services.AddServiceDiscovery();
 
-        var enableStandardResilience = builder.Configuration.GetValue("Resilience:EnableStandardResilience", true);
-
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            if (enableStandardResilience)
-            {
-                // Turn on HTTP resilience by default for outgoing HttpClient calls.
-                http.AddStandardResilienceHandler();
-            }
+            // Standard HttpClient resilience is intentionally disabled.
+            // http.AddStandardResilienceHandler();
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();

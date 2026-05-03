@@ -39,10 +39,13 @@ var authService = builder.AddProject<Projects.Auth_API>("auth-service")
     .WithEnvironment("Jwt__Issuer", jwtIssuer)
     .WithEnvironment("Jwt__Audience", jwtAudience);
 
+var motivationFakeService = builder.AddProject<Projects.MotivationFake_API>("motivation-fake-service");
+
 var eventService = builder.AddProject<Projects.Events_API>("event-service")
     .WithReference(eventsDb)
     .WithReference(rabbitmq)
     .WithReference(authService)
+    .WithReference(motivationFakeService)
     .WaitFor(eventsDb)
     .WaitFor(rabbitmq)
     .WithEnvironment("Jwt__Secret", jwtSecret)
@@ -101,10 +104,5 @@ var apiGateway = builder.AddProject<Projects.ApiGateway>("api-gateway")
     .WithEnvironment("Jwt__Secret", jwtSecret)
     .WithEnvironment("Jwt__Issuer", jwtIssuer)
     .WithEnvironment("Jwt__Audience", jwtAudience);
-
-// var frontend = builder.AddViteApp("frontend", "../../../frontend/dorm-app")
-//     .WithYarn()
-//     .WithReference(apiGateway)
-//     .WaitFor(apiGateway);
 
 builder.Build().Run();

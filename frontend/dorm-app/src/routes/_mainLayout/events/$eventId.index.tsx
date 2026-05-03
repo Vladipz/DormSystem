@@ -30,18 +30,13 @@ import { RoomsResponse } from "@/lib/types/room";
 import { getPlaceholderAvatar } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Calendar, Clock, Copy, Edit, MapPin, Users } from "lucide-react";
+import { Calendar, Clock, Copy, Edit, MapPin, Sparkles, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
-  async beforeLoad({ params }) {
-    const { eventId } = params;
-    const event = await EventService.getEventById(eventId);
+  async beforeLoad() {
     const authStatus = await authService.checkAuthStatus();
-    const isOwner = authStatus && event.ownerId === authStatus.id;
-    const isAdmin = authStatus && authStatus.role === "Admin";
-    const canInvite = event.isPublic || isOwner || isAdmin;
-    return { canInvite };
+    return { authStatus };
   },
   component: EventDetailsPage,
 });
@@ -95,7 +90,7 @@ function UserAvatar({
           {avatar}
         </div>
       </TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent className="border bg-popover text-popover-foreground shadow-md">
         <p>{displayName}</p>
         {userDetails?.email && (
           <p className="text-xs text-muted-foreground">{userDetails.email}</p>
@@ -152,7 +147,7 @@ function EventDetailsPage() {
   const [comment, setComment] = useState("");
   const { user, isAuthenticated } = useAuth();
   const [canEdit, setCanEdit] = useState(false);
-  const { canInvite } = Route.useRouteContext();
+  const { authStatus } = Route.useRouteContext();
   const [copied, setCopied] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { getEventInviteLink, joinEvent, leaveEvent } = useEvents();
@@ -163,12 +158,18 @@ function EventDetailsPage() {
     isLoading,
     isError,
     error,
-    refetch,
   } = useQuery({
     queryKey: ["events", eventId],
     queryFn: () => EventService.getEventById(eventId),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  const canInvite = !!(
+    event &&
+    (event.isPublic ||
+      (authStatus && event.ownerId === authStatus.id) ||
+      (authStatus && authStatus.role === "Admin"))
+  );
 
   // Fetch building information if buildingId is available
   const { data: buildings, isLoading: buildingLoading } = useBuildings(
@@ -217,7 +218,6 @@ function EventDetailsPage() {
       // Invalidate and refetch events data
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["events", eventId] });
-      refetch(); // Immediately refetch this event's data
     },
     onError: (error) => {
       console.error("Failed to update attendance:", error);
@@ -364,6 +364,8 @@ function EventDetailsPage() {
     return event.location;
   };
 
+  const motivationUnavailable = event.motivationalPhrase.trim() === "";
+
   return (
     <div className="space-y-6 p-6">
       <PageHeader
@@ -442,12 +444,12 @@ function EventDetailsPage() {
       />
 
       {/* Event Header Card */}
-      <Card>
+      <Card className="overflow-hidden py-0">
         <div className="relative">
           <img 
             src="/movinight.png" 
             alt="Event Cover" 
-            className="h-64 w-full rounded-t-lg object-cover"
+            className="h-64 w-full object-cover"
           />
           <div className="absolute right-4 bottom-4">
             <Button
@@ -463,6 +465,21 @@ function EventDetailsPage() {
                   : "I'll Attend"}
             </Button>
           </div>
+        </div>
+        <div className="mx-6 mt-5 mb-1 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-100/80 via-orange-100/70 to-amber-100/80 px-4 py-4 md:px-5 dark:border-amber-400/25 dark:from-amber-950/45 dark:via-orange-950/35 dark:to-amber-950/45">
+          <div className="mb-2 flex items-center gap-2 text-orange-700 dark:text-amber-300">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-xs font-semibold tracking-wide uppercase">Motivation</p>
+          </div>
+          {motivationUnavailable ? (
+            <p className="rounded-md border border-amber-300/60 bg-amber-100/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-300/35 dark:bg-amber-950/45 dark:text-amber-200">
+              Motivation service is not available right now.
+            </p>
+          ) : (
+            <p className="text-sm leading-7 text-orange-900 md:text-base dark:text-amber-100">
+              {event.motivationalPhrase}
+            </p>
+          )}
         </div>
         <CardContent className="p-6">
           <div className="grid gap-6 md:grid-cols-2">

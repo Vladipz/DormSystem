@@ -343,17 +343,17 @@ function RouteComponent() {
 
       {/* Welcome Message for New Users */}
       {!isAuthenticated && (
-        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-400/30 dark:from-slate-900 dark:via-blue-950/40 dark:to-slate-900">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="rounded-full bg-blue-100 p-3">
-                <Home className="h-6 w-6 text-blue-600" />
+              <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-500/20">
+                <Home className="h-6 w-6 text-blue-600 dark:text-blue-300" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-blue-900">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100">
                   Welcome to Dorm Management System
                 </h3>
-                <p className="mt-1 text-sm text-blue-700">
+                <p className="mt-1 text-sm text-blue-700 dark:text-blue-200/90">
                   Manage your dormitory life with ease. Access events, room
                   services, inspections, and more.
                 </p>
