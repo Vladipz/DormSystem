@@ -21,11 +21,13 @@ public sealed class GetEventHandlerTests
 {
     private static GetEvent.Handler BuildHandler(
         EventsDbContext db,
-        ParticipantEnricher? participantEnricher = null)
+        ParticipantEnricher? participantEnricher = null,
+        IMotivationFakeClient? motivationFakeClient = null)
     {
         participantEnricher ??= CreateDefaultParticipantEnricher();
+        motivationFakeClient ??= CreateDefaultMotivationFakeClient();
 
-        return new GetEvent.Handler(db, participantEnricher);
+        return new GetEvent.Handler(db, participantEnricher, motivationFakeClient);
     }
 
     private static ParticipantEnricher CreateDefaultParticipantEnricher()
@@ -33,6 +35,16 @@ public sealed class GetEventHandlerTests
         var authServiceMock = new Mock<IAuthServiceClient>();
         var loggerMock = new Mock<ILogger<ParticipantEnricher>>();
         return new ParticipantEnricher(authServiceMock.Object, loggerMock.Object);
+    }
+
+    private static IMotivationFakeClient CreateDefaultMotivationFakeClient()
+    {
+        var motivationFakeClientMock = new Mock<IMotivationFakeClient>();
+        motivationFakeClientMock
+            .Setup(x => x.GetPhraseAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Test motivational phrase");
+
+        return motivationFakeClientMock.Object;
     }
 
     private static GetEvent.Query CreateQuery(Guid eventId) => new ()
