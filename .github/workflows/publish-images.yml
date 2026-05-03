@@ -87,6 +87,14 @@ jobs:
             context: ./Services
             dockerfile: ./Services/ApiGateway/Dockerfile
 
+          - name: frontend
+            image: dormsystem-frontend
+            context: ./frontend/dorm-app
+            dockerfile: ./frontend/dorm-app/Dockerfile
+            build_args: |
+              VITE_API_GATEWAY_URL=${{ vars.VITE_API_GATEWAY_URL != '' && vars.VITE_API_GATEWAY_URL || 'http://localhost:5095' }}
+              VITE_NOTIFICATIONS_DELIVERY_MODE=websocket
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -112,6 +120,7 @@ jobs:
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
+          build-args: ${{ matrix.service.build_args }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

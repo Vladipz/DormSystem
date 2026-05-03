@@ -107,10 +107,17 @@ Use the Aspire dashboard to inspect service health, logs, traces, and the actual
 Use Docker Compose when you want local infrastructure without the full Aspire workflow.
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 This starts infrastructure and containerized services defined in `docker-compose.yml`. If you want to run specific services manually during development, start the needed infrastructure first and then run the corresponding .NET project locally.
+
+Useful local endpoints:
+
+- frontend: `http://localhost:3001`
+- API gateway: `http://localhost:5095`
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9090`
 
 ### Stress Test VM: Vagrant + Prebuilt Images
 
@@ -141,16 +148,19 @@ dormsystem-up
 
 Useful endpoints from the host machine:
 
+- frontend: `http://localhost:3001`
 - API gateway: `http://localhost:5095`
 - Grafana: `http://localhost:3000`
 - Prometheus: `http://localhost:9090`
 - RabbitMQ management: `http://localhost:15672`
 
+The frontend image in `docker-compose.vm.yml` is a prebuilt static Vite bundle. Its `VITE_API_GATEWAY_URL` value is baked in during image build, so changing container environment variables at startup will not change which API URL the browser uses.
+
 If 4 GB RAM is too tight for the full observability stack, start only the core services first:
 
 ```bash
 cd /workspace
-docker compose -f docker-compose.vm.yml up -d postgres rabbitmq file-storage-service auth-service event-service room-service inspection-service notification-service booking-service api-gateway
+docker compose -f docker-compose.vm.yml up -d postgres rabbitmq file-storage-service auth-service event-service room-service inspection-service notification-service booking-service api-gateway frontend
 ```
 
 ## Common Commands
@@ -196,12 +206,19 @@ dotnet test
 
 Frontend environment variables live in `.env` files and should use the `VITE_` prefix.
 
-Example:
+The frontend currently uses:
 
 ```env
-VITE_AUTH_API_URL=http://localhost:5001
-VITE_EVENTS_API_URL=http://localhost:5002
+VITE_API_GATEWAY_URL=http://localhost:5095
+VITE_NOTIFICATIONS_DELIVERY_MODE=websocket
 ```
+
+When running the frontend from Docker, these values are resolved at image build time, not at container start time. Choose the URL that the user's browser will use to reach the API gateway.
+
+- Browser-visible public URL example: `http://localhost:5095`
+- Docker-internal service URL example: `http://api-gateway:8080`
+
+Use the browser-visible URL for `VITE_API_GATEWAY_URL`. Docker-internal hostnames are only valid for container-to-container traffic, not for JavaScript running in the browser.
 
 ### Backend
 
