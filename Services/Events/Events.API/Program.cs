@@ -1,5 +1,4 @@
 using Carter;
-using Carter.OpenApi;
 
 using Events.API.Database;
 using Events.API.Features.Events;
@@ -9,8 +8,12 @@ using FluentValidation;
 
 using MassTransit;
 
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http.Resilience;
+
+using Npgsql;
+
+using Polly;
 
 using Scalar.AspNetCore;
 
@@ -27,9 +30,17 @@ builder.Services.AddAuthorization();
 // Add native .NET 10 OpenAPI document generation
 builder.Services.AddOpenApi();
 
+var eventsDbConnectionString = builder.Configuration.GetConnectionString("events-db")
+    ?? throw new InvalidOperationException("Connection string 'events-db' is not configured.");
+
+var eventsDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(eventsDbConnectionString)
+{
+    MaxPoolSize = 30,
+};
+
 builder.Services.AddDbContext<EventsDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("events-db"));
+    options.UseNpgsql(eventsDbConnectionStringBuilder.ConnectionString);
 });
 
 // Configure MassTransit
@@ -52,6 +63,32 @@ builder.Services.AddMassTransit(config =>
 builder.Services.Configure<AuthServiceSettings>(builder.Configuration.GetSection("AuthService"));
 
 builder.Services.AddUserServiceClient();
+
+builder.Services.AddHttpClient<IMotivationFakeClient, MotivationFakeClient>(client =>
+        client.BaseAddress = new Uri("http://motivation-fake-service"))
+    .AddResilienceHandler("custom", pipeline =>
+    {
+        pipeline.AddTimeout(TimeSpan.FromSeconds(3));
+
+        // two retries with exponential backoff starting at 200ms, plus jitter to avoid thundering herd
+        pipeline.AddRetry(new HttpRetryStrategyOptions
+        {
+            MaxRetryAttempts = 2,
+            BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true,
+            Delay = TimeSpan.FromMilliseconds(10),
+        });
+
+        pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+        {
+            SamplingDuration = TimeSpan.FromSeconds(10),
+            FailureRatio = 0.9,
+            MinimumThroughput = 5,
+            BreakDuration = TimeSpan.FromSeconds(5),
+        });
+
+        pipeline.AddTimeout(TimeSpan.FromMilliseconds(500));
+    });
 
 builder.Services.AddScoped<ParticipantEnricher>();
 

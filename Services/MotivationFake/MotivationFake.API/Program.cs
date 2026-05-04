@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,14 +24,9 @@ var phrases = new[]
 app.MapGet("/api/motivation/phrase", async (
     HttpContext httpContext,
     IOptions<MotivationFakeOptions> options,
-    string? scenario,
     CancellationToken cancellationToken) =>
 {
-    var activeScenarioResult = TryResolveScenario(scenario, options.Value.Probabilities, out var activeScenario);
-    if (activeScenarioResult is not null)
-    {
-        return activeScenarioResult;
-    }
+    var activeScenario = ResolveRandomScenario(options.Value.Probabilities);
 
     return activeScenario switch
     {
@@ -66,81 +60,32 @@ static IResult Abort(HttpContext httpContext)
     return Results.Empty;
 }
 
-static IResult? TryResolveScenario(
-    string? requestedScenario,
-    MotivationFakeProbabilities probabilities,
-    out MotivationScenario scenario)
+static MotivationScenario ResolveRandomScenario(MotivationFakeProbabilities probabilities)
 {
-    if (!string.IsNullOrWhiteSpace(requestedScenario))
-    {
-        if (!Enum.TryParse<MotivationScenario>(requestedScenario, ignoreCase: true, out scenario))
-        {
-            return Results.Problem(
-                detail: "Scenario must be one of: ok, slow, error, unavailable, abort.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        return null;
-    }
-
     var roll = Random.Shared.NextDouble();
     var threshold = probabilities.Slow;
     if (roll < threshold)
     {
-        scenario = MotivationScenario.Slow;
-        return null;
+        return MotivationScenario.Slow;
     }
 
     threshold += probabilities.Error;
     if (roll < threshold)
     {
-        scenario = MotivationScenario.Error;
-        return null;
+        return MotivationScenario.Error;
     }
 
     threshold += probabilities.Unavailable;
     if (roll < threshold)
     {
-        scenario = MotivationScenario.Unavailable;
-        return null;
+        return MotivationScenario.Unavailable;
     }
 
     threshold += probabilities.Abort;
     if (roll < threshold)
     {
-        scenario = MotivationScenario.Abort;
-        return null;
+        return MotivationScenario.Abort;
     }
 
-    scenario = MotivationScenario.Ok;
-    return null;
-}
-
-public sealed record MotivationPhraseResponse(string Phrase);
-
-public sealed class MotivationFakeOptions
-{
-    public int SlowDelayMs { get; init; } = 5000;
-
-    public MotivationFakeProbabilities Probabilities { get; init; } = new();
-}
-
-public sealed class MotivationFakeProbabilities
-{
-    public double Slow { get; init; } = 0.20;
-
-    public double Error { get; init; } = 0.10;
-
-    public double Unavailable { get; init; } = 0.05;
-
-    public double Abort { get; init; } = 0.05;
-}
-
-public enum MotivationScenario
-{
-    Ok,
-    Slow,
-    Error,
-    Unavailable,
-    Abort,
+    return MotivationScenario.Ok;
 }

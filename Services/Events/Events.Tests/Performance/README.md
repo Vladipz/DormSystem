@@ -5,11 +5,12 @@ This folder contains `k6` performance tests for the DormSystem APIs.
 The safest default target is the API Gateway, because it is the public entry point for the app.
 
 - Default local gateway URL: `http://localhost:5095`
-- Current first script: `GetEvents.k6.js`
+- Current simple scripts: `GetEvents.k6.js`, `GetEventDetail.k6.js`
 
-## Current Implemented Test
+## Current Implemented Tests
 
 - `GET /api/events`
+- `GET /api/events/{id}`
 
 ## Available Endpoints For Future k6 Tests
 

@@ -25,5 +25,7 @@ namespace Events.API.Contracts
         public Guid? BuildingId { get; set; }
 
         public Guid? RoomId { get; set; }
+
+        public string MotivationalPhrase { get; set; } = string.Empty;
     }
 }

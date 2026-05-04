@@ -22,20 +22,16 @@ namespace Events.API.Features.Events
             public Guid Id { get; set; }
         }
 
-        internal sealed class Handler : IRequestHandler<Query, ErrorOr<EventDetailsResponse>>
+        internal sealed class Handler(
+            EventsDbContext eventDbContext,
+            ParticipantEnricher participantEnricher,
+            IMotivationFakeClient motivationFakeClient)
+            : IRequestHandler<Query, ErrorOr<EventDetailsResponse>>
         {
-            private readonly EventsDbContext _eventDbContext;
-            private readonly ParticipantEnricher _participantEnricher;
-
-            public Handler(EventsDbContext eventDbContext, ParticipantEnricher participantEnricher)
-            {
-                _eventDbContext = eventDbContext;
-                _participantEnricher = participantEnricher;
-            }
-
             public async Task<ErrorOr<EventDetailsResponse>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var eventEntity = await _eventDbContext.Events
+                var eventEntity = await eventDbContext.Events
+                    .AsNoTracking()
                     .Where(x => x.Id == request.Id)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -44,12 +40,9 @@ namespace Events.API.Features.Events
                     return Error.NotFound("Event.NotFound", "The specified event was not found.");
                 }
 
-                // Get current participants count
-                var participantsCount = await _eventDbContext.EventParticipants
-                    .CountAsync(p => p.EventId == request.Id, cancellationToken);
-
                 // Get all participants for the event
-                var participants = await _eventDbContext.EventParticipants
+                var participants = await eventDbContext.EventParticipants
+                    .AsNoTracking()
                     .Where(p => p.EventId == request.Id)
                     .OrderByDescending(p => p.JoinedAt)
                     .Select(p => new ParticipantShortResponse
@@ -59,7 +52,11 @@ namespace Events.API.Features.Events
                     })
                     .ToListAsync(cancellationToken);
 
-                var detailedParticipants = await _participantEnricher.EnrichParticipantsAsync(participants);
+                var enrichParticipantsTask = participantEnricher.EnrichParticipantsAsync(participants);
+                var motivationalPhraseTask = motivationFakeClient.GetPhraseAsync(cancellationToken);
+                await Task.WhenAll(enrichParticipantsTask, motivationalPhraseTask);
+                var detailedParticipants = await enrichParticipantsTask;
+                var motivationalPhrase = await motivationalPhraseTask;
 
                 // Create event details response
                 var eventDetails = new EventDetailsResponse
@@ -72,10 +69,11 @@ namespace Events.API.Features.Events
                     Description = eventEntity.Description,
                     NumberOfAttendees = eventEntity.NumberOfAttendees,
                     IsPublic = eventEntity.IsPublic,
-                    CurrentParticipantsCount = participantsCount,
+                    CurrentParticipantsCount = participants.Count,
                     Participants = detailedParticipants,
                     BuildingId = eventEntity.BuildingId,
                     RoomId = eventEntity.RoomId,
+                    MotivationalPhrase = motivationalPhrase,
                 };
 
                 return eventDetails;
