@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   Building,
   Calendar,
@@ -52,58 +52,10 @@ export function NavigationItems({
   showComingSoon = true,
 }: NavigationItemsProps) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const { userRole } = useAuth();
 
   const isRouteActive = (path: string) => {
     return location.pathname === path;
-  };
-
-  const handleNavClick = (path: string, e: React.MouseEvent, isComingSoon?: boolean) => {
-    // Prevent navigation for coming soon items
-    if (isComingSoon) {
-      e.preventDefault();
-      return;
-    }
-
-    // Special handling for admin route
-    if (path === "/admin") {
-      e.preventDefault();
-
-      if (!isAuthenticated) {
-        navigate({ to: "/login", search: { returnTo: "/admin" } });
-        return;
-      }
-
-      if (userRole !== "Admin") {
-        // Optionally show a toast or alert here
-        return;
-      }
-
-      navigate({ to: "/admin" });
-      onItemClick?.();
-      return;
-    }
-
-    // Special handling for inspections route
-    if (path === "/inspections") {
-      e.preventDefault();
-
-      if (!isAuthenticated) {
-        navigate({ to: "/login", search: { returnTo: "/inspections" } });
-        return;
-      }
-
-      // Allow access to inspections list for all authenticated users
-      // Admin role checking is handled in the route's beforeLoad
-      navigate({ to: "/inspections" });
-      onItemClick?.();
-      return;
-    }
-
-    // For other routes, proceed normally
-    navigate({ to: path });
-    onItemClick?.();
   };
 
   // Get items to display
@@ -123,27 +75,42 @@ export function NavigationItems({
         const Icon = item.icon;
         const isComingSoon = item.comingSoon;
         
+        if (isComingSoon) {
+          return (
+            <Button
+              key={item.path}
+              variant="ghost"
+              className="w-full cursor-not-allowed justify-start opacity-70"
+              disabled
+            >
+              <div className="flex w-full items-center justify-between">
+                <div className="flex items-center">
+                  <Icon className="mr-2 h-5 w-5" />
+                  {item.label}
+                </div>
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  Soon
+                </Badge>
+              </div>
+            </Button>
+          );
+        }
+
         return (
           <Button
             key={item.path}
             variant={isRouteActive(item.path) ? "default" : "ghost"}
-            className={`w-full justify-start ${isComingSoon ? "cursor-not-allowed opacity-70" : ""}`}
-            onClick={(e) => handleNavClick(item.path, e, isComingSoon)}
-            disabled={isComingSoon}
+            className="w-full justify-start"
+            asChild
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <Icon className="mr-2 h-5 w-5" />
-                {item.label}
+            <Link to={item.path} onClick={onItemClick}>
+              <div className="flex w-full items-center justify-between">
+                <div className="flex items-center">
+                  <Icon className="mr-2 h-5 w-5" />
+                  {item.label}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {isComingSoon && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    Soon
-                  </Badge>
-                )}
-              </div>
-            </div>
+            </Link>
           </Button>
         );
       })}

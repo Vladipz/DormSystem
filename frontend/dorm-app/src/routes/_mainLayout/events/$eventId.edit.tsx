@@ -2,6 +2,7 @@ import { EventForm, EventFormValues } from "@/components/EventForm";
 import { EventFormSkeleton } from "@/components/EventFormSkeleton";
 import { LoginRequiredMessage } from "@/components/LoginRequiredMessage";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
@@ -17,7 +18,7 @@ import {
 export const Route = createFileRoute("/_mainLayout/events/$eventId/edit")({
   async beforeLoad({ params }) {
     const { eventId } = params;
-    const user = authService.checkAuthStatus();
+    const user = await authService.checkAuthStatus();
     if (!user || !user.isAuthenticated) {
       // Не редіректимо, просто даємо компоненту відрендерити LoginRequiredMessage
       return;
@@ -41,8 +42,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { updateEventMutation } = useEvents();
   const queryClient = useQueryClient();
-  // Always call hooks first
-  const user = authService.checkAuthStatus();
+  const { user, isAuthenticated } = useAuth();
   const {
     data: event,
     isLoading: isEventLoading,
@@ -55,7 +55,7 @@ function RouteComponent() {
   });
 
   // Render login message if not authenticated
-  if (!user || !user.isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <LoginRequiredMessage returnTo={`/events/${eventId}/edit`} />;
   }
 

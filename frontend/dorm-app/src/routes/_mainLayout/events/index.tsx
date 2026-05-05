@@ -3,6 +3,7 @@ import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useEvents } from "@/lib/hooks/useEvents";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertCircle, Plus, RefreshCw, Search } from "lucide-react";
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_mainLayout/events/")({
 });
 
 function RouteComponent() {
+  const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEventId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,11 +124,13 @@ function RouteComponent() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button asChild>
-          <Link to="/events/create">
-            <Plus className="mr-2 h-4 w-4" /> Create Event
-          </Link>
-        </Button>
+        {isAuthenticated && (
+          <Button asChild>
+            <Link to="/events/create">
+              <Plus className="mr-2 h-4 w-4" /> Create Event
+            </Link>
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

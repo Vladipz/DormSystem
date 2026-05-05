@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useMyNotifications } from "@/lib/hooks/useNotification";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Bell, Menu } from "lucide-react";
 import { useState } from "react";
 import { Separator } from "./ui/separator";
@@ -28,8 +28,7 @@ const mobileNotificationsItem = {
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, userRole, user } = useAuth();
+  const { userRole, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: notificationData } = useMyNotifications(user?.id, 5);
   const unreadCount = notificationData?.unreadCount ?? 0;
@@ -51,52 +50,6 @@ export function MobileBottomNav() {
 
   const isRouteActive = (path: string) => {
     return location.pathname === path;
-  };
-
-  const handleNavClick = (path: string, e: React.MouseEvent, isComingSoon?: boolean) => {
-    // Prevent navigation for coming soon items
-    if (isComingSoon) {
-      e.preventDefault();
-      return;
-    }
-
-    // Special handling for admin route
-    if (path === "/admin") {
-      e.preventDefault();
-
-      if (!isAuthenticated) {
-        navigate({ to: "/login", search: { returnTo: "/admin" } });
-        return;
-      }
-
-      if (userRole !== "Admin") {
-        // Optionally show a toast or alert here
-        return;
-      }
-
-      navigate({ to: "/admin" });
-      setIsMenuOpen(false);
-      return;
-    }
-
-    // Special handling for inspections route
-    if (path === "/inspections") {
-      e.preventDefault();
-      
-      if (!isAuthenticated) {
-        navigate({ to: "/login", search: { returnTo: "/inspections" } });
-        return;
-      }
-      
-      // Allow access to inspections list for all authenticated users
-      navigate({ to: "/inspections" });
-      setIsMenuOpen(false);
-      return;
-    }
-
-    // For other routes, navigate normally
-    navigate({ to: path });
-    setIsMenuOpen(false);
   };
 
   // Check if any menu item is active to highlight the menu button
@@ -192,32 +145,49 @@ export function MobileBottomNav() {
                 const Icon = item.icon;
                 const isComingSoon = item.comingSoon;
                 
+                if (isComingSoon) {
+                  return (
+                    <Button
+                      key={item.path}
+                      variant="ghost"
+                      className="h-12 w-full cursor-not-allowed justify-start opacity-70"
+                      disabled
+                    >
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center">
+                          <Icon className="mr-3 h-5 w-5" />
+                          {item.label}
+                        </div>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Soon
+                        </Badge>
+                      </div>
+                    </Button>
+                  );
+                }
+
                 return (
                   <Button
                     key={item.path}
                     variant={isRouteActive(item.path) ? "default" : "ghost"}
-                    className={`w-full justify-start h-12 ${isComingSoon ? "cursor-not-allowed opacity-70" : ""}`}
-                    onClick={(e) => handleNavClick(item.path, e, isComingSoon)}
-                    disabled={isComingSoon}
+                    className="h-12 w-full justify-start"
+                    asChild
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center">
-                        <Icon className="mr-3 h-5 w-5" />
-                        {item.label}
+                    <Link to={item.path} onClick={() => setIsMenuOpen(false)}>
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center">
+                          <Icon className="mr-3 h-5 w-5" />
+                          {item.label}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {item.path === "/notifications" && unreadCount > 0 && (
+                            <Badge variant="destructive" className="min-w-5 px-1 text-[10px]">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {item.path === "/notifications" && unreadCount > 0 && (
-                          <Badge variant="destructive" className="min-w-5 px-1 text-[10px]">
-                            {unreadCount > 9 ? "9+" : unreadCount}
-                          </Badge>
-                        )}
-                        {isComingSoon && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            Soon
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                    </Link>
                   </Button>
                 );
               })}

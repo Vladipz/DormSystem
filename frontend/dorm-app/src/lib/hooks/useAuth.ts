@@ -1,81 +1,92 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  createElement,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { authService } from "../services/authService";
 import { AuthUser, LinkCodeResponse } from "../types/auth";
 
+interface AuthContextValue {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  userId: string | undefined;
+  userRole: string | undefined;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<AuthUser | null>;
+  requireAuth: (returnTo?: string) => Promise<boolean>;
+  generateLinkCode: () => Promise<LinkCodeResponse>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
 /**
- * Custom hook for handling authentication state and operations
+ * Keeps auth state shared across the app instead of re-checking auth in every consumer.
  */
-export function useAuth() {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  // Check authentication status on mount 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
-        // Перевіряємо статус аутентифікації
-        // authService вже автоматично перевіряє і рефрешить токен якщо потрібно
         const authStatus = await authService.checkAuthStatus();
-        setUser(authStatus);
+        if (isMounted) {
+          setUser(authStatus);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    checkAuth();
+    void checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  /**
-   * Logout function that handles both auth service and React state
-   */
   const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
     navigate({ to: "/" });
   }, [navigate]);
 
-  /**
-   * Refresh authentication status
-   */
   const refreshAuth = useCallback(async () => {
-    // Автоматична перевірка і оновлення токена якщо потрібно
     const authStatus = await authService.checkAuthStatus();
     setUser(authStatus);
     return authStatus;
   }, []);
 
-  /**
-   * Require authentication, redirects to login if not authenticated
-   * @param returnTo Optional path to return to after login
-   * @returns True if authenticated, false otherwise
-   */
   const requireAuth = useCallback(
     async (returnTo?: string) => {
       const currentAuth = await refreshAuth();
 
       if (!currentAuth?.isAuthenticated) {
-        navigate({
-          to: "/login",
-          search: returnTo ? { returnTo } : undefined,
-        });
+        navigate({ to: "/login", search: { returnTo: returnTo ?? "/" } });
         return false;
       }
 
       return true;
     },
-    [navigate, refreshAuth]
+    [navigate, refreshAuth],
   );
 
-  /**
-   * Generate a link code for Telegram account linking
-   */
   const generateLinkCode = useCallback(async (): Promise<LinkCodeResponse> => {
     return await authService.generateLinkCode();
   }, []);
 
-  return {
+  const value: AuthContextValue = {
     user,
     isLoading,
     isAuthenticated: !!user?.isAuthenticated,
@@ -86,4 +97,19 @@ export function useAuth() {
     requireAuth,
     generateLinkCode,
   };
+
+  return createElement(AuthContext.Provider, { value }, children);
+}
+
+/**
+ * Custom hook for handling authentication state and operations
+ */
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
+  return context;
 }

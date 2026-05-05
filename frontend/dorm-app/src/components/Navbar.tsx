@@ -168,7 +168,9 @@ export function Navbar() {
                     ) : (
                         <div className="flex gap-2">
                             <Button variant="ghost" asChild>
-                                <Link to="/login">Login</Link>
+                                <Link to="/login" search={{ returnTo: location.pathname }}>
+                                    Login
+                                </Link>
                             </Button>
                             <Button asChild>
                                 <Link to="/register">Register</Link>
