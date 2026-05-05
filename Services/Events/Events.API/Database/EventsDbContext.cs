@@ -15,6 +15,8 @@ namespace Events.API.Database
 
         public DbSet<EventParticipant> EventParticipants { get; set; } = null!;
 
+        public DbSet<EventComment> EventComments { get; set; } = null!;
+
         public DbSet<InvitationToken> InvitationTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +30,23 @@ namespace Events.API.Database
                 .HasOne(ep => ep.Event)
                 .WithMany(e => e.Participants)
                 .HasForeignKey(ep => ep.EventId);
+
+            modelBuilder.Entity<EventComment>()
+                .HasKey(ec => ec.Id);
+
+            modelBuilder.Entity<EventComment>()
+                .Property(ec => ec.Content)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            modelBuilder.Entity<EventComment>()
+                .HasOne(ec => ec.Event)
+                .WithMany(e => e.Comments)
+                .HasForeignKey(ec => ec.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EventComment>()
+                .HasIndex(ec => new { ec.EventId, ec.CreatedAt });
 
             modelBuilder.Entity<InvitationToken>()
                 .HasOne(i => i.Event)

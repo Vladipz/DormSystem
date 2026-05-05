@@ -1,5 +1,12 @@
 import { axiosClient } from "../utils/axios-client";
-import { CreateEventRequest, Event, EventDetails, PagedEventsResponse } from "../types/event";
+import {
+  CreateEventRequest,
+  Event,
+  EventComment,
+  EventDetails,
+  PagedEventCommentsResponse,
+  PagedEventsResponse,
+} from "../types/event";
 
 const API_URL = "/events";
 
@@ -18,6 +25,53 @@ export class EventService {
   public static async getEventById(eventId: string): Promise<EventDetails> {
     const response = await axiosClient.get<EventDetails>(`${API_URL}/${eventId}`);
     return response.data;
+  }
+
+  public static async getEventComments(
+    eventId: string,
+    pageNumber = 1,
+    pageSize = 3,
+  ): Promise<PagedEventCommentsResponse> {
+    const response = await axiosClient.get<PagedEventCommentsResponse>(
+      `${API_URL}/${eventId}/comments`,
+      {
+        params: { pageNumber, pageSize },
+      },
+    );
+
+    return response.data;
+  }
+
+  public static async createEventComment(
+    eventId: string,
+    content: string,
+  ): Promise<EventComment> {
+    const response = await axiosClient.post<EventComment>(
+      `${API_URL}/${eventId}/comments`,
+      { content },
+    );
+
+    return response.data;
+  }
+
+  public static async updateEventComment(
+    eventId: string,
+    commentId: string,
+    content: string,
+  ): Promise<EventComment> {
+    const response = await axiosClient.put<EventComment>(
+      `${API_URL}/${eventId}/comments/${commentId}`,
+      { content },
+    );
+
+    return response.data;
+  }
+
+  public static async deleteEventComment(
+    eventId: string,
+    commentId: string,
+  ): Promise<void> {
+    await axiosClient.delete(`${API_URL}/${eventId}/comments/${commentId}`);
   }
 
   public static async joinEvent(eventId: string): Promise<void> {

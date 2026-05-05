@@ -19,6 +19,24 @@ export interface EventDetails extends Event {
   motivationalPhrase: string;
 }
 
+export interface EventCommentAuthor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles?: string[];
+}
+
+export interface EventComment {
+  id: string;
+  eventId: string;
+  authorUserId: string;
+  content: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  author?: EventCommentAuthor | null;
+}
+
 export interface Participant {
   userId: string;
   joinedAt: string;
@@ -28,6 +46,8 @@ export interface Participant {
 
 
 export type PagedEventsResponse = PagedResponse<Event>;
+
+export type PagedEventCommentsResponse = PagedResponse<EventComment>;
 
 export interface CreateEventDto {
   name: string;

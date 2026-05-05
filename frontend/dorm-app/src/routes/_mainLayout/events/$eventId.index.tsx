@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/PageHeader";
+import { EventDiscussionSection } from "@/components/events/comments/EventDiscussionSection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -144,7 +145,6 @@ function OrganizerInfo({ organizerId }: { organizerId: string }) {
 function EventDetailsPage() {
   const { eventId } = Route.useParams();
   const queryClient = useQueryClient();
-  const [comment, setComment] = useState("");
   const { user, isAuthenticated } = useAuth();
   const [canEdit, setCanEdit] = useState(false);
   const { authStatus } = Route.useRouteContext();
@@ -224,21 +224,6 @@ function EventDetailsPage() {
     },
   });
 
-  // Mutation for adding comments
-  const commentMutation = useMutation({
-    mutationFn: async (text: string) => {
-      // In a real app, we would send this to the API
-      console.log("Adding comment:", text);
-      // Placeholder for API call: await EventService.addComment(eventId, text);
-      return true;
-    },
-    onSuccess: () => {
-      setComment("");
-      // Invalidate and refetch event data to show the new comment
-      queryClient.invalidateQueries({ queryKey: ["events", eventId] });
-    },
-  });
-
   // Use Query for invite link
   const {
     data: inviteLink,
@@ -268,18 +253,24 @@ function EventDetailsPage() {
     attendanceMutation.mutate(!isAttending);
   };
 
-  const handleAddComment = () => {
-    if (comment.trim() === "") return;
-    commentMutation.mutate(comment);
-  };
-
   // Визначаю isAttending через user.id у списку учасників
   const isAttending = !!(
     event &&
     user &&
     event.participants &&
-    event.participants.some((p) => p.userId === user.id)
+      event.participants.some((p) => p.userId === user.id)
   );
+
+  const canComment = !!(
+    user &&
+    isAuthenticated &&
+    event &&
+    (isAttending || event.ownerId === user.id || user.role === "Admin")
+  );
+
+  const commentDisabledReason = !isAuthenticated
+    ? "Sign in to add a comment..."
+    : "Attend this event to add a comment...";
 
   if (isLoading) {
     return (
@@ -582,49 +573,12 @@ function EventDetailsPage() {
       {/* Content Sections */}
       <div className="grid gap-6">
         <div className="space-y-6">
-          {/* Discussion Section */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Discussion</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gray-300"></div>
-                  <div className="flex-1 space-y-2">
-                    <textarea
-                      className="w-full rounded-md border p-2"
-                      placeholder="Add a comment..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      rows={3}
-                      disabled={commentMutation.isPending}
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleAddComment}
-                        disabled={
-                          commentMutation.isPending || comment.trim() === ""
-                        }
-                      >
-                        {commentMutation.isPending
-                          ? "Posting..."
-                          : "Post Comment"}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="my-4 h-px bg-gray-200"></div>
-
-                <div className="space-y-4">
-                  <p className="text-muted-foreground text-center text-sm">
-                    No comments yet. Be the first to start a conversation!
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EventDiscussionSection
+            eventId={eventId}
+            eventOwnerId={event.ownerId}
+            canComment={canComment}
+            disabledReason={commentDisabledReason}
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 using Carter;
 
 using Events.API.Database;
+using Events.API.Features.EventComments;
 using Events.API.Features.Events;
 using Events.API.Services;
 
@@ -91,6 +92,7 @@ builder.Services.AddHttpClient<IMotivationFakeClient, MotivationFakeClient>(clie
     });
 
 builder.Services.AddScoped<ParticipantEnricher>();
+builder.Services.AddScoped<CommentAuthorEnricher>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
@@ -102,6 +104,9 @@ builder.Services.AddTransient<IValidator<RemoveParticipant.Command>, RemoveParti
 builder.Services.AddTransient<IValidator<GenerateEventInvitation.Command>, GenerateEventInvitation.Validator>();
 builder.Services.AddTransient<IValidator<ValidateEventInvitation.Query>, ValidateEventInvitation.Validator>();
 builder.Services.AddTransient<IValidator<JoinEvent.Command>, JoinEvent.Validator>();
+builder.Services.AddTransient<IValidator<CreateEventComment.Command>, CreateEventComment.Validator>();
+builder.Services.AddTransient<IValidator<UpdateEventComment.Command>, UpdateEventComment.Validator>();
+builder.Services.AddTransient<IValidator<DeleteEventComment.Command>, DeleteEventComment.Validator>();
 
 builder.Services.AddCarter();
 

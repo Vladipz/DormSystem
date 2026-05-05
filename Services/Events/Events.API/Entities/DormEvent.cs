@@ -23,5 +23,7 @@ namespace Events.API.Entities
         public Guid? RoomId { get; set; }
 
         public ICollection<EventParticipant> Participants { get; init; } = new List<EventParticipant>();
+
+        public ICollection<EventComment> Comments { get; init; } = new List<EventComment>();
     }
 }
