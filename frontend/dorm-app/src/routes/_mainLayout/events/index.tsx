@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_mainLayout/events/")({
 function RouteComponent() {
   const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [selectedEventId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 9; // Show 9 events per page (3x3 grid)
@@ -23,8 +24,14 @@ function RouteComponent() {
   const { events, loading, error, refreshEvents, joinEvent, totalPages } = useEvents({
     pageNumber: currentPage,
     pageSize,
+    search: submittedSearch,
   });
   const [joiningEventId, setJoiningEventId] = useState<string | null>(null);
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setSubmittedSearch(searchTerm.trim());
+  };
 
   const handleJoinEvent = async (eventId: string) => {
     setJoiningEventId(eventId);
@@ -122,8 +129,16 @@ function RouteComponent() {
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
           />
         </div>
+        <Button variant="outline" onClick={handleSearch}>
+          <Search className="mr-2 h-4 w-4" /> Search
+        </Button>
         {isAuthenticated && (
           <Button asChild>
             <Link to="/events/create">

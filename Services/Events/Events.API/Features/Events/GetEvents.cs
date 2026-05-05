@@ -19,6 +19,8 @@ namespace Events.API.Features.Events
             public int PageNumber { get; set; } = 1;
 
             public int PageSize { get; set; } = 10;
+
+            public string? Search { get; set; }
         }
 
         internal sealed class Handler : IRequestHandler<Query, ErrorOr<PagedResponse<EventResponce>>>
@@ -32,7 +34,15 @@ namespace Events.API.Features.Events
 
             public async Task<ErrorOr<PagedResponse<EventResponce>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var query = _eventDbContext.Events
+                var eventsQuery = _eventDbContext.Events.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(request.Search))
+                {
+                    var search = request.Search.Trim();
+                    eventsQuery = eventsQuery.Where(e => e.Name.Contains(search));
+                }
+
+                var query = eventsQuery
                     .OrderByDescending(e => e.Date)
                     .Select(static x => new EventResponce
                     {
@@ -71,12 +81,14 @@ namespace Events.API.Features.Events
             app.MapGet("/events", async (
                 ISender sender,
                 int pageNumber = 1,
-                int pageSize = 10) =>
+                int pageSize = 10,
+                string? search = null) =>
             {
                 var query = new GetEvents.Query
                 {
                     PageNumber = Math.Max(1, pageNumber),
                     PageSize = Math.Clamp(pageSize, 1, 100),
+                    Search = search,
                 };
 
                 var result = await sender.Send(query);
@@ -89,7 +101,7 @@ namespace Events.API.Features.Events
             .WithName("GetEvents")
             .WithTags("Events")
             .WithSummary("Get paginated list of events")
-            .WithDescription("Retrieves a paginated list of all events. Supports filtering by page number and page size. Returns event details including name, dates, location, and participant count.")
+            .WithDescription("Retrieves a paginated list of events. Supports filtering by page number, page size, and event name search. Returns event details including name, dates, location, and participant count.")
             .IncludeInOpenApi();
         }
     }

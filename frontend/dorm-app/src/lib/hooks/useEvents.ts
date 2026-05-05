@@ -5,21 +5,24 @@ import { CreateEventRequest } from "../types/event";
 interface UseEventsParams {
   pageNumber?: number;
   pageSize?: number;
+  search?: string;
 }
 
-export const useEvents = ({ pageNumber = 1, pageSize = 10 }: UseEventsParams = {}) => {
+export const useEvents = ({
+  pageNumber = 1,
+  pageSize = 10,
+  search = "",
+}: UseEventsParams = {}) => {
   const queryClient = useQueryClient();
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["events", { pageNumber, pageSize }],
-    queryFn: () => EventService.getAllEvents(pageNumber, pageSize),
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["events", { pageNumber, pageSize, search }],
+    queryFn: () => EventService.getAllEvents(pageNumber, pageSize, search),
     retry: (failureCount, error) => {
-      if (error instanceof Error && error.message === 'Authentication required to fetch events') {
+      if (
+        error instanceof Error &&
+        error.message === "Authentication required to fetch events"
+      ) {
         return false;
       }
       return failureCount < 1;

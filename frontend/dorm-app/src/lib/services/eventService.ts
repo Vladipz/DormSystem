@@ -14,9 +14,10 @@ export class EventService {
   public static async getAllEvents(
     pageNumber = 1,
     pageSize = 10,
+    search?: string,
   ): Promise<PagedEventsResponse> {
     const response = await axiosClient.get<PagedEventsResponse>(API_URL, {
-      params: { pageNumber, pageSize },
+      params: { pageNumber, pageSize, search: search || undefined },
     });
 
     return response.data;
