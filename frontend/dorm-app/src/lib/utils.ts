@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:5095";
+
+export function resolveApiUrl(url: string): string {
+  if (!url || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+
+  return `${API_BASE_URL}${url}`;
+}
+
 /**
  * Generates a random emoji to be used as a placeholder avatar
  * Can be easily replaced with actual user avatars later

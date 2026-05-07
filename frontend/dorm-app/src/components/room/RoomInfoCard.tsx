@@ -9,6 +9,7 @@ import {
 } from "@/components/ui";
 import { useBlockById } from "@/lib/hooks/useBlocks";
 import { RoomDetailsResponse } from "@/lib/types/room";
+import { resolveApiUrl } from "@/lib/utils";
 import { getGenderRuleColor } from "@/lib/utils/genreRuleUtils";
 import { useState } from "react";
 
@@ -47,7 +48,7 @@ export function RoomInfoCard({ room }: RoomInfoCardProps) {
                   className="h-full w-full cursor-pointer"
                 >
                   <img
-                    src={room.photoUrls[0]}
+                    src={resolveApiUrl(room.photoUrls[0])}
                     alt={`Room ${room.label}`}
                     className="h-full w-full object-cover transition-opacity hover:opacity-90"
                     onError={(e) => {
@@ -74,7 +75,7 @@ export function RoomInfoCard({ room }: RoomInfoCardProps) {
                     className="aspect-square cursor-pointer overflow-hidden rounded-md"
                   >
                     <img
-                      src={photo}
+                      src={resolveApiUrl(photo)}
                       alt={`Room ${room.label} - Thumbnail ${index + 2}`}
                       className="h-full w-full object-cover transition-opacity hover:opacity-90"
                       onError={(e) => {

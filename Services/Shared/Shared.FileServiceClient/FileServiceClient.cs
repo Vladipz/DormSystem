@@ -108,13 +108,7 @@ namespace Shared.FileServiceClient
                 return string.Empty;
             }
 
-            if (_httpClient.BaseAddress is null)
-            {
-                _logger.LogWarning("Attempted to get file URL without configured base address");
-                return $"/api/files/{fileId}";
-            }
-
-            return new Uri(_httpClient.BaseAddress, $"/api/files/{fileId}").ToString();
+            return $"/api/files/{fileId}";
         }
 
         public async Task<(byte[] data, string contentType, string fileName)?> GetFileAsync(string fileId)

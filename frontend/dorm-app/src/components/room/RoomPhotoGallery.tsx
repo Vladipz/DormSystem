@@ -1,4 +1,5 @@
-import { Button, Dialog, DialogContent } from "@/components/ui";
+import { Button, Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui";
+import { resolveApiUrl } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -51,6 +52,12 @@ export function RoomPhotoGallery({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0" onKeyDown={handleKeyDown}>
+        <DialogTitle className="sr-only">
+          Room {roomLabel} photo gallery
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Use previous and next buttons to browse room photos.
+        </DialogDescription>
         <div className="relative">
           {/* Close button */}
           <Button
@@ -65,7 +72,7 @@ export function RoomPhotoGallery({
           {/* Main image */}
           <div className="relative bg-black">
             <img
-              src={photos[currentIndex]}
+              src={resolveApiUrl(photos[currentIndex])}
               alt={`Room ${roomLabel} - Photo ${currentIndex + 1}`}
               className="h-auto max-h-[80vh] w-full object-contain"
               onError={(e) => {
@@ -117,7 +124,7 @@ export function RoomPhotoGallery({
                     }`}
                   >
                     <img
-                      src={photo}
+                      src={resolveApiUrl(photo)}
                       alt={`Thumbnail ${index + 1}`}
                       className="h-16 w-16 object-cover"
                       onError={(e) => {

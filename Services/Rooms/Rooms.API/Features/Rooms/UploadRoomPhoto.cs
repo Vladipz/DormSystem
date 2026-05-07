@@ -97,6 +97,13 @@ namespace Rooms.API.Features.Rooms
                         request.Photo.ContentType,
                         "gallery");
 
+                    if (uploadResult is null)
+                    {
+                        return Error.Failure(
+                            code: "RoomPhoto.UploadFailed",
+                            description: "File storage service failed to upload room photo.");
+                    }
+
                     // Add photo ID to room
                     room.PhotoIds.Add(uploadResult.Id);
                     await _dbContext.SaveChangesAsync(ct);

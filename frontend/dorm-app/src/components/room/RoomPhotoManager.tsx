@@ -9,6 +9,7 @@ import {
 } from "@/components/ui";
 import { useDeleteRoomPhoto, useUploadRoomPhoto } from "@/lib/hooks/useRooms";
 import { RoomDetailsResponse } from "@/lib/types/room";
+import { resolveApiUrl } from "@/lib/utils";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 
@@ -83,7 +84,7 @@ export function RoomPhotoManager({ room }: RoomPhotoManagerProps) {
               <div key={index} className="relative group">
                 <div className="aspect-square overflow-hidden rounded-lg border">
                   <img
-                    src={photoUrl}
+                    src={resolveApiUrl(photoUrl)}
                     alt={`Room ${room.label} - Photo ${index + 1}`}
                     className="h-full w-full object-cover"
                     onError={(e) => {
