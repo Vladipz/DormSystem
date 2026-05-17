@@ -1,4 +1,5 @@
 import { BuildingMap } from '@/components/BuildingMap'
+import { MaintenanceHeatmap } from '@/components/maintenance-analytics/MaintenanceHeatmap'
 import { MaintenanceCenter } from '@/components/MaintenanceCenter'
 import { MoveWizard } from '@/components/MoveWizard'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -19,12 +20,15 @@ function RouteComponent() {
         <h1 className="text-2xl font-bold">Room Service</h1>
       </div>
       <Tabs defaultValue="building-map" className="w-full">
-        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-2'}`}>
           <TabsTrigger value="building-map">Building Map</TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="move-wizard">Move In/Out</TabsTrigger>
           )}
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="maintenance-heatmap">Maintenance Heatmap</TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value="building-map">
           <BuildingMap></BuildingMap>
@@ -37,6 +41,11 @@ function RouteComponent() {
         <TabsContent value="maintenance">
           <MaintenanceCenter />
         </TabsContent>
+        {isAdmin && (
+          <TabsContent value="maintenance-heatmap">
+            <MaintenanceHeatmap isAdmin={isAdmin} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   </>

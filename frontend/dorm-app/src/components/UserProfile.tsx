@@ -42,12 +42,9 @@ export function UserProfile({ user, userId }: UserProfileProps) {
   }, [user.name, user.email]);
 
   const handleAvatarUpdate = async (newAvatarUrl: string) => {
-    console.log("Avatar update received:", newAvatarUrl);
-
     // Спочатку оновлюємо кеш з правильною структурою
     queryClient.setQueryData<UserDetails>(["user", userId], (oldData) => {
       if (oldData) {
-        console.log("Updating cache with new avatar:", newAvatarUrl);
         return {
           ...oldData,
           avatar: newAvatarUrl, // Використовуємо avatar, а не avatarUrl
@@ -57,6 +54,20 @@ export function UserProfile({ user, userId }: UserProfileProps) {
       return oldData;
     });
 
+    queryClient.setQueryData(
+      ["userProfile"],
+      (oldData: { avatarUrl?: string } | undefined) => {
+        if (!oldData) {
+          return oldData;
+        }
+
+        return {
+          ...oldData,
+          avatarUrl: newAvatarUrl,
+        };
+      },
+    );
+
     // Потім інвалідуємо для отримання свіжих даних з сервера
     setTimeout(async () => {
       try {
@@ -64,9 +75,13 @@ export function UserProfile({ user, userId }: UserProfileProps) {
           queryKey: ["user", userId],
           exact: true,
         });
-        console.log("Query invalidated successfully");
+
+        await queryClient.invalidateQueries({
+          queryKey: ["userProfile"],
+          exact: true,
+        });
       } catch (error) {
-        console.error("Failed to invalidate query:", error);
+        console.error("Failed to invalidate avatar queries:", error);
       }
     }, 100); // Невелика затримка для уникнення race condition
   };
@@ -114,11 +129,7 @@ export function UserProfile({ user, userId }: UserProfileProps) {
 
   return (
     <div className="space-y-6">
-      <UserInfoCard
-        user={user}
-        bio={bio}
-        onAvatarUpdate={handleAvatarUpdate}
-      />
+      <UserInfoCard user={user} bio={bio} onAvatarUpdate={handleAvatarUpdate} />
 
       <Tabs defaultValue="profile">
         <TabsList>

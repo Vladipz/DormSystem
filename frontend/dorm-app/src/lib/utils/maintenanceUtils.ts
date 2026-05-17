@@ -10,7 +10,7 @@ export const capitalize = (s: string): string =>
  * Returns the weight of a priority for sorting
  */
 export const prioWeight = (p: MaintenancePriority): number =>
-  ({ High: 0, Medium: 1, Low: 2 })[p] ?? 99;
+  ({ Critical: 0, High: 1, Medium: 2, Low: 3 })[p] ?? 99;
 
 /**
  * Returns the weight of a status for sorting
@@ -34,6 +34,7 @@ export const statusColor = (s: MaintenanceStatus): string =>
 export const prioColor = (p: MaintenancePriority): string =>
   ({
     High: "bg-orange-100 text-orange-800",
+    Critical: "bg-red-100 text-red-800",
     Medium: "bg-blue-100 text-blue-800",
     Low: "bg-green-100 text-green-800",
   })[p] ?? "bg-gray-100 text-gray-800";

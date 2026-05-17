@@ -40,13 +40,13 @@ import {
 
 // Type-safe status and priority values
 const STATUSES: MaintenanceStatus[] = ["Open", "InProgress", "Resolved"];
-const PRIORITIES: MaintenancePriority[] = ["Low", "Medium", "High"];
+const PRIORITIES: MaintenancePriority[] = ["Low", "Medium", "High", "Critical"];
 
 // Schema for the form validation
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(5, "Description is too short"),
-  priority: z.enum(["Low", "Medium", "High"]),
+  priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Open", "InProgress", "Resolved"]),
 });
 

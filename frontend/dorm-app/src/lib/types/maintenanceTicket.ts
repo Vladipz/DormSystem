@@ -1,7 +1,7 @@
 import { UserShortResponse } from "./sharedDtos";
 
 export type MaintenanceStatus = "Open" | "InProgress" | "Resolved";
-export type MaintenancePriority = "Low" | "Medium" | "High";
+export type MaintenancePriority = "Low" | "Medium" | "High" | "Critical";
 
 export interface ShortRoomResponse {
   id: string;

@@ -28,10 +28,18 @@ import { authService } from "@/lib/services/authService";
 import { EventService } from "@/lib/services/eventService";
 import { BuildingsResponse } from "@/lib/types/building";
 import { RoomsResponse } from "@/lib/types/room";
-import { getPlaceholderAvatar } from "@/lib/utils";
+import { getPlaceholderAvatar, resolveApiUrl } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Calendar, Clock, Copy, Edit, MapPin, Sparkles, Users } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Copy,
+  Edit,
+  MapPin,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
@@ -43,12 +51,12 @@ export const Route = createFileRoute("/_mainLayout/events/$eventId/")({
 });
 
 // Component to display user avatar with real data
-function UserAvatar({ 
-  userId, 
+function UserAvatar({
+  userId,
   size = "h-8 w-8",
   showTooltip = true,
-  fallbackIndex = 0 
-}: { 
+  fallbackIndex = 0,
+}: {
   userId: string;
   size?: string;
   showTooltip?: boolean;
@@ -60,23 +68,21 @@ function UserAvatar({
     return <Skeleton className={`${size} rounded-full`} />;
   }
 
-  const displayName = userDetails 
-    ? `${userDetails.firstName} ${userDetails.lastName}` 
+  const displayName = userDetails
+    ? `${userDetails.firstName} ${userDetails.lastName}`
     : "Unknown User";
-    
+
   const initials = userDetails
     ? `${userDetails.firstName[0] || ""}${userDetails.lastName[0] || ""}`.toUpperCase()
     : getPlaceholderAvatar(fallbackIndex, userId);
 
   const avatar = (
     <Avatar className={size}>
-      <AvatarImage 
-        src={userDetails?.avatarUrl} 
+      <AvatarImage
+        src={resolveApiUrl(userDetails?.avatarUrl)}
         alt={displayName}
       />
-      <AvatarFallback className="text-xs">
-        {initials}
-      </AvatarFallback>
+      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
     </Avatar>
   );
 
@@ -87,14 +93,12 @@ function UserAvatar({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="cursor-default">
-          {avatar}
-        </div>
+        <div className="cursor-default">{avatar}</div>
       </TooltipTrigger>
-      <TooltipContent className="border bg-popover text-popover-foreground shadow-md">
+      <TooltipContent className="bg-popover text-popover-foreground border shadow-md">
         <p>{displayName}</p>
         {userDetails?.email && (
-          <p className="text-xs text-muted-foreground">{userDetails.email}</p>
+          <p className="text-muted-foreground text-xs">{userDetails.email}</p>
         )}
       </TooltipContent>
     </Tooltip>
@@ -125,18 +129,12 @@ function OrganizerInfo({ organizerId }: { organizerId: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <UserAvatar 
-        userId={organizerId} 
-        size="h-8 w-8" 
-        showTooltip={true}
-      />
+      <UserAvatar userId={organizerId} size="h-8 w-8" showTooltip={true} />
       <div>
         <div className="font-medium">
           {organizer.firstName} {organizer.lastName}
         </div>
-        <div className="text-sm text-muted-foreground">
-          {organizer.email}
-        </div>
+        <div className="text-muted-foreground text-sm">{organizer.email}</div>
       </div>
     </div>
   );
@@ -181,7 +179,7 @@ function EventDetailsPage() {
   // Fetch room information if roomId and buildingId are available
   const { data: rooms, isLoading: roomsLoading } = useRooms(
     event?.buildingId,
-    !!event?.buildingId
+    !!event?.buildingId,
   );
 
   // Find the specific building and room
@@ -258,7 +256,7 @@ function EventDetailsPage() {
     event &&
     user &&
     event.participants &&
-      event.participants.some((p) => p.userId === user.id)
+    event.participants.some((p) => p.userId === user.id)
   );
 
   const canComment = !!(
@@ -437,9 +435,9 @@ function EventDetailsPage() {
       {/* Event Header Card */}
       <Card className="overflow-hidden py-0">
         <div className="relative">
-          <img 
-            src="/movinight.png" 
-            alt="Event Cover" 
+          <img
+            src="/movinight.png"
+            alt="Event Cover"
             className="h-64 w-full object-cover"
           />
           <div className="absolute right-4 bottom-4">
@@ -460,7 +458,9 @@ function EventDetailsPage() {
         <div className="mx-6 mt-5 mb-1 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-100/80 via-orange-100/70 to-amber-100/80 px-4 py-4 md:px-5 dark:border-amber-400/25 dark:from-amber-950/45 dark:via-orange-950/35 dark:to-amber-950/45">
           <div className="mb-2 flex items-center gap-2 text-orange-700 dark:text-amber-300">
             <Sparkles className="h-4 w-4" />
-            <p className="text-xs font-semibold tracking-wide uppercase">Motivation</p>
+            <p className="text-xs font-semibold tracking-wide uppercase">
+              Motivation
+            </p>
           </div>
           {motivationUnavailable ? (
             <p className="rounded-md border border-amber-300/60 bg-amber-100/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-300/35 dark:bg-amber-950/45 dark:text-amber-200">
@@ -545,15 +545,17 @@ function EventDetailsPage() {
               <h3 className="mb-2 font-medium">Participants</h3>
               <div className="flex flex-wrap gap-1">
                 {event.participants &&
-                  event.participants.slice(0, 5).map((participant, index) => (
-                    <UserAvatar
-                      key={participant.userId}
-                      userId={participant.userId}
-                      size="h-8 w-8"
-                      showTooltip={true}
-                      fallbackIndex={index}
-                    />
-                  ))}
+                  event.participants
+                    .slice(0, 5)
+                    .map((participant, index) => (
+                      <UserAvatar
+                        key={participant.userId}
+                        userId={participant.userId}
+                        size="h-8 w-8"
+                        showTooltip={true}
+                        fallbackIndex={index}
+                      />
+                    ))}
                 {event.participants && event.participants.length > 5 && (
                   <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium">
                     +{event.participants.length - 5}

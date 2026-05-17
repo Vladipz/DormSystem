@@ -10,7 +10,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { useUser } from "@/lib/hooks/useUser";
-import { getPlaceholderAvatar } from "@/lib/utils";
+import { getPlaceholderAvatar, resolveApiUrl } from "@/lib/utils";
 import { Bed, User } from "lucide-react";
 
 interface Place {
@@ -78,7 +78,10 @@ function PlaceOccupant({
   return (
     <div className="flex items-start gap-4" onClick={handleClick}>
       <Avatar className="h-10 w-10">
-        <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}'s avatar`} />
+        <AvatarImage
+          src={resolveApiUrl(user.avatarUrl)}
+          alt={`${user.firstName} ${user.lastName}'s avatar`}
+        />
         <AvatarFallback>{placeholderAvatar}</AvatarFallback>
       </Avatar>
       <div>
@@ -109,7 +112,7 @@ export function PlacesAndResidents({ places }: PlacesAndResidentsProps) {
                 <Badge
                   className={
                     place.isOccupied
-                      ? "bg-black text-white" 
+                      ? "bg-black text-white"
                       : "bg-green-100 text-green-800"
                   }
                   variant={place.isOccupied ? "secondary" : "outline"}

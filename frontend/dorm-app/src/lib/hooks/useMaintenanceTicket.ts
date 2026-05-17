@@ -1,4 +1,5 @@
 import { maintenanceTicketService } from "@/lib/services/maintenanceTicketService";
+import { MAINTENANCE_ANALYTICS_KEY } from "@/lib/hooks/useMaintenanceAnalytics";
 import type {
   ChangeMaintenanceTicketStatusRequest,
   CreateMaintenanceTicketRequest,
@@ -48,6 +49,9 @@ export const useCreateMaintenanceTicket = () => {
       queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKETS_KEY],
       });
+      queryClient.invalidateQueries({
+        queryKey: [MAINTENANCE_ANALYTICS_KEY],
+      });
     },
     onError: () => {
       toast.error("Failed to create ticket.");
@@ -67,6 +71,9 @@ export const useUpdateMaintenanceTicket = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKETS_KEY],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [MAINTENANCE_ANALYTICS_KEY],
       });
       queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKET_KEY, variables.id],
@@ -93,6 +100,9 @@ export const useChangeMaintenanceTicketStatus = () => {
         queryKey: [MAINTENANCE_TICKETS_KEY],
       });
       queryClient.invalidateQueries({
+        queryKey: [MAINTENANCE_ANALYTICS_KEY],
+      });
+      queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKET_KEY, variables.id],
       });
     },
@@ -112,6 +122,9 @@ export const useDeleteMaintenanceTicket = () => {
       toast.success("Ticket deleted successfully.");
       queryClient.invalidateQueries({
         queryKey: [MAINTENANCE_TICKETS_KEY],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [MAINTENANCE_ANALYTICS_KEY],
       });
       queryClient.removeQueries({
         queryKey: [MAINTENANCE_TICKET_KEY, id],

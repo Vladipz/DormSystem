@@ -35,13 +35,13 @@ import {
 } from "../ui/form";
 
 // Type-safe priority values
-const PRIORITIES: MaintenancePriority[] = ["Low", "Medium", "High"];
+const PRIORITIES: MaintenancePriority[] = ["Low", "Medium", "High", "Critical"];
 
 // Schema for the form validation
 const formSchema = z.object({
   roomId: z.string().min(1, "Please select a room"),
   description: z.string().min(5, "Description is too short"),
-  priority: z.enum(["Low", "Medium", "High"]),
+  priority: z.enum(["Low", "Medium", "High", "Critical"]),
 });
 
 // Type for the form values

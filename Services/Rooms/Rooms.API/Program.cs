@@ -20,6 +20,7 @@ using Rooms.API.Features.Blocks;
 using Rooms.API.Features.Buildings;
 using Rooms.API.Features.Floors;
 using Rooms.API.Features.Maintenance;
+using Rooms.API.Features.MaintenanceAnalytics;
 using Rooms.API.Features.Places;
 using Rooms.API.Features.Rooms;
 using Rooms.API.Services;
@@ -164,6 +165,10 @@ builder.Services.AddTransient<IValidator<DeleteMaintenanceTicket.Command>, Delet
 builder.Services.AddTransient<IValidator<GetMaintenanceTickets.Query>, GetMaintenanceTickets.Validator>();
 builder.Services.AddTransient<IValidator<GetMaintenanceTicketById.Query>, GetMaintenanceTicketById.Validator>();
 builder.Services.AddTransient<IValidator<ChangeMaintenanceTicketStatus.Command>, ChangeMaintenanceTicketStatus.Validator>();
+
+// Maintenance Analytics Validators
+builder.Services.AddTransient<IValidator<GetMaintenanceHeatmap.Query>, GetMaintenanceHeatmap.Validator>();
+builder.Services.AddTransient<IValidator<GetMaintenanceDrilldown.Query>, GetMaintenanceDrilldown.Validator>();
 
 // Register TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();

@@ -121,7 +121,7 @@ namespace Auth.BLL.Services
                     return Error.Failure(description: $"Failed to update user avatar: {string.Join(", ", updateResult.Errors.Select(e => e.Description))}");
                 }
 
-                return uploadResult.Url;
+                return _fileServiceClient.GetFileUrl(uploadResult.Id);
             }
             catch (Exception ex)
             {

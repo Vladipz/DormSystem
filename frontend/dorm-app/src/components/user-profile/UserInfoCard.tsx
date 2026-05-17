@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { userService } from "@/lib/services/userService";
+import { resolveApiUrl } from "@/lib/utils";
 import { Camera, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -30,11 +31,9 @@ export function UserInfoCard({ user, bio, onAvatarUpdate }: UserInfoCardProps) {
   const [optimisticAvatar, setOptimisticAvatar] = useState<string | null>(null);
 
   // Використовуємо оптимістичний аватар якщо він є, інакше - з props
-  const displayAvatar =
-    optimisticAvatar !== null ? optimisticAvatar : user.avatar;
-  console.log("optimisticAvatar", optimisticAvatar);
-  console.log("displayAvatar", displayAvatar);
-  console.log("user.avatar", user.avatar);
+  const displayAvatar = resolveApiUrl(
+    optimisticAvatar !== null ? optimisticAvatar : user.avatar,
+  );
 
   const validateFile = (file: File): boolean => {
     const allowedTypes = [
@@ -102,7 +101,6 @@ export function UserInfoCard({ user, bio, onAvatarUpdate }: UserInfoCardProps) {
         setOptimisticAvatar(null);
       }, 1000);
     } catch (error) {
-      console.error("Upload error:", error);
       setOptimisticAvatar(null); // Скидаємо при помилці
       toast.error("Upload failed", {
         description:
@@ -133,7 +131,6 @@ export function UserInfoCard({ user, bio, onAvatarUpdate }: UserInfoCardProps) {
         setOptimisticAvatar(null);
       }, 1000);
     } catch (error) {
-      console.log("error", error);
       setOptimisticAvatar(null); // Скидаємо при помилці
       toast.error("Delete failed", {
         description:
